@@ -63,26 +63,27 @@ const inputCls =
  * Returns the secure_url on success.
  */
 async function uploadToCloudinary(file: File): Promise<string> {
-  const cloud = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-  const preset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
-
-  // Cloudinary must be configured for persisted images.
-  // Object/blob URLs do not survive the API round-trip and will fail backend URL validation.
-  if (!cloud || !preset) {
-    throw new Error('Cloudinary is not configured. Set VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET for the admin frontend.');
-  }
+  const BASE: string = ((import.meta as any)?.env?.VITE_API_URL as string) ?? 'http://localhost:4000/api/v1';
+  const stored = localStorage.getItem('ncole_tokens');
+  const accessToken: string | undefined = stored ? (JSON.parse(stored) as { accessToken?: string }).accessToken : undefined;
 
   const fd = new FormData();
-  fd.append('file', file);
-  fd.append('upload_preset', preset);
+  fd.append('image', file);
 
-  const res = await fetch(`https://api.cloudinary.com/v1_1/${cloud}/image/upload`, {
-    method: 'POST',
-    body: fd,
-  });
-  if (!res.ok) throw new Error('Image upload failed');
-  const data = await res.json();
-  return data.secure_url as string;
+  const headers: Record<string, string> = {};
+  if (accessToken) headers['Authorization'] = 'Bearer ' + accessToken;
+
+  const res = await fetch(BASE + '/products/upload-image', { method: 'POST', headers, body: fd });
+
+  if (!res.ok) {
+    const errJson = await res.json().catch(function () { return {} as Record<string, string>; });
+    throw new Error((errJson as { error?: string }).error ?? ('Upload failed (HTTP ' + res.status + ')'));
+  }
+
+  const json = await res.json() as { data?: { url?: string }; url?: string };
+  const url = json?.data?.url ?? json?.url;
+  if (!url) throw new Error('Cloudinary upload succeeded but returned no URL');
+  return url;
 }
 
 // ─── ProductFormModal ─────────────────────────────────────────────────────────
