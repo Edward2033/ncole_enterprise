@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -39,7 +39,7 @@ const VendorProductsPage: React.FC = () => {
     defaultValues: { status: 'DRAFT', stockQty: 0 },
   });
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const profile = await vendorProfileService.getMyProfile();
@@ -51,7 +51,7 @@ const VendorProductsPage: React.FC = () => {
       setCategories(cRes.data);
     } catch { /* ignore */ }
     finally { setLoading(false); }
-  };
+  }, []);
 
   useEffect(() => { load(); }, []);
 

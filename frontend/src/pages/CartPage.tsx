@@ -1,113 +1,273 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import {
+  Minus, Plus, Trash2, ShoppingBag, ArrowRight,
+  ShieldCheck, Truck, Tag, LogIn, UserPlus, Lock,
+} from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { formatPrice } from '@/lib/format';
 
-const CartPage: React.FC = () => {
-  const { items, updateQuantity, removeFromCart, subtotal } = useCart();
+// ── Trust badge ───────────────────────────────────────────────────────────────
+const TrustBadge: React.FC<{ icon: React.ReactNode; text: string }> = ({ icon, text }) => (
+  <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+    {icon}
+    <span>{text}</span>
+  </div>
+);
 
-  if (items.length === 0) {
-    return (
-      <div className="mx-auto flex max-w-3xl flex-col items-center px-4 py-24 text-center">
-        <ShoppingBag className="h-16 w-16 text-slate-200" />
-        <h1 className="mt-6 font-serif text-2xl font-bold text-slate-900">Your cart is empty</h1>
-        <p className="mt-2 text-slate-500">Browse our products and add something you love.</p>
-        <Link
-          to="/"
-          className="mt-6 rounded-full bg-orange-500 px-7 py-3 text-sm font-semibold text-white hover:bg-orange-600"
-        >
-          Start Shopping
-        </Link>
+// ── Auth wall (shown when not logged in) ──────────────────────────────────────
+const AuthWall: React.FC = () => (
+  <div className="mx-auto flex max-w-md flex-col items-center px-4 py-24 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-orange-50 dark:bg-orange-900/20 shadow-inner">
+      <Lock className="h-10 w-10 text-orange-400" />
+    </div>
+    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Sign in to view your cart</h1>
+    <p className="mt-3 text-slate-500 dark:text-slate-400 leading-relaxed">
+      You need an account to add items to your cart and place orders. It only takes a moment to join.
+    </p>
+    <div className="mt-8 flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
+      <Link to="/login"
+        className="flex items-center justify-center gap-2 rounded-full bg-orange-500 px-7 py-3.5 text-sm font-semibold text-white hover:bg-orange-600 transition-all duration-200 shadow-md shadow-orange-200 dark:shadow-orange-900/30 active:scale-95">
+        <LogIn className="h-4 w-4" /> Sign In
+      </Link>
+      <Link to="/register"
+        className="flex items-center justify-center gap-2 rounded-full border border-slate-200 dark:border-slate-700 px-7 py-3.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:border-orange-400 hover:text-orange-600 transition-all duration-200 active:scale-95">
+        <UserPlus className="h-4 w-4" /> Create Account
+      </Link>
+    </div>
+    <Link to="/shop"
+      className="mt-5 text-sm text-slate-400 hover:text-orange-600 transition-colors underline underline-offset-4">
+      Continue browsing →
+    </Link>
+  </div>
+);
+
+// ── Empty cart ────────────────────────────────────────────────────────────────
+const EmptyCart: React.FC = () => (
+  <div className="mx-auto flex max-w-md flex-col items-center px-4 py-24 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="relative mb-6">
+      <div className="flex h-24 w-24 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+        <ShoppingBag className="h-12 w-12 text-slate-300 dark:text-slate-600" />
       </div>
-    );
-  }
+      <div className="absolute -right-1 -top-1 flex h-7 w-7 items-center justify-center rounded-full bg-orange-500 text-xs font-bold text-white">
+        0
+      </div>
+    </div>
+    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Your cart is empty</h1>
+    <p className="mt-2 text-slate-500 dark:text-slate-400">
+      Browse our products and add something you love.
+    </p>
+    <Link to="/shop"
+      className="mt-8 flex items-center gap-2 rounded-full bg-orange-500 px-7 py-3.5 text-sm font-semibold text-white hover:bg-orange-600 transition-all duration-200 shadow-md shadow-orange-200 dark:shadow-orange-900/30 active:scale-95">
+      <ShoppingBag className="h-4 w-4" /> Start Shopping
+    </Link>
+  </div>
+);
+
+// ── Main CartPage ─────────────────────────────────────────────────────────────
+const CartPage: React.FC = () => {
+  const { items, updateQuantity, removeFromCart, subtotal, clearCart } = useCart();
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const [removingId, setRemovingId] = useState<string | null>(null);
+
+  // Auth guard — not logged in
+  if (!isAuthenticated) return <AuthWall />;
+
+  // Empty cart
+  if (items.length === 0) return <EmptyCart />;
+
+  const delivery = 0;
+  const total    = subtotal + delivery;
+
+  const handleRemove = async (productId: string, variantId?: string) => {
+    const key = productId + (variantId ?? '');
+    setRemovingId(key);
+    setTimeout(() => {
+      removeFromCart(productId, variantId);
+      setRemovingId(null);
+    }, 250);
+  };
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 lg:px-8">
-      <h1 className="mb-8 font-serif text-3xl font-bold text-slate-900">Shopping Cart</h1>
+
+      {/* Page header */}
+      <div className="mb-8 flex items-center justify-between animate-in fade-in slide-in-from-top-4 duration-400">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Shopping Cart</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            {items.length} item{items.length !== 1 ? 's' : ''} in your cart
+          </p>
+        </div>
+        <button onClick={() => clearCart()}
+          className="text-xs font-medium text-slate-400 hover:text-red-500 transition-colors underline underline-offset-4">
+          Clear all
+        </button>
+      </div>
+
       <div className="grid gap-8 lg:grid-cols-3">
+
+        {/* ── Cart items ───────────────────────────────────────────────────── */}
         <div className="space-y-4 lg:col-span-2">
-          {items.map((item) => (
-            <div
-              key={item.product_id + (item.variant_id || '')}
-              className="flex gap-4 rounded-2xl border border-slate-200 bg-white p-4"
-            >
-              <img
-                src={item.image}
-                alt={item.name}
-                className="h-24 w-24 flex-shrink-0 rounded-xl border border-slate-100 object-cover"
-              />
-              <div className="flex flex-1 flex-col">
-                <div className="flex justify-between gap-3">
-                  <div>
-                    <p className="font-semibold text-slate-900">{item.name}</p>
-                    {item.variant_title && <p className="text-sm text-slate-400">{item.variant_title}</p>}
-                    {item.options && (
-                      <p className="mt-0.5 text-xs text-slate-400">
-                        {Object.values(item.options).join(' · ')}
-                      </p>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => removeFromCart(item.product_id, item.variant_id)}
-                    className="text-slate-300 hover:text-red-500"
-                    aria-label="Remove"
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </button>
+          {items.map((item, i) => {
+            const key       = item.product_id + (item.variant_id ?? '');
+            const isRemoving = removingId === key;
+
+            return (
+              <div
+                key={key}
+                className={`group flex gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-300
+                  dark:border-slate-700 dark:bg-slate-800
+                  hover:border-orange-200 hover:shadow-md dark:hover:border-orange-800
+                  animate-in fade-in slide-in-from-left-4
+                  ${isRemoving ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}
+                `}
+                style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'both' }}
+              >
+                {/* Product image */}
+                <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700">
+                  {item.image ? (
+                    <img
+                      src={item.image} alt={item.name} loading="lazy"
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center">
+                      <ShoppingBag className="h-8 w-8 text-slate-300" />
+                    </div>
+                  )}
                 </div>
-                <div className="mt-auto flex items-center justify-between pt-3">
-                  <div className="flex items-center rounded-full border border-slate-200">
+
+                {/* Details */}
+                <div className="flex flex-1 flex-col min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-slate-900 dark:text-white truncate">{item.name}</p>
+                      {item.variant_title && (
+                        <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">{item.variant_title}</p>
+                      )}
+                      {item.sku && (
+                        <p className="text-xs text-slate-400 dark:text-slate-500 font-mono">SKU: {item.sku}</p>
+                      )}
+                      <p className="mt-1 text-sm font-medium text-orange-600 dark:text-orange-400">
+                        {formatPrice(item.price)} each
+                      </p>
+                    </div>
+
+                    {/* Remove */}
                     <button
-                      onClick={() => updateQuantity(item.product_id, item.quantity - 1, item.variant_id)}
-                      className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-slate-100"
-                      aria-label="Decrease"
+                      onClick={() => handleRemove(item.product_id, item.variant_id)}
+                      className="flex-shrink-0 rounded-lg p-1.5 text-slate-300 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"
+                      aria-label="Remove item"
                     >
-                      <Minus className="h-3.5 w-3.5" />
-                    </button>
-                    <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
-                    <button
-                      onClick={() => updateQuantity(item.product_id, item.quantity + 1, item.variant_id)}
-                      className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-slate-100"
-                      aria-label="Increase"
-                    >
-                      <Plus className="h-3.5 w-3.5" />
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
-                  <span className="font-bold text-slate-900">{formatPrice(item.price * item.quantity)}</span>
+
+                  {/* Quantity + line total */}
+                  <div className="mt-auto flex items-center justify-between pt-3">
+                    {/* Qty stepper */}
+                    <div className="flex items-center gap-1 rounded-full border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 p-0.5">
+                      <button
+                        onClick={() => updateQuantity(item.product_id, item.quantity - 1, item.variant_id)}
+                        className="flex h-7 w-7 items-center justify-center rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors active:scale-90"
+                        aria-label="Decrease quantity"
+                      >
+                        <Minus className="h-3 w-3" />
+                      </button>
+                      <span className="min-w-[2rem] text-center text-sm font-semibold text-slate-900 dark:text-white">
+                        {item.quantity}
+                      </span>
+                      <button
+                        onClick={() => updateQuantity(item.product_id, item.quantity + 1, item.variant_id)}
+                        className="flex h-7 w-7 items-center justify-center rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors active:scale-90"
+                        aria-label="Increase quantity"
+                      >
+                        <Plus className="h-3 w-3" />
+                      </button>
+                    </div>
+
+                    <span className="text-base font-bold text-slate-900 dark:text-white">
+                      {formatPrice(item.price * item.quantity)}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
+
+          {/* Continue shopping */}
+          <Link to="/shop"
+            className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-orange-600 transition-colors">
+            ← Continue Shopping
+          </Link>
         </div>
 
-        <div className="h-fit rounded-2xl border border-slate-200 bg-white p-6">
-          <h2 className="mb-4 text-lg font-bold text-slate-900">Order Summary</h2>
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between">
-              <span className="text-slate-500">Subtotal</span>
-              <span className="font-medium">{formatPrice(subtotal)}</span>
+        {/* ── Order summary ────────────────────────────────────────────────── */}
+        <div className="h-fit animate-in fade-in slide-in-from-right-4 duration-500" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+            <h2 className="mb-5 text-lg font-bold text-slate-900 dark:text-white">Order Summary</h2>
+
+            {/* Line items */}
+            <div className="space-y-3 text-sm">
+              {items.map(item => (
+                <div key={item.product_id + (item.variant_id ?? '')} className="flex justify-between gap-2">
+                  <span className="text-slate-500 dark:text-slate-400 truncate max-w-[60%]">
+                    {item.name} × {item.quantity}
+                  </span>
+                  <span className="font-medium text-slate-900 dark:text-white whitespace-nowrap">
+                    {formatPrice(item.price * item.quantity)}
+                  </span>
+                </div>
+              ))}
             </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">Shipping</span>
-              <span className="font-medium text-emerald-600">Free</span>
+
+            {/* Divider */}
+            <div className="my-4 border-t border-slate-100 dark:border-slate-700" />
+
+            {/* Subtotal / delivery / total */}
+            <div className="space-y-2.5 text-sm">
+              <div className="flex justify-between">
+                <span className="text-slate-500 dark:text-slate-400">Subtotal</span>
+                <span className="font-semibold text-slate-900 dark:text-white">{formatPrice(subtotal)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                  <Truck className="h-3.5 w-3.5" /> Delivery
+                </span>
+                <span className="font-semibold text-emerald-600">Free</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                  <Tag className="h-3.5 w-3.5" /> Tax
+                </span>
+                <span className="text-slate-400 text-xs italic">At checkout</span>
+              </div>
             </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">Tax</span>
-              <span className="text-slate-400">Calculated at checkout</span>
+
+            {/* Total */}
+            <div className="mt-4 flex justify-between rounded-xl bg-slate-50 dark:bg-slate-700/50 px-4 py-3">
+              <span className="font-bold text-slate-900 dark:text-white">Total</span>
+              <span className="text-lg font-bold text-orange-600">{formatPrice(total)}</span>
+            </div>
+
+            {/* CTA */}
+            <button
+              onClick={() => navigate('/checkout')}
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3.5 text-sm font-semibold text-white hover:bg-orange-600 transition-all duration-200 shadow-md shadow-orange-200 dark:shadow-orange-900/30 active:scale-[0.98]"
+            >
+              Proceed to Checkout <ArrowRight className="h-4 w-4" />
+            </button>
+
+            {/* Trust badges */}
+            <div className="mt-5 space-y-2 border-t border-slate-100 dark:border-slate-700 pt-4">
+              <TrustBadge icon={<ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />} text="Secure checkout" />
+              <TrustBadge icon={<Truck className="h-3.5 w-3.5 text-blue-500" />}       text="Free delivery on all orders" />
+              <TrustBadge icon={<Tag className="h-3.5 w-3.5 text-orange-500" />}        text="Best price guaranteed" />
             </div>
           </div>
-          <div className="mt-4 flex justify-between border-t border-slate-100 pt-4 text-base font-bold text-slate-900">
-            <span>Total</span>
-            <span>{formatPrice(subtotal)}</span>
-          </div>
-          <Link
-            to="/checkout"
-            className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-orange-500 py-3.5 text-sm font-semibold text-white hover:bg-orange-600"
-          >
-            Proceed to Checkout <ArrowRight className="h-4 w-4" />
-          </Link>
         </div>
       </div>
     </div>

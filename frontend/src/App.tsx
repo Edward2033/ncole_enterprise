@@ -145,10 +145,17 @@ const App = () => (
                     <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
                   </Route>
 
-                  {/* ── Customer dashboard ───────────────────────────────── */}
+                  {/* ── Customer dashboard (ALL account routes inside CustomerShell) ── */}
                   <Route path="/customer" element={<Navigate to="/customer/dashboard" replace />} />
-                  <Route path="/customer/dashboard" element={<ProtectedRoute><CustomerShell><CustomerDashboardPage /></CustomerShell></ProtectedRoute>} />
-                  <Route path="/account/addresses"  element={<ProtectedRoute><CustomerShell><AddressesPage /></CustomerShell></ProtectedRoute>} />
+                  <Route path="/account" element={<Navigate to="/customer/dashboard" replace />} />
+                  <Route element={<ProtectedRoute><CustomerShell>{null}</CustomerShell></ProtectedRoute>}>
+                    <Route path="/customer/dashboard"      element={<ProtectedRoute><CustomerShell><CustomerDashboardPage /></CustomerShell></ProtectedRoute>} />
+                    <Route path="/account/addresses"       element={<ProtectedRoute><CustomerShell><AddressesPage /></CustomerShell></ProtectedRoute>} />
+                    <Route path="/account/orders"          element={<ProtectedRoute><CustomerShell><OrdersPage /></CustomerShell></ProtectedRoute>} />
+                    <Route path="/account/profile"         element={<ProtectedRoute><CustomerShell><ProfilePage /></CustomerShell></ProtectedRoute>} />
+                    <Route path="/account/notifications"   element={<ProtectedRoute><CustomerShell><NotificationsPage /></CustomerShell></ProtectedRoute>} />
+                    <Route path="/account/billing"         element={<ProtectedRoute><CustomerShell><BillingPage /></CustomerShell></ProtectedRoute>} />
+                  </Route>
 
                   {/* ── Public (Header + Footer + CartDrawer) ────────────── */}
                   <Route element={<Layout />}>
@@ -168,17 +175,16 @@ const App = () => (
                     <Route path="/order-confirmation/:id"   element={<ProtectedRoute><OrderConfirmation /></ProtectedRoute>} />
                     <Route path="/tracking/:orderId"        element={<ProtectedRoute><TrackingPage /></ProtectedRoute>} />
 
-                    <Route path="/account"               element={<ProtectedRoute><Navigate to="/account/profile" replace /></ProtectedRoute>} />
-                    <Route path="/account/profile"       element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-                    <Route path="/account/orders"        element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
-                    <Route path="/account/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
-                    <Route path="/account/billing"       element={<ProtectedRoute><BillingPage /></ProtectedRoute>} />
+                    <Route path="/account/profile"       element={<Navigate to="/account/profile" replace />} />
+                    <Route path="/account/orders"        element={<Navigate to="/account/orders" replace />} />
+                    <Route path="/account/notifications" element={<Navigate to="/account/notifications" replace />} />
+                    <Route path="/account/billing"       element={<Navigate to="/account/billing" replace />} />
 
                     {/* Legacy aliases */}
-                    <Route path="/profile"         element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-                    <Route path="/notifications"   element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
-                    <Route path="/billing"         element={<ProtectedRoute><BillingPage /></ProtectedRoute>} />
-                    <Route path="/payment-history" element={<ProtectedRoute><BillingPage /></ProtectedRoute>} />
+                    <Route path="/profile"         element={<ProtectedRoute><Navigate to="/account/profile" replace /></ProtectedRoute>} />
+                    <Route path="/notifications"   element={<ProtectedRoute><Navigate to="/account/notifications" replace /></ProtectedRoute>} />
+                    <Route path="/billing"         element={<ProtectedRoute><Navigate to="/account/billing" replace /></ProtectedRoute>} />
+                    <Route path="/payment-history" element={<ProtectedRoute><Navigate to="/account/billing" replace /></ProtectedRoute>} />
 
                     <Route path="*" element={<NotFound />} />
                   </Route>

@@ -27,9 +27,16 @@ const VendorAnalyticsPage: React.FC = () => {
 
   const monthlyRevenue = Array.from({ length: 6 }, (_, i) => {
     const d = new Date(); d.setMonth(d.getMonth() - (5 - i));
-    const month = d.toLocaleString('default', { month: 'short' });
+    const targetMonth = d.getMonth();
+    const targetYear  = d.getFullYear();
+    const month = d.toLocaleString('default', { month: 'short', year: '2-digit' });
     const revenue = orders
-      .filter(o => o.status === 'DELIVERED' && new Date(o.createdAt).getMonth() === d.getMonth())
+      .filter(o => {
+        const od = new Date(o.createdAt);
+        return o.status === 'DELIVERED'
+          && od.getMonth() === targetMonth
+          && od.getFullYear() === targetYear;
+      })
       .reduce((s, o) => s + o.total, 0);
     return { month, revenue };
   });
