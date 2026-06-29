@@ -1,0 +1,557 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+
+// ─── RBAC ─────────────────────────────────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  VENDOR
+  CUSTOMER
+  RIDER
+}
+
+// ─── Users ────────────────────────────────────────────────────────────────────
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  passwordHash String
+  name         String
+  phone        String?
+  role         Role          @default(CUSTOMER)
+  isActive     Boolean       @default(true)
+  deletedAt    DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  refreshTokens           RefreshToken[]
+  passwordResetTokens     PasswordResetToken[]
+  vendor                   Vendor?
+  customer                 Customer?
+  rider                    Rider?
+  addresses                Address[]
+  notifications            Notification[]
+  notificationPreference  NotificationPreference?
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("password_reset_tokens")
+}
+
+// ─── Vendor ───────────────────────────────────────────────────────────────────
+
+model Vendor {
+  id           String       @id @default(cuid())
+  userId       String       @unique
+  businessName String
+  description  String?
+  logoUrl      String?
+  isVerified   Boolean      @default(false)
+  isActive     Boolean      @default(true)
+  bankAccount  Json?
+  momoNumber   String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products Product[]
+  orderItems OrderItem[]
+
+  @@map("vendors")
+}
+
+// ─── Customer ─────────────────────────────────────────────────────────────────
+
+model Customer {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  loyaltyPoints Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
+  cart Cart?
+  invoices Invoice[]
+  payments Payment[]
+
+  @@map("customers")
+}
+
+// ─── Rider ────────────────────────────────────────────────────────────────────
+
+enum RiderStatus {
+  AVAILABLE
+  BUSY
+  OFFLINE
+}
+
+model Rider {
+  id           String      @id @default(cuid())
+  userId       String      @unique
+  vehicleType  String?
+  plateNumber  String?
+  status       RiderStatus @default(OFFLINE)
+  isVerified   Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@map("riders")
+}
+
+// ─── Address ──────────────────────────────────────────────────────────────────
+
+model Address {
+  id         String   @id @default(cuid())
+  userId     String
+  label      String?
+  fullName   String
+  phone      String
+  street     String
+  district   String
+  city       String
+  province   String
+  country    String   @default("Rwanda")
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@index([userId])
+  @@map("addresses")
+}
+
+// ─── Category ─────────────────────────────────────────────────────────────────
+
+model Category {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  slug        String     @unique
+  description String?
+  imageUrl    String?
+  parentId    String?
+  sortOrder   Int        @default(0)
+  isVisible   Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryTree")
+  products Product[]
+
+  @@index([slug])
+  @@map("categories")
+}
+
+// ─── Product ──────────────────────────────────────────────────────────────────
+
+enum ProductStatus {
+  ACTIVE
+  DRAFT
+  ARCHIVED
+}
+
+model Product {
+  id           String        @id @default(cuid())
+  vendorId     String
+  categoryId   String?
+  name         String
+  slug         String        @unique
+  description  String?
+  basePrice    Int
+  sku          String?       @unique
+  stockQty     Int           @default(0)
+  images       String[]      @default([])
+  tags         String[]      @default([])
+  metadata     Json?
+  status       ProductStatus @default(DRAFT)
+  hasVariants  Boolean       @default(false)
+  deletedAt    DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  vendor      Vendor         @relation(fields: [vendorId], references: [id])
+  category    Category?      @relation(fields: [categoryId], references: [id])
+  variants    ProductVariant[]
+  orderItems  OrderItem[]
+  cartItems   CartItem[]
+
+  @@index([slug])
+  @@index([vendorId])
+  @@index([categoryId])
+  @@index([status])
+  @@map("products")
+}
+
+model ProductVariant {
+  id         String   @id @default(cuid())
+  productId  String
+  title      String
+  sku        String?  @unique
+  price      Int      
+  stockQty   Int      @default(0)
+  option1    String?
+  option2    String?
+  option3    String?
+  imageUrl   String?
+  position   Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+  cartItems  CartItem[]
+
+  @@index([productId])
+  @@map("product_variants")
+}
+
+// ─── Cart ─────────────────────────────────────────────────────────────────────
+
+model Cart {
+  id         String     @id @default(cuid())
+  customerId String     @unique
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  items    CartItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  productId String
+  variantId String?
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cart    Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product         @relation(fields: [productId], references: [id])
+  variant ProductVariant? @relation(fields: [variantId], references: [id])
+
+  @@unique([cartId, productId, variantId])
+  @@map("cart_items")
+}
+
+// ─── Order ────────────────────────────────────────────────────────────────────
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  READY_FOR_PICKUP
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  MTN_MOMO
+  AIRTEL_MONEY
+  CASH_ON_DELIVERY
+}
+
+model Order {
+  id              String        @id @default(cuid())
+  orderNumber     String        @unique
+  customerId      String
+  addressId       String?
+  riderId         String?
+  status          OrderStatus   @default(PENDING)
+  paymentStatus   PaymentStatus @default(PENDING)
+  paymentMethod   PaymentMethod
+  paymentRef      String?
+  subtotal        Int
+  deliveryFee     Int           @default(0)
+  tax             Int           @default(0)
+  total           Int
+  notes           String?
+  deletedAt       DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  customer Customer   @relation(fields: [customerId], references: [id])
+  address  Address?   @relation(fields: [addressId], references: [id])
+  rider    Rider?     @relation(fields: [riderId], references: [id])
+  items    OrderItem[]
+  invoice  Invoice?
+
+  @@index([customerId])
+  @@index([status])
+  @@index([orderNumber])
+  @@map("orders")
+}
+
+model OrderItem {
+  id           String   @id @default(cuid())
+  orderId      String
+  productId    String
+  variantId    String?
+  vendorId     String
+  productName  String
+  variantTitle String?
+  sku          String?
+  quantity     Int
+  unitPrice    Int
+  total        Int
+  createdAt    DateTime @default(now())
+
+  order   Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product        @relation(fields: [productId], references: [id])
+  variant ProductVariant? @relation(fields: [variantId], references: [id])
+  vendor  Vendor         @relation(fields: [vendorId], references: [id])
+
+  @@index([orderId])
+  @@index([vendorId])
+  @@map("order_items")
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+enum NotificationType {
+  ORDER_CREATED
+  ORDER_CONFIRMED
+  ORDER_SHIPPED
+  ORDER_DELIVERED
+  ORDER_CANCELLED
+  NEW_PRODUCT
+  VENDOR_APPROVAL
+  RIDER_ASSIGNMENT
+  PAYMENT_STATUS
+  SYSTEM_BROADCAST
+}
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  channel   NotificationChannel @default(IN_APP)
+  title     String
+  message   String
+  isRead    Boolean          @default(false)
+  metadata  Json?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id          String           @id @default(cuid())
+  userId      String           @unique
+  inApp       Boolean          @default(true)
+  email       Boolean          @default(true)
+  orderUpdates Boolean         @default(true)
+  promotions  Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}
+
+// ─── Billing & Payments ──────────────────────────────────────────────────────
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum PaymentGateway {
+  MTN_MOMO
+  AIRTEL_MONEY
+  STRIPE
+  MANUAL
+}
+
+enum BillingPaymentStatus {
+  PENDING
+  SUBMITTED
+  VERIFIED
+  COMPLETED
+  REJECTED
+}
+
+enum TransactionType {
+  CREDIT
+  DEBIT
+  REFUND
+}
+
+model Invoice {
+  id            String        @id @default(cuid())
+  invoiceNumber String       @unique
+  orderId       String        @unique
+  customerId    String
+  status        InvoiceStatus @default(ISSUED)
+  subtotal      Int
+  deliveryFee   Int           @default(0)
+  tax            Int           @default(0)
+  total          Int
+  issuedAt      DateTime      @default(now())
+  dueAt         DateTime?
+  paidAt        DateTime?
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  order    Order     @relation(fields: [orderId], references: [id])
+  customer Customer  @relation(fields: [customerId], references: [id])
+  payments Payment[]
+
+  @@index([customerId])
+  @@index([status])
+  @@map("invoices")
+}
+
+model Payment {
+  id              String               @id @default(cuid())
+  billingNumber   String               @unique
+  invoiceId       String
+  customerId      String
+  gateway         PaymentGateway
+  status          BillingPaymentStatus @default(PENDING)
+  amount          Int
+  currency        String               @default("RWF")
+  gatewayRef      String?
+  gatewayResponse Json?
+  submittedAt     DateTime?
+  verifiedAt      DateTime?
+  completedAt     DateTime?
+  rejectedAt      DateTime?
+  rejectionReason String?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  invoice      Invoice              @relation(fields: [invoiceId], references: [id])
+  customer     Customer             @relation(fields: [customerId], references: [id])
+  transactions PaymentTransaction[]
+
+  @@index([invoiceId])
+  @@index([customerId])
+  @@index([status])
+  @@map("payments")
+}
+
+model PaymentTransaction {
+  id          String          @id @default(cuid())
+  paymentId   String
+  type        TransactionType
+  amount      Int
+  description String?
+  metadata    Json?
+  createdAt   DateTime        @default(now())
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId])
+  @@map("payment_transactions")
+}
+
+// ─── Activity / Audit Log ────────────────────────────────────────────────────
+
+enum AuditAction {
+  LOGIN
+  LOGOUT
+  REGISTER
+  ROLE_CHANGED
+  PRODUCT_CREATED
+  PRODUCT_UPDATED
+  PRODUCT_DELETED
+  ORDER_CREATED
+  ORDER_STATUS_CHANGED
+  PAYMENT_SUBMITTED
+  PAYMENT_VERIFIED
+  PAYMENT_REJECTED
+  AI_INTERACTION
+  VENDOR_VERIFIED
+  USER_DEACTIVATED
+  PASSWORD_RESET_REQUESTED
+  PASSWORD_RESET_COMPLETED
+}
+
+model ActivityLog {
+  id         String      @id @default(cuid())
+  userId     String?
+  action     AuditAction
+  entity     String?
+  entityId   String?
+  ipAddress  String?
+  userAgent  String?
+  metadata   Json?
+  createdAt  DateTime    @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@index([entity, entityId])
+  @@map("activity_logs")
+}
+

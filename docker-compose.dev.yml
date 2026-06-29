@@ -1,0 +1,38 @@
+# docker-compose.dev.yml — Local development override
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+
+services:
+
+  postgres:
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: devpassword
+
+  backend:
+    build:
+      target: builder
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://ncole:devpassword@postgres:5432/ncole_interpress
+      ACCESS_TOKEN_SECRET: dev_access_secret_32chars_minimum_xx
+      REFRESH_TOKEN_SECRET: dev_refresh_secret_32chars_minimum_x
+      CORS_ORIGIN: "http://localhost,http://localhost:5173"
+      APP_URL: "http://localhost:5173"
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./backend/src:/app/src:ro
+      - backend-logs:/app/logs
+    command: ["node", "dist/server.js"]
+
+  frontend:
+    build:
+      args:
+        VITE_API_URL: http://localhost:4000/api/v1
+    ports:
+      - "5173:80"
+
+  nginx:
+    ports:
+      - "8080:80"
