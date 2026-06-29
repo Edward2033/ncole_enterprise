@@ -47,8 +47,9 @@ export const PublicAiChat: React.FC = () => {
       const history = buildHistory(messages);
       const res = await aiApi.chat(text, history, 'PUBLIC');
       setMessages(prev => [...prev, { role: 'model', text: res.data.reply }]);
-    } catch {
-      setMessages(prev => [...prev, { role: 'model', text: "Sorry, I couldn't reach the AI service. Please try again." }]);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
+      setMessages(prev => [...prev, { role: 'model', text: msg }]);
     } finally {
       setLoading(false);
     }

@@ -6,6 +6,7 @@
 import { GoogleGenerativeAI, type Content } from '@google/generative-ai';
 import { env } from '@/config/env';
 import { AppError } from '@/shared/errors/AppError';
+import { logger } from '@/config/logger';
 import { buildSystemPrompt, type AiPortal } from './ai.prompts';
 import { buildContext } from './ai.context';
 import { z } from 'zod';
@@ -54,32 +55,46 @@ export async function chat(dto: ChatDto, userId?: string, userName?: string): Pr
     model: env.GEMINI_MODEL,
     systemInstruction: {
       role: 'system',
-      parts: [
-        {
-          text: [
-            systemPrompt,
-            '',
-            '--- LIVE PLATFORM CONTEXT (use this data to ground your answers) ---',
-            contextData,
-            '--- END CONTEXT ---',
-          ].join('\n'),
-        },
-      ],
+      parts: [{
+        text: [
+          systemPrompt,
+          '',
+          '--- LIVE PLATFORM CONTEXT (use this data to ground your answers) ---',
+          contextData,
+          '--- END CONTEXT ---',
+        ].join('\n'),
+      }],
     },
   });
 
-  // Reconstruct prior history for multi-turn
-  const history: Content[] = dto.history.map((h) => ({
-    role: h.role,
-    parts: h.parts,
-  }));
-
+  const history: Content[] = dto.history.map((h) => ({ role: h.role, parts: h.parts }));
   const chatSession = model.startChat({ history });
 
-  const result = await chatSession.sendMessage(dto.message);
-  const text = result.response.text();
+  try {
+    const result = await chatSession.sendMessage(dto.message);
+    const text = result.response.text();
+    if (!text) throw AppError.internal('AI returned an empty response.');
+    return text;
+  } catch (err) {
+    if (err instanceof AppError) throw err;
 
-  if (!text) throw AppError.internal('AI returned an empty response.');
+    const raw = err instanceof Error ? err.message : String(err);
 
-  return text;
+    // 429 quota errors — distinguish daily exhaustion from per-minute throttle
+    if (raw.includes('429') || raw.includes('Too Many Requests') || raw.includes('RESOURCE_EXHAUSTED')) {
+      const isDaily = raw.includes('PerDay') || raw.includes('per_day') || (raw.includes('limit: 0') && raw.includes('FreeTier'));
+      if (isDaily) {
+        logger.warn('[AI] Daily free-tier quota exhausted', { model: env.GEMINI_MODEL });
+        throw new AppError('The AI assistant has reached its daily usage limit. Please try again tomorrow or contact support to upgrade the plan.', 429);
+      }
+      // Per-minute rate limit — transient, ask user to retry
+      const retryMatch = raw.match(/retry.*?(\d+).*?s/i);
+      const retryIn = retryMatch ? `${retryMatch[1]} seconds` : 'a moment';
+      logger.warn('[AI] Per-minute rate limit hit', { model: env.GEMINI_MODEL, retryIn });
+      throw new AppError(`The AI assistant is busy right now. Please try again in ${retryIn}.`, 429);
+    }
+
+    logger.error('[AI] Gemini API call failed', { model: env.GEMINI_MODEL, portal: dto.portal, err });
+    throw new AppError(`AI service error: ${raw}`, 502);
+  }
 }

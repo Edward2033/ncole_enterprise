@@ -3,6 +3,7 @@ import { sendSuccess } from '@/shared/utils/response';
 import { chat, ChatDto } from './ai.service';
 import { prisma } from '@/config/database';
 import { audit } from '@/shared/utils/audit';
+import { logger } from '@/config/logger';
 
 export async function chatHandler(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
@@ -19,6 +20,7 @@ export async function chatHandler(req: Request, res: Response, next: NextFunctio
     audit({ userId, action: 'AI_INTERACTION', metadata: { portal: dto.portal, messageLength: dto.message.length } });
     sendSuccess(res, { reply });
   } catch (e) {
+    logger.error('[AI] chatHandler error', { err: e });
     next(e);
   }
 }
