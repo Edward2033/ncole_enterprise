@@ -64,10 +64,19 @@ export async function refreshTokens(rawToken: string) {
     throw AppError.unauthorized('Refresh token is invalid or expired');
   }
 
-  const stored = await prisma.refreshToken.findUnique({
-    where: { token: rawToken },
-    include: { user: { select: { id: true, email: true, role: true, isActive: true } } },
-  });
+  // Wrap all DB operations so a Prisma/PgBouncer error returns 401, not 500
+  let stored: Awaited<ReturnType<typeof prisma.refreshToken.findUnique>> & {
+    user: { id: string; email: string; role: string; isActive: boolean };
+  } | null;
+
+  try {
+    stored = await prisma.refreshToken.findUnique({
+      where: { token: rawToken },
+      include: { user: { select: { id: true, email: true, role: true, isActive: true } } },
+    }) as typeof stored;
+  } catch {
+    throw AppError.unauthorized('Refresh token is invalid or expired');
+  }
 
   if (!stored || stored.expiresAt < new Date()) {
     throw AppError.unauthorized('Refresh token is invalid or expired');
@@ -75,9 +84,12 @@ export async function refreshTokens(rawToken: string) {
   if (!stored.user.isActive) throw AppError.forbidden('Account is deactivated');
 
   // Token rotation — delete old, issue new
-  await prisma.refreshToken.delete({ where: { id: stored.id } });
-
-  return issueTokens(payload.sub, stored.user.email, stored.user.role);
+  try {
+    await prisma.refreshToken.delete({ where: { id: stored.id } });
+    return issueTokens(payload.sub, stored.user.email, stored.user.role);
+  } catch {
+    throw AppError.unauthorized('Refresh token is invalid or expired');
+  }
 }
 
 export async function logoutUser(rawToken: string) {

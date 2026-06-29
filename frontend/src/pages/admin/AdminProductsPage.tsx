@@ -36,7 +36,7 @@ interface ProductForm {
 
 const EMPTY_FORM: ProductForm = {
   name: '', slug: '', description: '', basePrice: '', sku: '', stockQty: '0',
-  status: 'DRAFT', vendorId: '', categoryId: '', tags: '',
+  status: 'ACTIVE', vendorId: '', categoryId: '', tags: '',
   imageUrls: '', imageFiles: [], imagePreviews: [],
 };
 
@@ -66,9 +66,10 @@ async function uploadToCloudinary(file: File): Promise<string> {
   const cloud = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
   const preset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
-  // If Cloudinary is not configured, return an object URL (dev only)
+  // Cloudinary must be configured for persisted images.
+  // Object/blob URLs do not survive the API round-trip and will fail backend URL validation.
   if (!cloud || !preset) {
-    return URL.createObjectURL(file);
+    throw new Error('Cloudinary is not configured. Set VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET for the admin frontend.');
   }
 
   const fd = new FormData();
@@ -200,10 +201,23 @@ const ProductFormModal: React.FC<FormModalProps> = ({
       }
 
       // 2. Merge hand-typed URLs with uploaded URLs
+      // Reject blob: URLs — they are temporary browser-memory object URLs that
+      // die when the tab closes and cannot be served to any other client.
       const typedUrls = form.imageUrls
         .split('\n')
         .map(s => s.trim())
-        .filter(Boolean);
+        .filter(Boolean)
+        .filter(url => {
+          if (url.startsWith('blob:')) {
+            setSaveError('One or more image URLs are temporary browser URLs (blob:). Please upload the image file using the "Upload images from device" button instead.');
+            return false;
+          }
+          return true;
+        });
+      if (form.imageUrls.trim() && typedUrls.length === 0 && form.imageUrls.split('\n').some(s => s.trim().startsWith('blob:'))) {
+        setSaving(false);
+        return;
+      }
       const allImages = [...typedUrls, ...uploadedUrls];
 
       // 3. Build payload — match backend createProductSchema / updateProductSchema
@@ -446,7 +460,7 @@ const AdminProductsPage: React.FC = () => {
       const res = await adminProductsApi.list({
         page: p, limit: 20,
         q: q || undefined,
-        status: s !== 'ALL' ? s : undefined,
+        status: s,            // always send; backend treats 'ALL' as no filter
         categoryId: c || undefined,
         vendorId: v || undefined,
       });
@@ -482,7 +496,15 @@ const AdminProductsPage: React.FC = () => {
     try {
       const next = p.status === 'ACTIVE' ? 'ARCHIVED' : 'ACTIVE';
       await adminProductsApi.update(p.id, { status: next });
-      await load(page, search, status, catFilter, vendorFilter);
+
+      // Always refetch with ALL statuses to guarantee the updated row is visible.
+      // This prevents the common “it didn’t change” illusion caused by active filters.
+      await load(1, '', 'ALL', '', '');
+      setPage(1);
+      setSearch('');
+      setStatus('ALL');
+      setCatFilter('');
+      setVendorFilter('');
     } catch (e) { setError((e as Error).message); }
     finally { setActing(false); }
   };

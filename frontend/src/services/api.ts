@@ -12,7 +12,7 @@ export function saveTokens(at: string, rt: string) {
 export function clearTokens() { localStorage.removeItem(TOKENS_KEY); }
 
 let isRefreshing = false;
-let queue: Array<(t: string) => void> = [];
+let queue: Array<{ resolve: (t: string) => void; reject: (e: Error) => void }> = [];
 
 async function doRefresh(): Promise<string | null> {
   const rt = getTokens().refreshToken;
@@ -70,14 +70,20 @@ export async function apiFetch<T = unknown>(path: string, init: RequestInit = {}
     const rt = getTokens().refreshToken;
     if (rt) {
       if (isRefreshing) {
-        const newToken = await new Promise<string>((resolve) => queue.push(resolve));
+        const newToken = await new Promise<string>((resolve, reject) => queue.push({ resolve, reject }));
         attachAuth(newToken);
         res = await doRequest();
       } else {
         isRefreshing = true;
         const newToken = await doRefresh();
         isRefreshing = false;
-        queue.forEach((cb) => newToken && cb(newToken));
+
+        if (newToken) {
+          queue.forEach(({ resolve }) => resolve(newToken));
+        } else {
+          // Refresh failed — reject every queued request so they don't hang forever
+          queue.forEach(({ reject }) => reject(new Error('Session expired. Please sign in again.')));
+        }
         queue = [];
 
         if (newToken) {
@@ -178,7 +184,7 @@ export const vendorProfileService = {
 
 export const vendorProductsService = {
   list: (page = 1, limit = 20, vendorId?: string) =>
-    apiFetch<ListResp<NcoleVendorProduct>>(`/products?page=${page}&limit=${limit}${vendorId ? `&vendorId=${vendorId}` : ''}`),
+    apiFetch<ListResp<NcoleVendorProduct>>(`/products?status=ALL&page=${page}&limit=${limit}${vendorId ? `&vendorId=${vendorId}` : ''}`),
   create: (body: Partial<NcoleVendorProduct>) =>
     apiFetch<ApiResp<NcoleVendorProduct>>('/products', { method: 'POST', body: JSON.stringify(body) }),
   update: (id: string, body: Partial<NcoleVendorProduct>) =>
