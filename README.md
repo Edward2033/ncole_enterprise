@@ -5,6 +5,11 @@
 
 > A production-grade, AI-powered multi-vendor e-commerce marketplace built for Rwanda and the wider African market.
 
+**Course:** EWA408510 – E-Commerce and Web Application | UNILAK | Academic Year 2025-2026
+**Student:** Edward Y. Cole | **Instructor:** Eric Maniraguha
+**GitHub:** https://github.com/Edward2033/ncole_enterprise
+**Live App:** https://ncoleinterpress.com | **API:** https://api.ncoleinterpress.com/health
+
 ---
 
 ## Table of Contents
@@ -22,7 +27,8 @@
 12. [AI Assistant](#12-ai-assistant)
 13. [Billing & Payments](#13-billing--payments)
 14. [Notifications](#14-notifications)
-15. [Troubleshooting](#15-troubleshooting)
+15. [Exam Compliance — EWA408510](#15-exam-compliance--ewa408510)
+16. [Troubleshooting](#16-troubleshooting)
 
 ---
 
@@ -473,7 +479,35 @@ Supported gateways: MTN MoMo, Airtel Money, Stripe, Manual (Cash on Delivery).
 
 ---
 
-## 15. Troubleshooting
+## 15. Exam Compliance — EWA408510
+
+This project satisfies all assessment criteria for the UNILAK EWA408510 Final Examination:
+
+| Requirement | Implementation | Marks |
+|-------------|---------------|-------|
+| **UI/UX** — Responsive, professional, mobile-friendly | Tailwind CSS + shadcn/ui, hero, nav, category grid, product cards | 5 |
+| **Product Management** — Listing, detail, categories, search/filter | `ShopPage.tsx`, `ProductDetail.tsx`, `CategoryShopPage.tsx`, `/products` API | 4 |
+| **Shopping Cart** — Add, remove, update qty, auto totals | `CartContext.tsx`, `CartPage.tsx`, `CartDrawer.tsx` | 4 |
+| **Checkout** — Address, order summary, validation, confirmation | `Checkout.tsx`, `OrderConfirmation.tsx`, `/orders` API | 4 |
+| **Database** — Products, customers, orders, relationships | PostgreSQL + Prisma, 15 models in `schema.prisma` | 5 |
+| **GitHub** — Repo, commit history, README | https://github.com/Edward2033/ncole_enterprise | 3 |
+| **Deployment** — Live and accessible | https://ncoleinterpress.com + https://api.ncoleinterpress.com | 3 |
+| **CI/CD** — Automated build, test, deploy | `.github/workflows/ci.yml` + `deploy.yml` | 4 |
+| **Docker** — Dockerfile, docker-compose, running containers | `backend/Dockerfile`, `frontend/Dockerfile`, `docker-compose.yml` | 4 |
+| **Presentation** | Live demo, architecture explanation, Q&A | 4 |
+| **TOTAL** | | **40** |
+
+**Innovation Bonus Features (up to +5):**
+- AI-Powered Assistant — Google Gemini 2.0 Flash across 5 portals
+- Payment Gateway Integration — MTN MoMo, Airtel Money, Cash on Delivery
+- Analytics Dashboard — Vendor sales analytics, Admin platform analytics
+- Multi-Vendor Marketplace — Vendors, products, order routing per vendor
+- Real-Time Notifications — In-app notification centre with preferences
+- Advanced Security — JWT rotation, RBAC, audit logging, bcrypt, non-root Docker
+
+---
+
+## 16. Troubleshooting
 
 **Backend won't start:** Check `DATABASE_URL` is correct and the Supabase project is reachable.
 
