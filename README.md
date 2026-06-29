@@ -1,6 +1,6 @@
 # N_COLE Interpress — Enterprise Multi-Vendor Marketplace
 
-[![CI](https://github.com/YOUR_ORG/ncole-interpress/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_ORG/ncole-interpress/actions/workflows/ci.yml)
+[![CI](https://github.com/Edward2033/ncole_enterprise/actions/workflows/ci.yml/badge.svg)](https://github.com/Edward2033/ncole_enterprise/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 > A production-grade, AI-powered multi-vendor e-commerce marketplace built for Rwanda and the wider African market.
@@ -33,8 +33,10 @@ N_COLE Interpress is a full-stack enterprise e-commerce platform featuring:
 - Customer shopping experience with cart, checkout, and order tracking
 - Delivery rider management and real-time status updates
 - Enterprise billing system with invoice generation and payment verification
-- Google Gemini 2.x AI assistant across all five portals
-- Complete admin dashboard with analytics and reporting
+- Google Gemini 2.0 Flash AI assistant across all five portals
+- Complete admin dashboard with analytics, audit logging, and reporting
+
+**Repository:** https://github.com/Edward2033/ncole_enterprise
 
 **Live URLs (production):**
 | Portal | URL |
@@ -56,8 +58,8 @@ N_COLE Interpress is a full-stack enterprise e-commerce platform featuring:
 - Order placement and real-time status tracking
 - Invoice viewing and payment submission (MTN MoMo, Airtel Money)
 - Address management and delivery tracking
-- In-app notification centre
-- AI assistant for order help, product recommendations
+- In-app notification centre with preferences
+- AI assistant for order help and product recommendations
 
 ### Vendor Features
 - Product management with variants, images, and SKU tracking
@@ -68,7 +70,8 @@ N_COLE Interpress is a full-stack enterprise e-commerce platform featuring:
 ### Admin Features
 - Full platform management: users, vendors, products, orders
 - Payment verification and revenue reporting
-- Category management
+- Category management and platform settings
+- Maintenance mode toggle
 - Broadcast notifications
 - AI-powered analytics assistant
 - Audit activity log
@@ -86,16 +89,16 @@ N_COLE Interpress is a full-stack enterprise e-commerce platform featuring:
 | Layer | Technology |
 |-------|-----------|
 | Backend | Node.js 20, Express, TypeScript |
-| Database | PostgreSQL 16, Prisma ORM |
+| Database | PostgreSQL 16 (Supabase), Prisma ORM |
 | Auth | JWT (access + refresh token rotation) |
-| AI | Google Gemini 2.0 Flash |
+| AI | Google Gemini 2.0 Flash (`@google/generative-ai`) |
 | Frontend | React 18, TypeScript, Vite |
-| State | Redux Toolkit |
-| Styling | Tailwind CSS |
+| UI Components | shadcn/ui, Tailwind CSS |
+| State / Context | React Context API |
 | Validation | Zod |
 | Containerisation | Docker, Docker Compose |
 | CI/CD | GitHub Actions |
-| Deployment | Render (backend), Vercel (frontends) |
+| Deployment | Render (backend), Vercel (frontend) |
 | Reverse Proxy | Nginx |
 | Logging | Winston |
 | Image Storage | Cloudinary |
@@ -110,17 +113,13 @@ Internet
    │
    ▼
 Nginx (Reverse Proxy)
-   ├── / ──────────────── Storefront (React/Vite)
-   ├── /api/v1 ─────────── Backend API (Express)
-   ├── app.* ───────────── Customer Portal
-   ├── vendors.* ───────── Vendor Portal
-   ├── admin.* ─────────── Admin Portal
-   └── rider.* ─────────── Rider Portal
+   ├── /             ──── Storefront (React/Vite)
+   ├── /api/v1       ──── Backend API (Express)
+   └── static assets ──── Served by Nginx
 
 Backend API
-   ├── PostgreSQL (Prisma ORM)
-   ├── Redis (caching / future queues)
-   └── Google Gemini 2.x (AI)
+   ├── PostgreSQL via Supabase (Prisma ORM)
+   └── Google Gemini 2.0 Flash (AI — context pre-aggregated, DB never exposed)
 ```
 
 ---
@@ -129,26 +128,156 @@ Backend API
 
 ```
 N_cole/
-├── backend/          # Express API — all business logic
-│   ├── prisma/       # Database schema & migrations
-│   └── src/
-│       ├── config/   # DB, env, logger
-│       ├── middleware/
-│       ├── modules/  # auth, users, products, orders, billing, ai ...
-│       └── shared/   # errors, utils, types
-├── src/              # Public storefront (React + shadcn/ui)
-├── customers/        # Customer portal (React + Redux)
-├── vendors/          # Vendor portal (React + Redux)
-├── admin/            # Admin portal (React + Redux)
-├── rider/            # Rider portal (React + Redux)
-├── nginx/            # Nginx reverse proxy config
-├── scripts/          # DB init, backup, restore
-├── docs/             # Extended documentation
 ├── .github/
-│   └── workflows/    # ci.yml, deploy.yml
+│   └── workflows/
+│       ├── ci.yml                  # Lint + type-check on every push
+│       └── deploy.yml              # Deploy to Render + Vercel on main
+│
+├── backend/                        # Express API — all business logic
+│   ├── prisma/
+│   │   ├── schema.prisma           # Full DB schema (15 models)
+│   │   └── seed.ts                 # Dev seed data
+│   └── src/
+│       ├── config/
+│       │   ├── database.ts         # Prisma client singleton
+│       │   ├── env.ts              # Zod-validated environment config
+│       │   └── logger.ts           # Winston logger
+│       ├── middleware/
+│       │   ├── authenticate.ts     # JWT Bearer token verification
+│       │   ├── authorize.ts        # RBAC role enforcement
+│       │   ├── errorHandler.ts     # Global error handler
+│       │   ├── rateLimiter.ts      # express-rate-limit config
+│       │   └── validate.ts         # Zod request body validation
+│       ├── modules/
+│       │   ├── addresses/          # Address CRUD
+│       │   ├── ai/
+│       │   │   ├── ai.context.ts   # DB context builder (per portal)
+│       │   │   ├── ai.controller.ts
+│       │   │   ├── ai.prompts.ts   # Role-scoped system prompts
+│       │   │   ├── ai.routes.ts    # POST /api/v1/ai/chat
+│       │   │   └── ai.service.ts   # Gemini 2.0 Flash integration
+│       │   ├── auth/               # Register, login, refresh, logout, password reset
+│       │   ├── billing/            # Invoices & payments
+│       │   ├── cart/               # Cart + cart items
+│       │   ├── categories/         # Product categories (nested)
+│       │   ├── notifications/      # In-app notifications + preferences
+│       │   ├── orders/             # Order placement & status management
+│       │   ├── products/
+│       │   │   ├── products.controller.ts
+│       │   │   ├── products.routes.ts
+│       │   │   ├── products.service.ts
+│       │   │   └── upload.routes.ts  # POST /products/upload-image (Cloudinary)
+│       │   ├── riders/             # Rider delivery routes
+│       │   ├── settings/           # Platform settings + maintenance mode
+│       │   ├── users/              # User profile, admin user management
+│       │   └── vendors/            # Vendor profiles + backfill
+│       └── shared/
+│           ├── errors/
+│           │   └── AppError.ts     # Typed HTTP error class
+│           ├── types/
+│           │   └── express.d.ts    # req.user type augmentation
+│           └── utils/
+│               ├── audit.ts        # Fire-and-forget activity logging
+│               ├── email.ts        # Nodemailer / SMTP helper
+│               ├── hash.ts         # bcrypt helpers
+│               ├── jwt.ts          # sign / verify JWT
+│               └── response.ts     # sendSuccess / sendError helpers
+│   ├── app.ts                      # Express app setup (routes, middleware)
+│   ├── server.ts                   # Entry point (dotenv, DB connect, listen)
+│   ├── Dockerfile
+│   ├── .env.example
+│   ├── package.json
+│   └── tsconfig.json
+│
+├── frontend/                       # Unified React frontend (all portals)
+│   ├── public/
+│   │   └── robots.txt
+│   └── src/
+│       ├── components/
+│       │   ├── admin/              # AdminBadge, AdminModal, AdminSearch, AdminTable
+│       │   ├── ui/                 # shadcn/ui component library
+│       │   ├── AdminLayout.tsx
+│       │   ├── AppLayout.tsx
+│       │   ├── AuthPromptModal.tsx
+│       │   ├── CartDrawer.tsx
+│       │   ├── CustomerShell.tsx
+│       │   ├── Footer.tsx
+│       │   ├── Header.tsx
+│       │   ├── Hero.tsx
+│       │   ├── Layout.tsx
+│       │   ├── ProductCard.tsx
+│       │   ├── ProductGrid.tsx
+│       │   ├── RiderLayout.tsx
+│       │   ├── theme-provider.tsx
+│       │   └── VendorLayout.tsx
+│       ├── contexts/
+│       │   ├── AppContext.tsx
+│       │   ├── AuthContext.tsx
+│       │   └── CartContext.tsx
+│       ├── features/
+│       │   └── ai/
+│       │       ├── aiApi.ts        # apiFetch wrapper for POST /ai/chat
+│       │       ├── AiChat.tsx      # Portal-aware floating chat widget
+│       │       └── PublicAiChat.tsx # Public storefront chat widget
+│       ├── hooks/
+│       │   ├── use-mobile.tsx
+│       │   ├── use-toast.ts
+│       │   ├── useAuthGuard.ts
+│       │   └── useProducts.ts
+│       ├── lib/
+│       │   ├── adminFormat.ts
+│       │   ├── format.ts
+│       │   ├── types.ts
+│       │   └── utils.ts
+│       ├── pages/
+│       │   ├── admin/              # AdminActivityLogPage, AdminAnalyticsPage, AdminBillingPage ...
+│       │   ├── customer/           # CustomerDashboardPage, AddressesPage
+│       │   ├── rider/              # RiderDashboardPage, RiderDeliveriesPage, RiderEarningsPage ...
+│       │   ├── vendor/             # VendorDashboardPage, VendorProductsPage, VendorOrdersPage ...
+│       │   ├── Home.tsx            # Storefront landing page
+│       │   ├── ShopPage.tsx
+│       │   ├── ProductDetail.tsx
+│       │   ├── CartPage.tsx
+│       │   ├── Checkout.tsx
+│       │   ├── OrdersPage.tsx
+│       │   ├── BillingPage.tsx
+│       │   ├── AuthPage.tsx
+│       │   └── ...
+│       ├── routes/
+│       │   ├── AdminRoute.tsx
+│       │   ├── ProtectedRoute.tsx
+│       │   ├── RiderRoute.tsx
+│       │   └── VendorRoute.tsx
+│       ├── services/
+│       │   ├── api.ts              # apiFetch + all typed service helpers
+│       │   └── adminApi.ts         # Admin-specific API calls
+│       ├── App.tsx
+│       └── main.tsx
+│   ├── Dockerfile
+│   ├── nginx.conf                  # Frontend Nginx config (SPA fallback)
+│   ├── .env                        # VITE_API_URL=http://localhost:4000/api/v1
+│   ├── tailwind.config.ts
+│   └── vite.config.ts
+│
+├── nginx/
+│   └── default.conf                # Reverse proxy config
+│
+├── scripts/
+│   ├── init.sql                    # DB initialisation script
+│   ├── backup.sh
+│   └── restore.sh
+│
+├── docs/
+│   ├── API.md                      # Full API request/response examples
+│   ├── DATABASE.md                 # Schema documentation
+│   ├── DEVOPS.md                   # Docker & deployment guide
+│   ├── ACADEMIC_REPORT.md
+│   └── ORAL_DEFENSE.md
+│
 ├── docker-compose.yml
 ├── docker-compose.dev.yml
-└── docker-compose.prod.yml
+├── docker-compose.prod.yml
+└── README.md
 ```
 
 ---
@@ -157,32 +286,32 @@ N_cole/
 
 ### Prerequisites
 - Node.js 20+
-- PostgreSQL 16+
+- PostgreSQL 16+ (or Supabase project)
 - Docker & Docker Compose (optional)
 
 ### Quick Start (without Docker)
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/YOUR_ORG/ncole-interpress.git
-cd ncole-interpress
+git clone https://github.com/Edward2033/ncole_enterprise.git
+cd ncole_enterprise
 
 # 2. Setup backend
 cd backend
 cp .env.example .env
-# Edit .env with your database credentials and secrets
+# Edit .env — set DATABASE_URL, DIRECT_URL, JWT secrets, GEMINI_API_KEY
 npm install
 npx prisma migrate dev
 npx prisma db seed
 npm run dev
 # API running at http://localhost:4000
 
-# 3. Setup each frontend (new terminal per portal)
-cd ../customers && npm install && npm run dev  # http://localhost:5174
-cd ../vendors   && npm install && npm run dev  # http://localhost:5175
-cd ../admin     && npm install && npm run dev  # http://localhost:5176
-cd ../rider     && npm install && npm run dev  # http://localhost:5177
-cd ..           && npm install && npm run dev  # http://localhost:5173 (storefront)
+# 3. Setup frontend (new terminal)
+cd ../frontend
+# Create .env with: VITE_API_URL=http://localhost:4000/api/v1
+npm install
+npm run dev
+# Storefront at http://localhost:5173
 ```
 
 ---
@@ -193,16 +322,19 @@ Copy `backend/.env.example` to `backend/.env` and configure:
 
 | Variable | Description | Required |
 |----------|-------------|----------|
-| `DATABASE_URL` | PostgreSQL connection string | Yes |
+| `DATABASE_URL` | PostgreSQL pooler connection string (Supabase port 6543) | Yes |
+| `DIRECT_URL` | PostgreSQL direct connection for migrations (port 5432) | Yes |
 | `ACCESS_TOKEN_SECRET` | JWT secret (min 32 chars) | Yes |
 | `REFRESH_TOKEN_SECRET` | JWT refresh secret (min 32 chars) | Yes |
-| `GEMINI_API_KEY` | Google Gemini API key | Yes (for AI) |
-| `CORS_ORIGIN` | Allowed frontend origins | Yes |
-| `CLOUDINARY_*` | Cloudinary credentials | Optional |
-| `MOMO_*` | MTN MoMo credentials | Optional |
+| `GEMINI_API_KEY` | Google Gemini API key (from aistudio.google.com) | Yes (for AI) |
+| `GEMINI_MODEL` | Gemini model name. Default: `gemini-2.0-flash` | No |
+| `CORS_ORIGIN` | Comma-separated allowed frontend origins | Yes |
+| `CLOUDINARY_*` | Cloudinary credentials for image uploads | Optional |
+| `MOMO_*` | MTN MoMo payment credentials | Optional |
 | `AIRTEL_*` | Airtel Money credentials | Optional |
+| `SMTP_*` | SMTP credentials for password reset emails | Optional |
 
-For frontends, set `VITE_API_URL` in each portal's `.env`:
+Frontend `.env`:
 ```
 VITE_API_URL=http://localhost:4000/api/v1
 ```
@@ -213,26 +345,17 @@ VITE_API_URL=http://localhost:4000/api/v1
 
 ### Development
 ```bash
-# Start all services in development mode
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
-
-# Stop
 docker-compose down
 ```
 
 ### Production
 ```bash
-# Copy and configure env
 cp backend/.env.example .env.production
 # Edit .env.production
 
-# Start production stack
 docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
-
-# View logs
 docker-compose logs -f backend
-
-# Run migrations in container
 docker-compose exec backend npx prisma migrate deploy
 ```
 
@@ -240,11 +363,7 @@ docker-compose exec backend npx prisma migrate deploy
 | Service | URL |
 |---------|-----|
 | API | http://localhost:4000 |
-| Storefront | http://localhost:5173 |
-| Customers | http://localhost:5174 |
-| Vendors | http://localhost:5175 |
-| Admin | http://localhost:5176 |
-| Rider | http://localhost:5177 |
+| Frontend | http://localhost:5173 |
 | Nginx | http://localhost:8080 |
 
 ---
@@ -252,24 +371,20 @@ docker-compose exec backend npx prisma migrate deploy
 ## 9. Deployment
 
 ### Backend → Render
-1. Create a new Web Service on [render.com](https://render.com)
-2. Connect GitHub repository, set root to `backend/`
+1. Create a Web Service on [render.com](https://render.com)
+2. Root directory: `backend/`
 3. Build command: `npm install && npx prisma generate && npm run build`
 4. Start command: `npx prisma migrate deploy && node dist/server.js`
-5. Add all environment variables from `.env.example`
+5. Add all environment variables from `backend/.env.example`
 
-### Frontends → Vercel
-1. Import each portal as a separate Vercel project
-2. Set root directory per portal (`customers/`, `vendors/`, etc.)
-3. Add `VITE_API_URL=https://your-backend.onrender.com/api/v1`
+### Frontend → Vercel
+1. Import the `frontend/` folder as a Vercel project
+2. Set `VITE_API_URL=https://your-backend.onrender.com/api/v1`
 
-### CI/CD Secrets Required
-Configure in GitHub → Settings → Secrets:
+### CI/CD Secrets (GitHub → Settings → Secrets)
 ```
 RENDER_API_KEY, RENDER_SERVICE_ID, BACKEND_URL
-VERCEL_TOKEN, VERCEL_ORG_ID
-VERCEL_PROJECT_STOREFRONT, VERCEL_PROJECT_CUSTOMERS
-VERCEL_PROJECT_VENDORS, VERCEL_PROJECT_ADMIN, VERCEL_PROJECT_RIDER
+VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
 VITE_API_URL, PRODUCTION_DATABASE_URL
 ```
 
@@ -277,18 +392,22 @@ VITE_API_URL, PRODUCTION_DATABASE_URL
 
 ## 10. API Reference
 
-Base URL: `https://api.ncoleinterpress.com/api/v1`
+Base URL: `http://localhost:4000/api/v1` (dev) · `https://api.ncoleinterpress.com/api/v1` (prod)
 
-| Module | Endpoints |
-|--------|-----------|
-| Auth | `POST /auth/register`, `POST /auth/login`, `POST /auth/logout`, `POST /auth/refresh` |
-| Users | `GET /users/me`, `PATCH /users/me` |
-| Products | `GET /products`, `POST /products`, `PATCH /products/:id` |
-| Categories | `GET /categories`, `POST /categories` |
-| Cart | `GET /cart`, `POST /cart/items`, `DELETE /cart/items/:id` |
-| Orders | `POST /orders`, `GET /orders/my`, `GET /orders` (admin) |
-| Billing | `GET /billing/invoices`, `POST /billing/invoices/:id/pay` |
-| Notifications | `GET /notifications`, `PATCH /notifications/:id/read` |
+| Module | Key Endpoints |
+|--------|--------------|
+| Auth | `POST /auth/register`, `POST /auth/login`, `POST /auth/logout`, `POST /auth/refresh`, `POST /auth/forgot-password`, `POST /auth/reset-password` |
+| Users | `GET /users/me`, `PATCH /users/me`, `POST /users/me/change-password`, `GET /users` (admin), `POST /users` (admin), `PATCH /users/:id` (admin) |
+| Products | `GET /products`, `POST /products`, `PATCH /products/:id`, `DELETE /products/:id`, `POST /products/upload-image` |
+| Categories | `GET /categories`, `POST /categories`, `PATCH /categories/:id` |
+| Vendors | `GET /vendors`, `GET /vendors/me`, `GET /vendors/:id`, `PATCH /vendors/:id`, `POST /vendors/backfill` |
+| Cart | `GET /cart`, `POST /cart/items`, `PATCH /cart/items/:id`, `DELETE /cart/items/:id` |
+| Orders | `POST /orders`, `GET /orders/my`, `GET /orders/vendor`, `GET /orders/rider`, `GET /orders` (admin), `PATCH /orders/:id/status` |
+| Addresses | `GET /addresses`, `POST /addresses`, `PATCH /addresses/:id`, `DELETE /addresses/:id` |
+| Billing | `GET /billing/invoices`, `GET /billing/invoices/:id`, `POST /billing/invoices/:id/pay`, `GET /billing/payments` |
+| Notifications | `GET /notifications`, `PATCH /notifications/:id/read`, `PATCH /notifications/read-all`, `DELETE /notifications/:id`, `GET /notifications/preferences`, `PATCH /notifications/preferences` |
+| Riders | `GET /riders`, `PATCH /riders/:id` |
+| Settings | `GET /settings/maintenance`, `PATCH /settings/maintenance` |
 | AI | `POST /ai/chat` |
 
 See `docs/API.md` for full request/response examples.
@@ -298,61 +417,74 @@ See `docs/API.md` for full request/response examples.
 ## 11. Security Features
 
 - **JWT**: Short-lived access tokens (15m) + refresh token rotation
-- **RBAC**: Role-based access control on every protected route (ADMIN, VENDOR, CUSTOMER, RIDER)
+- **RBAC**: Role-based access control on every protected route (`ADMIN`, `VENDOR`, `CUSTOMER`, `RIDER`)
 - **Rate Limiting**: Global 200 req/15min, auth endpoints 20 req/15min
 - **Helmet**: Security headers on all responses
-- **CORS**: Strict origin whitelist
-- **Input Validation**: Zod schemas on all endpoints
+- **CORS**: Strict origin whitelist via `CORS_ORIGIN`
+- **Input Validation**: Zod schemas on all endpoints — invalid bodies rejected with 400
 - **SQL Injection Prevention**: Prisma parameterised queries — no raw SQL
 - **Password Hashing**: bcrypt with salt rounds
 - **Non-root Containers**: All Docker containers run as UID 1001
-- **Audit Logging**: All sensitive actions logged to `activity_logs`
+- **Audit Logging**: Sensitive actions logged to `activity_logs` table via fire-and-forget `audit()` util
 
 ---
 
 ## 12. AI Assistant
 
-Powered by Google Gemini 2.0 Flash. Each portal has a role-scoped AI assistant:
+Powered by **Google Gemini 2.0 Flash** via `@google/generative-ai`. Each portal has a role-scoped assistant with live DB context injected into the system prompt.
 
-| Portal | Capabilities |
-|--------|-------------|
-| Public | Product search, FAQ, recommendations |
-| Customer | Order/invoice explanation, delivery status, recommendations |
-| Vendor | Sales insights, inventory suggestions, performance |
-| Rider | Delivery guidance, statistics |
-| Admin | Revenue analysis, order/customer/vendor analytics |
+| Portal | System Prompt Scope | DB Context Injected |
+|--------|--------------------|--------------------|
+| Public | Shopping assistant, product discovery | Product count, category list |
+| Customer | Order/invoice/delivery explanation | Last 5 orders, last 3 invoices |
+| Vendor | Sales insights, inventory management | Revenue, low stock, top products |
+| Rider | Delivery guidance, status transitions | Assigned orders, delivery stats |
+| Admin | Revenue & platform analytics | Full platform snapshot |
 
-**Security**: Gemini never accesses the database directly. All context is pre-aggregated and sanitised before being injected into the prompt.
+**Implementation:**
+- `ai.prompts.ts` — role-scoped system instruction factory
+- `ai.context.ts` — DB aggregation per portal (Gemini never touches DB directly)
+- `ai.service.ts` — Gemini client, multi-turn history, smart 429 handling
+- `ai.routes.ts` — `POST /api/v1/ai/chat` (public portal: no auth; others: Bearer required)
+
+**Error handling:**
+- Daily free-tier quota exhausted → user-friendly message, no 500
+- Per-minute rate limit → retry-in message extracted from API response
+- All Gemini errors logged via Winston before returning typed `AppError`
 
 ---
 
 ## 13. Billing & Payments
 
-Invoice format: `INV-2026-000001`  
+Invoice format: `INV-2026-000001`
 Payment reference: `PAY-2026-000001`
 
-**Workflow**: Order Created → Invoice Auto-Generated → Customer Submits Payment → Admin Verifies → Completed
+**Workflow:** Order Created → Invoice Auto-Generated → Customer Submits Payment → Admin Verifies → Completed
 
-Supported gateways (ready, no live credentials required): MTN MoMo, Airtel Money, Stripe, Manual.
+Supported gateways: MTN MoMo, Airtel Money, Stripe, Manual (Cash on Delivery).
 
 ---
 
 ## 14. Notifications
 
 - In-app notification centre on all portals
-- Triggered automatically on: order created, order status changes, payment status changes, vendor approval, rider assignment
-- Preferences: users can toggle notification categories
+- Auto-triggered on: order created, order status changes, payment status changes, vendor approval, rider assignment
+- Per-user preferences: toggle `inApp`, `email`, `orderUpdates`, `promotions`
 
 ---
 
 ## 15. Troubleshooting
 
-**Backend won't start**: Check `DATABASE_URL` is correct and PostgreSQL is running.
+**Backend won't start:** Check `DATABASE_URL` is correct and the Supabase project is reachable.
 
-**Prisma migration errors**: Run `npx prisma migrate reset` (dev only — destroys data).
+**Prisma migration errors:** Run `npx prisma migrate reset` (dev only — destroys data).
 
-**CORS errors**: Ensure `CORS_ORIGIN` includes all frontend URLs comma-separated.
+**CORS errors:** Ensure `CORS_ORIGIN` in `backend/.env` includes all frontend origins, comma-separated.
 
-**AI returns errors**: Verify `GEMINI_API_KEY` is set and valid.
+**AI returns "daily limit" message:** The free Gemini tier daily quota is exhausted. It resets at midnight Pacific time. Enable billing at [aistudio.google.com](https://aistudio.google.com) to remove the cap.
 
-**Docker containers exit immediately**: Run `docker-compose logs <service>` to inspect startup errors.
+**AI returns "busy" message:** Per-minute rate limit hit — wait the indicated seconds and retry.
+
+**Image upload fails:** Set `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` in `backend/.env`.
+
+**Docker containers exit immediately:** Run `docker-compose logs <service>` to inspect startup errors.
