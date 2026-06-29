@@ -57,27 +57,41 @@ const inputCls =
   'w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white px-3 py-2 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition';
 
 // ─── Image upload helper ──────────────────────────────────────────────────────
+// ─── Image upload helper ────────────────────────────────────────────────────────────────────────────
+// ─── Image upload helper ────────────────────────────────────────────────────────────────────────────
 /**
- * Upload a File to Cloudinary unsigned upload preset.
- * Falls back to a plain object URL if the env vars are missing (dev convenience).
- * Returns the secure_url on success.
+ * Upload a File via POST /products/upload-image.
+ * Uses getTokens() + doRefresh() from api.ts so the token is always
+ * current. On a 401 it refreshes once then retries — same behaviour
+ * as every other apiFetch call in the app.
+ * NOTE: Do NOT set Content-Type — the browser sets multipart/form-data
+ *       with the correct boundary automatically when body is FormData.
  */
 async function uploadToCloudinary(file: File): Promise<string> {
-  const BASE: string = ((import.meta as any)?.env?.VITE_API_URL as string) ?? 'http://localhost:4000/api/v1';
-  const stored = localStorage.getItem('ncole_tokens');
-  const accessToken: string | undefined = stored ? (JSON.parse(stored) as { accessToken?: string }).accessToken : undefined;
+  const BASE = ((import.meta as any)?.env?.VITE_API_URL as string) ?? 'http://localhost:4000/api/v1';
 
-  const fd = new FormData();
-  fd.append('image', file);
+  // Import token helpers — these are the same functions used by apiFetch
+  const { getTokens, doRefresh } = await import('@/services/api');
 
-  const headers: Record<string, string> = {};
-  if (accessToken) headers['Authorization'] = 'Bearer ' + accessToken;
+  const doUpload = async (token: string | null) => {
+    const fd = new FormData();
+    fd.append('image', file);
+    const headers: HeadersInit = token ? { Authorization: 'Bearer ' + token } : {};
+    return fetch(BASE + '/products/upload-image', { method: 'POST', headers, body: fd });
+  };
 
-  const res = await fetch(BASE + '/products/upload-image', { method: 'POST', headers, body: fd });
+  let res = await doUpload(getTokens().accessToken);
+
+  // Token expired — refresh once then retry
+  if (res.status === 401) {
+    const fresh = await doRefresh();
+    if (!fresh) throw new Error('Session expired. Please sign in again.');
+    res = await doUpload(fresh);
+  }
 
   if (!res.ok) {
-    const errJson = await res.json().catch(function () { return {} as Record<string, string>; });
-    throw new Error((errJson as { error?: string }).error ?? ('Upload failed (HTTP ' + res.status + ')'));
+    const errJson = await res.json().catch(() => ({})) as { error?: string };
+    throw new Error(errJson.error ?? ('Upload failed (HTTP ' + res.status + ')'));
   }
 
   const json = await res.json() as { data?: { url?: string }; url?: string };

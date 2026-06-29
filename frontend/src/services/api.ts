@@ -14,7 +14,7 @@ export function clearTokens() { localStorage.removeItem(TOKENS_KEY); }
 let isRefreshing = false;
 let queue: Array<{ resolve: (t: string) => void; reject: (e: Error) => void }> = [];
 
-async function doRefresh(): Promise<string | null> {
+export async function doRefresh(): Promise<string | null> {
   const rt = getTokens().refreshToken;
   if (!rt) return null;
   try {
