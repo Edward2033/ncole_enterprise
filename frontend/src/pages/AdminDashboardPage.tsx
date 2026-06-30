@@ -11,7 +11,7 @@ import {
 } from 'recharts';
 import {
   adminOrdersApi, adminProductsApi, adminUsersApi, adminVendorsApi,
-  adminRidersApi, adminBillingApi, adminCategoriesApi,
+  adminRidersApi, adminBillingApi, adminCategoriesApi, adminApplicationsApi,
   type AdminOrder, type AdminProduct, type AdminUser, type AdminVendor,
   type AdminRider, type AdminRevenueReport, type AdminCategory,
 } from '@/services/adminApi';
@@ -63,6 +63,7 @@ const AdminDashboardPage: React.FC = () => {
   const [riders,     setRiders]     = useState<AdminRider[]>([]);
   const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [report,     setReport]     = useState<AdminRevenueReport | null>(null);
+  const [pendingApps, setPendingApps] = useState(0);
   const [loading,    setLoading]    = useState(true);
 
   useEffect(() => {
@@ -74,6 +75,7 @@ const AdminDashboardPage: React.FC = () => {
       adminRidersApi.list().then(r => setRiders(r.data)).catch(() => null),
       adminCategoriesApi.list().then(r => setCategories(r.data)).catch(() => null),
       adminBillingApi.revenueReport().then(r => setReport(r.data)).catch(() => null),
+      adminApplicationsApi.list('PENDING').then(r => setPendingApps(r.data.length)).catch(() => null),
     ]).finally(() => setLoading(false));
   }, []);
 
@@ -81,7 +83,6 @@ const AdminDashboardPage: React.FC = () => {
   const pendingOrders   = orders.filter(o => o.status === 'PENDING').length;
   const deliveredOrders = orders.filter(o => o.status === 'DELIVERED').length;
   const cancelledOrders = orders.filter(o => o.status === 'CANCELLED').length;
-  const pendingVendors  = vendors.filter(v => !v.isVerified && v.isActive).length;
   const customers       = users.filter(u => u.role === 'CUSTOMER').length;
   const lowStock        = products.filter(p => p.status === 'ACTIVE' && p.stockQty <= 5);
   const recentOrders    = [...orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 6);
@@ -104,7 +105,7 @@ const AdminDashboardPage: React.FC = () => {
     { icon: <DollarSign className="h-5 w-5 text-white" />, label: 'Total Revenue',  value: fmtRWF(revenue),   sub: report?.count ? `${report.count} verified` : undefined, to: '/admin/billing',  gradient: 'bg-gradient-to-br from-orange-500 to-orange-600' },
     { icon: <ShoppingBag className="h-5 w-5 text-white" />, label: 'Total Orders',   value: orders.length,     sub: `${pendingOrders} pending`,  to: '/admin/orders',   gradient: 'bg-gradient-to-br from-blue-500 to-blue-600' },
     { icon: <Users className="h-5 w-5 text-white" />,       label: 'Customers',      value: customers,         sub: undefined,                   to: '/admin/users',    gradient: 'bg-gradient-to-br from-purple-500 to-purple-600' },
-    { icon: <Store className="h-5 w-5 text-white" />,       label: 'Vendors',        value: vendors.length,    sub: pendingVendors > 0 ? `${pendingVendors} pending` : 'all verified', to: '/admin/vendors', gradient: 'bg-gradient-to-br from-indigo-500 to-indigo-600' },
+    { icon: <Store className="h-5 w-5 text-white" />,       label: 'Vendors',        value: vendors.length,    sub: vendors.filter(v => !v.isVerified && v.isActive).length > 0 ? `${vendors.filter(v => !v.isVerified && v.isActive).length} unverified` : 'all verified', to: '/admin/vendors', gradient: 'bg-gradient-to-br from-indigo-500 to-indigo-600' },
     { icon: <Package className="h-5 w-5 text-white" />,     label: 'Products',       value: products.length,   sub: `${products.filter(p => p.status === 'ACTIVE').length} active`, to: '/admin/products', gradient: 'bg-gradient-to-br from-teal-500 to-teal-600' },
     { icon: <Bike className="h-5 w-5 text-white" />,        label: 'Riders',         value: riders.length,     sub: `${riders.filter(r => r.status === 'AVAILABLE').length} available`, to: '/admin/riders', gradient: 'bg-gradient-to-br from-cyan-500 to-cyan-600' },
   ];
@@ -126,13 +127,13 @@ const AdminDashboardPage: React.FC = () => {
         </p>
       </div>
 
-      {/* Pending vendor alert */}
-      {!loading && pendingVendors > 0 && (
-        <Link to="/admin/vendors" className="flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700 px-4 py-3 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition">
+      {/* Pending application alert — sourced from real Application records */}
+      {!loading && pendingApps > 0 && (
+        <Link to="/admin/applications" className="flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700 px-4 py-3 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition">
           <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0" />
           <div>
-            <p className="font-semibold text-amber-800 dark:text-amber-300 text-sm">{pendingVendors} vendor{pendingVendors > 1 ? 's' : ''} awaiting approval</p>
-            <p className="text-xs text-amber-600 dark:text-amber-400">Click to review pending vendor applications</p>
+            <p className="font-semibold text-amber-800 dark:text-amber-300 text-sm">{pendingApps} application{pendingApps > 1 ? 's' : ''} awaiting review</p>
+            <p className="text-xs text-amber-600 dark:text-amber-400">Click to review pending vendor &amp; rider applications</p>
           </div>
         </Link>
       )}

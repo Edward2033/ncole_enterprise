@@ -143,7 +143,21 @@ export const categoriesService = {
 };
 
 export const ordersService = {
-  place: (body: { addressId: string; paymentMethod: string; notes?: string }) =>
+  place: (body: {
+    addressId: string;
+    paymentMethod: string;
+    notes?: string;
+    items: Array<{
+      productId: string;
+      variantId?: string | null;
+      quantity: number;
+      unitPrice: number;
+      productName: string;
+      variantTitle?: string | null;
+      sku?: string | null;
+      vendorId: string;
+    }>;
+  }) =>
     apiFetch<ApiResp<NcoleOrder>>('/orders', { method: 'POST', body: JSON.stringify(body) }),
   myOrders: (page = 1, limit = 10) =>
     apiFetch<ListResp<NcoleOrder>>(`/orders/my?page=${page}&limit=${limit}`),

@@ -67,9 +67,9 @@ const Hero: React.FC = () => {
   const [animating, setAnimating] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Load live slides from settings API
+  // Load live slides from settings API (public endpoint — no auth required)
   useEffect(() => {
-    apiFetch<{ success: boolean; data: HeroSlide[] }>('/settings/hero-slides')
+    apiFetch<{ success: boolean; data: HeroSlide[] }>('/settings/hero-slides/public')
       .then(res => {
         const active = (res.data ?? []).filter(s => s.isActive);
         if (active.length > 0) setSlides(active);

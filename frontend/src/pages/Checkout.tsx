@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Lock, Plus, MapPin, CreditCard, CheckCircle2 } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { ordersService, addressesService, type NcoleAddress } from '@/services/api';
+import { ordersService, productsService, addressesService, type NcoleAddress } from '@/services/api';
 import { formatPrice } from '@/lib/format';
 
 const PAYMENT_METHODS = [
@@ -55,10 +55,32 @@ const Checkout: React.FC = () => {
 
   const handlePlaceOrder = async () => {
     if (!selectedAddress) { setError('Please select a delivery address.'); return; }
+    if (items.length === 0) { setError('Your cart is empty.'); return; }
     setPlacing(true);
     setError('');
     try {
-      const res = await ordersService.place({ addressId: selectedAddress, paymentMethod, notes: notes || undefined });
+      // Resolve vendorId for each cart item by fetching product data
+      const orderItems = await Promise.all(
+        items.map(async (item) => {
+          const product = await productsService.get(item.product_id).then(r => r.data);
+          return {
+            productId:    item.product_id,
+            variantId:    item.variant_id ?? null,
+            quantity:     item.quantity,
+            unitPrice:    item.price,
+            productName:  item.name,
+            variantTitle: item.variant_title ?? null,
+            sku:          item.sku ?? null,
+            vendorId:     product.vendorId,
+          };
+        })
+      );
+      const res = await ordersService.place({
+        addressId: selectedAddress,
+        paymentMethod,
+        notes: notes || undefined,
+        items: orderItems,
+      });
       clearCart();
       navigate(`/order-confirmation/${res.data.id}`);
     } catch (err) {

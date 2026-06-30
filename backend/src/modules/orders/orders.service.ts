@@ -6,9 +6,20 @@ import { notifyOrderCreated, notifyOrderStatusChanged } from '@/modules/notifica
 import { generateInvoiceForOrder } from '@/modules/billing/billing.service';
 
 export const placeOrderSchema = z.object({
-  addressId: z.string().min(1, 'Address is required'),
+  addressId:     z.string().min(1, 'Address is required'),
   paymentMethod: z.nativeEnum(PaymentMethod),
-  notes: z.string().optional(),
+  notes:         z.string().optional(),
+  // Cart items sent directly from the frontend localStorage cart
+  items: z.array(z.object({
+    productId:  z.string().min(1),
+    variantId:  z.string().min(1).optional().nullable(),
+    quantity:   z.number().int().positive(),
+    unitPrice:  z.number().int().positive(),
+    productName: z.string().min(1),
+    variantTitle: z.string().optional().nullable(),
+    sku:          z.string().optional().nullable(),
+    vendorId:     z.string().min(1),
+  })).min(1, 'Cart is empty'),
 });
 
 export const updateOrderStatusSchema = z.object({
@@ -22,7 +33,7 @@ function generateOrderNumber(): string {
   return `NC-${Date.now()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
 }
 
-/** Ensures a Customer row exists for the user — creates it if missing (e.g. role-changed accounts). */
+/** Ensures a Customer row exists for the user — creates it if missing. */
 async function ensureCustomer(userId: string) {
   const existing = await prisma.customer.findUnique({ where: { userId } });
   if (existing) return existing;
@@ -30,60 +41,54 @@ async function ensureCustomer(userId: string) {
 }
 
 export async function placeOrder(userId: string, dto: PlaceOrderDto) {
-  const customer = await prisma.customer.findUnique({
-    where: { userId },
-    include: { cart: { include: { items: { include: { product: true, variant: true } } } } },
-  });
-  if (!customer) throw AppError.forbidden('No customer profile');
-
-  const cart = customer.cart;
-  if (!cart || cart.items.length === 0) throw AppError.badRequest('Cart is empty');
+  // Ensure customer profile exists (auto-create if needed)
+  const customer = await ensureCustomer(userId);
 
   const address = await prisma.address.findFirst({ where: { id: dto.addressId, userId } });
   if (!address) throw AppError.notFound('Address');
 
-  const subtotal = cart.items.reduce((sum, item) => {
-    const price = item.variant?.price ?? item.product.basePrice;
-    return sum + price * item.quantity;
-  }, 0);
+  // Validate all products exist and vendorIds are correct
+  for (const item of dto.items) {
+    const product = await prisma.product.findFirst({
+      where: { id: item.productId, deletedAt: null },
+    });
+    if (!product) throw AppError.badRequest(`Product ${item.productId} not found or unavailable`);
+  }
 
-  const deliveryFee = 0; // will be calculated in delivery module
-  const tax = 0;         // will be calculated in tax module
-  const total = subtotal + deliveryFee + tax;
+  const subtotal    = dto.items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
+  const deliveryFee = 0;
+  const tax         = 0;
+  const total       = subtotal + deliveryFee + tax;
 
   const order = await prisma.$transaction(async (tx) => {
-    const order = await tx.order.create({
+    const created = await tx.order.create({
       data: {
-        orderNumber: generateOrderNumber(),
-        customerId: customer.id,
-        addressId: dto.addressId,
+        orderNumber:   generateOrderNumber(),
+        customerId:    customer.id,
+        addressId:     dto.addressId,
         paymentMethod: dto.paymentMethod,
-        notes: dto.notes,
+        notes:         dto.notes,
         subtotal,
         deliveryFee,
         tax,
         total,
         items: {
-          create: cart.items.map((item) => ({
-            productId: item.productId,
-            variantId: item.variantId,
-            vendorId: item.product.vendorId,
-            productName: item.product.name,
-            variantTitle: item.variant?.title ?? null,
-            sku: item.variant?.sku ?? item.product.sku ?? null,
-            quantity: item.quantity,
-            unitPrice: item.variant?.price ?? item.product.basePrice,
-            total: (item.variant?.price ?? item.product.basePrice) * item.quantity,
+          create: dto.items.map((item) => ({
+            productId:    item.productId,
+            variantId:    item.variantId ?? null,
+            vendorId:     item.vendorId,
+            productName:  item.productName,
+            variantTitle: item.variantTitle ?? null,
+            sku:          item.sku ?? null,
+            quantity:     item.quantity,
+            unitPrice:    item.unitPrice,
+            total:        item.unitPrice * item.quantity,
           })),
         },
       },
       include: { items: true },
     });
-
-    // Clear the cart
-    await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
-
-    return order;
+    return created;
   });
 
   // Fire notification + auto-generate invoice (non-blocking)

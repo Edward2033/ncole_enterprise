@@ -28,13 +28,22 @@ const ROLE_HOME: Record<string, string> = {
 const THEME_KEY = 'ncole_theme';
 
 const CustomerShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [dark, setDark] = useState(() => {
     const stored = localStorage.getItem(THEME_KEY);
     return stored ? stored === 'dark' : document.documentElement.classList.contains('dark');
   });
+
+  // Wait for auth to rehydrate before rendering so API calls have a valid token
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-orange-500" />
+      </div>
+    );
+  }
 
   // Redirect non-customer roles away from customer shell
   if (user && user.role !== 'CUSTOMER') {

@@ -24,6 +24,15 @@ router.get('/maintenance/status', async (_req: Request, res: Response, next: Nex
   } catch (e) { next(e); }
 });
 
+// ─── Public hero slides (no auth — used by the storefront Hero component) ─────
+router.get('/hero-slides/public', async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { listHeroSlides } = await import('./settings.service');
+    const slides = await listHeroSlides();
+    res.json({ success: true, data: slides.filter(s => s.isActive) });
+  } catch (e) { next(e); }
+});
+
 // All other settings routes require authentication.
 router.use(authenticate);
 
