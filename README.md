@@ -513,6 +513,14 @@ This project satisfies all assessment criteria for the UNILAK EWA408510 Final Ex
 
 **Prisma migration errors:** Run `npx prisma migrate reset` (dev only — destroys data).
 
+**Applications / OTP 500 errors:** The `applications` and `otp_codes` tables must be created manually in Supabase before the Applications and OTP features will work. Run `apply.db.sql` in your Supabase project:
+1. Open [supabase.com](https://supabase.com) → your project → **SQL Editor** → **New Query**
+2. Paste the full contents of `apply.db.sql` (root of the repository)
+3. Click **Run**
+4. Confirm the query completes with no errors
+
+This only needs to be done once per Supabase project. It is safe to re-run — all statements use `IF NOT EXISTS` guards.
+
 **CORS errors:** Ensure `CORS_ORIGIN` in `backend/.env` includes all frontend origins, comma-separated.
 
 **AI returns "daily limit" message:** The free Gemini tier daily quota is exhausted. It resets at midnight Pacific time. Enable billing at [aistudio.google.com](https://aistudio.google.com) to remove the cap.

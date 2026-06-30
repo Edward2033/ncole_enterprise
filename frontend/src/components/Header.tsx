@@ -65,6 +65,12 @@ const Header: React.FC = () => {
               {c.title}
             </Link>
           ))}
+          <Link
+            to="/apply"
+            className="ml-1 rounded-full border border-orange-300 bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-600 hover:bg-orange-100 transition-colors"
+          >
+            Sell / Deliver
+          </Link>
         </nav>
 
         {/* Search */}
@@ -188,7 +194,7 @@ const Header: React.FC = () => {
             </div>
           </form>
           <nav className="flex flex-col gap-1" aria-label="Mobile navigation">
-            {[{ to: '/', label: 'Home' }, { to: '/shop', label: 'Shop' }].map(l => (
+            {[{ to: '/', label: 'Home' }, { to: '/shop', label: 'Shop' }, { to: '/apply', label: 'Sell / Deliver' }].map(l => (
               <Link key={l.to} to={l.to} onClick={() => setMobileOpen(false)}
                 className="rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
                 {l.label}
