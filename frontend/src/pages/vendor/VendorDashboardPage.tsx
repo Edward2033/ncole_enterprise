@@ -55,22 +55,27 @@ const VendorDashboardPage: React.FC = () => {
   const [products, setProducts] = useState<NcoleVendorProduct[]>([]);
   const [orders,   setOrders]   = useState<NcoleVendorOrder[]>([]);
   const [loading,  setLoading]  = useState(true);
+  const [error,    setError]    = useState<string | null>(null);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const profile = await vendorProfileService.getMyProfile();
-        const [pRes, oRes] = await Promise.all([
-          vendorProductsService.list(1, 50, profile.data.id),
-          vendorOrdersService.list(1, 20),
-        ]);
-        setProducts(pRes.data);
-        setOrders(oRes.data);
-      } catch { /* ignore */ }
-      finally { setLoading(false); }
-    };
-    load();
+  const load = React.useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const profile = await vendorProfileService.getMyProfile();
+      const [pRes, oRes] = await Promise.all([
+        vendorProductsService.list(1, 50, profile.data.id),
+        vendorOrdersService.list(1, 20),
+      ]);
+      setProducts(pRes.data);
+      setOrders(oRes.data);
+    } catch (e) {
+      setError((e as Error).message || 'Failed to load dashboard data.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => { load(); }, [load]);
 
   const activeProducts = products.filter(p => p.status === 'ACTIVE').length;
   const lowStock       = products.filter(p => p.stockQty <= 5 && p.status === 'ACTIVE');
@@ -81,6 +86,18 @@ const VendorDashboardPage: React.FC = () => {
   if (loading) return (
     <div className="flex min-h-[60vh] items-center justify-center">
       <Spinner size="lg" />
+    </div>
+  );
+
+  if (error) return (
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
+      <p className="text-sm text-red-500">{error}</p>
+      <button
+        onClick={load}
+        className="rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-violet-700 transition"
+      >
+        Retry
+      </button>
     </div>
   );
 

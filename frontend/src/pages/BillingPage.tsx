@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FileText, CreditCard, ChevronRight, Clock, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import { billingService, type NcoleInvoice, type NcolePayment } from '@/services/api';
-import { formatPrice } from '@/lib/format';
+import { formatRWF } from '@/lib/utils';
 
 const INVOICE_STATUS: Record<string, { label: string; color: string }> = {
   DRAFT:     { label: 'Draft',     color: 'bg-slate-100 text-slate-600' },
@@ -115,23 +115,24 @@ const BillingPage: React.FC = () => {
                         <FileText className="h-5 w-5" />
                       </div>
                       <div>
-                        <p className="font-bold text-slate-900">{inv.invoiceNumber}</p>
+                      <p className="font-bold text-slate-900">{inv.invoiceNumber}</p>
                         <p className="text-sm text-slate-400">Issued {new Date(inv.issuedAt).toLocaleDateString('en-RW', { year: 'numeric', month: 'short', day: 'numeric' })}</p>
                         {inv.paidAt && <p className="text-xs text-emerald-600">Paid {new Date(inv.paidAt).toLocaleDateString('en-RW', { year: 'numeric', month: 'short', day: 'numeric' })}</p>}
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className={`rounded-full px-3 py-1 text-xs font-semibold ${st.color}`}>{st.label}</span>
-                      <span className="text-base font-bold text-slate-900">{formatPrice(inv.total)}</span>
+                      <span className="text-base font-bold text-slate-900">{formatRWF(inv.total)}</span>
                     </div>
                   </div>
                   <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 text-sm">
                     <div className="flex gap-4 text-slate-500">
-                      <span>Subtotal: {formatPrice(inv.subtotal)}</span>
-                      {inv.deliveryFee > 0 && <span>Delivery: {formatPrice(inv.deliveryFee)}</span>}
-                      {inv.tax > 0 && <span>Tax: {formatPrice(inv.tax)}</span>}
+                      <span>Subtotal: {formatRWF(inv.subtotal)}</span>
+                      {inv.deliveryFee > 0 && <span>Delivery: {formatRWF(inv.deliveryFee)}</span>}
+                      {inv.tax > 0 && <span>Tax: {formatRWF(inv.tax)}</span>}
                     </div>
-                    <Link to="/orders" className="flex items-center gap-1 text-sm font-semibold text-orange-600 hover:gap-2 transition-all">
+                    {/* C2: link to the specific order, not the list */}
+                    <Link to={`/order/${inv.orderId}`} className="flex items-center gap-1 text-sm font-semibold text-orange-600 hover:gap-2 transition-all">
                       View Order <ChevronRight className="h-4 w-4" />
                     </Link>
                   </div>
@@ -162,7 +163,7 @@ const BillingPage: React.FC = () => {
                         disabled={isPaying}
                         className="rounded-full bg-orange-500 px-6 py-2.5 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-50 transition"
                       >
-                        {isPaying ? 'Submitting...' : `Pay ${formatPrice(inv.total)}`}
+                        {isPaying ? 'Submitting...' : `Pay ${formatRWF(inv.total)}`}
                       </button>
                     </div>
                   )}
@@ -203,7 +204,7 @@ const BillingPage: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-3">
                       <span className={`rounded-full px-3 py-1 text-xs font-semibold ${st.color}`}>{st.label}</span>
-                      <span className="text-base font-bold text-slate-900">{formatPrice(pay.amount)}</span>
+                      <span className="text-base font-bold text-slate-900">{formatRWF(pay.amount)}</span>
                     </div>
                   </div>
                   {pay.rejectionReason && (

@@ -19,23 +19,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   // Rehydrate session from stored tokens on mount
-useEffect(() => {
-    const { accessToken } = getTokens();
-    if (!accessToken) {
+  useEffect(() => {
+    const { accessToken, refreshToken } = getTokens();
+
+    // No tokens at all — skip the network call entirely.
+    if (!accessToken && !refreshToken) {
       setLoading(false);
       return;
     }
 
     let cancelled = false;
 
-    // IMPORTANT: only call /me while we have a token.
-    // If it fails (401/refresh invalid), we clear tokens to avoid repeated /users/me spam.
     authService
       .me()
       .then((res) => {
         if (!cancelled) setUser(res.data);
       })
       .catch(() => {
+        // /users/me failed even after the automatic refresh-retry inside apiFetch.
+        // Both tokens are invalid — clear storage so ProtectedRoute redirects to /login.
         clearTokens();
         if (!cancelled) setUser(null);
       })

@@ -68,21 +68,34 @@ const inputCls =
  *       with the correct boundary automatically when body is FormData.
  */
 async function uploadToCloudinary(file: File): Promise<string> {
-  const BASE = ((import.meta as any)?.env?.VITE_API_URL as string) ?? 'http://localhost:4000/api/v1';
+  const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:4000/api/v1';
 
-  // Import token helpers — these are the same functions used by apiFetch
+  // Import token helpers — the same functions used by every apiFetch call.
   const { getTokens, doRefresh } = await import('@/services/api');
 
-  const doUpload = async (token: string | null) => {
+  // Fail fast: if there is no token at all, do not send an unauthenticated
+  // request. Attempt a refresh first; if that also fails, surface a clear error.
+  let token = getTokens().accessToken;
+  if (!token) {
+    token = await doRefresh();
+    if (!token) throw new Error('Session expired. Please sign in again.');
+  }
+
+  const doUpload = async (t: string) => {
     const fd = new FormData();
     fd.append('image', file);
-    const headers: HeadersInit = token ? { Authorization: 'Bearer ' + token } : {};
-    return fetch(BASE + '/products/upload-image', { method: 'POST', headers, body: fd });
+    // Do NOT set Content-Type — the browser must set multipart/form-data
+    // with the correct boundary automatically when the body is FormData.
+    return fetch(BASE + '/products/upload-image', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + t },
+      body: fd,
+    });
   };
 
-  let res = await doUpload(getTokens().accessToken);
+  let res = await doUpload(token);
 
-  // Token expired — refresh once then retry
+  // Token expired mid-session — refresh once then retry.
   if (res.status === 401) {
     const fresh = await doRefresh();
     if (!fresh) throw new Error('Session expired. Please sign in again.');
@@ -91,7 +104,10 @@ async function uploadToCloudinary(file: File): Promise<string> {
 
   if (!res.ok) {
     const errJson = await res.json().catch(() => ({})) as { error?: string };
-    throw new Error(errJson.error ?? ('Upload failed (HTTP ' + res.status + ')'));
+    const msg = errJson.error ?? ('Upload failed (HTTP ' + res.status + ')');
+    // 403 means the logged-in role is not ADMIN or VENDOR — surface that clearly.
+    if (res.status === 403) throw new Error('Permission denied: only Admins and Vendors can upload product images.');
+    throw new Error(msg);
   }
 
   const json = await res.json() as { data?: { url?: string }; url?: string };

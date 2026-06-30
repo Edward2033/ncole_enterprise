@@ -12,6 +12,7 @@ const schema = z.object({
   businessName: z.string().min(2),
   description: z.string().optional(),
   momoNumber: z.string().optional(),
+  logoUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
 });
 type Form = z.infer<typeof schema>;
 
@@ -29,7 +30,7 @@ const VendorProfilePage: React.FC = () => {
     vendorProfileService.getMyProfile()
       .then(res => {
         setProfile(res.data);
-        reset({ businessName: res.data.businessName, description: res.data.description ?? '', momoNumber: res.data.momoNumber ?? '' });
+        reset({ businessName: res.data.businessName, description: res.data.description ?? '', momoNumber: res.data.momoNumber ?? '', logoUrl: res.data.logoUrl ?? '' });
       })
       .catch(() => setError('Could not load vendor profile.'))
       .finally(() => setLoading(false));
@@ -56,9 +57,13 @@ const VendorProfilePage: React.FC = () => {
 
       <PCard>
         <div className="mb-6 flex items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-100 dark:bg-violet-900/30 text-2xl font-bold text-violet-700 dark:text-violet-300">
-            <Store className="h-8 w-8" />
-          </div>
+          {profile?.logoUrl ? (
+            <img src={profile.logoUrl} alt="Store logo" className="h-16 w-16 rounded-2xl object-cover border border-slate-200 dark:border-slate-700" />
+          ) : (
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-100 dark:bg-violet-900/30 text-2xl font-bold text-violet-700 dark:text-violet-300">
+              <Store className="h-8 w-8" />
+            </div>
+          )}
           <div className="flex-1 min-w-0">
             <p className="text-lg font-bold dark:text-white truncate">{profile?.businessName ?? user?.name}</p>
             <p className="text-sm text-slate-500">{user?.email}</p>
@@ -79,6 +84,7 @@ const VendorProfilePage: React.FC = () => {
             <PInput label="Business Name" {...register('businessName')} error={errors.businessName?.message} />
             <PTextarea label="Description" {...register('description')} rows={3} placeholder="Describe your store…" />
             <PInput label="MoMo Number" {...register('momoNumber')} placeholder="+250 7XX XXX XXX" />
+            <PInput label="Logo URL" {...register('logoUrl')} placeholder="https://res.cloudinary.com/…/logo.jpg" error={errors.logoUrl?.message} />
             <div className="flex gap-3">
               <PButton type="submit" size="sm" loading={saving}><Save className="h-4 w-4" />Save Changes</PButton>
               <PButton type="button" variant="secondary" size="sm" onClick={() => { setEditing(false); reset(); }}>Cancel</PButton>
@@ -90,6 +96,7 @@ const VendorProfilePage: React.FC = () => {
               ['Business Name', profile?.businessName ?? '—'],
               ['Description', profile?.description ?? 'Not set'],
               ['MoMo Number', profile?.momoNumber ?? 'Not set'],
+              ['Logo URL', profile?.logoUrl ? 'Set' : 'Not set'],
               ['Email', user?.email ?? '—'],
               ['Phone', user?.phone ?? 'Not set'],
               ['Status', profile?.isActive ? 'Active' : 'Inactive'],

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Bell, CheckCheck } from 'lucide-react';
+import { Bell, CheckCheck, Trash2 } from 'lucide-react';
 import { notificationsService, type NcoleNotification } from '@/services/api';
 import { PCard, PButton, Spinner } from '@/components/ui/portal-ui';
 import { cn, formatDateTime } from '@/lib/utils';
@@ -26,6 +26,13 @@ const RiderNotificationsPage: React.FC = () => {
   const markAll = async () => {
     await notificationsService.markAllRead().catch(() => null);
     setItems(prev => prev.map(n => ({ ...n, isRead: true })));
+  };
+
+  // R6: delete a single notification
+  const deleteNotif = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    await notificationsService.remove(id).catch(() => null);
+    setItems(prev => prev.filter(n => n.id !== id));
   };
 
   const unread = items.filter(n => !n.isRead).length;
@@ -56,7 +63,7 @@ const RiderNotificationsPage: React.FC = () => {
         <div className="space-y-2">
           {items.map(n => (
             <div key={n.id} onClick={() => !n.isRead && markRead(n.id)}
-              className={cn('cursor-pointer rounded-xl border p-4 transition-colors',
+              className={cn('group cursor-pointer rounded-xl border p-4 transition-colors',
                 n.isRead
                   ? 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800'
                   : 'border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20')}>
@@ -67,6 +74,14 @@ const RiderNotificationsPage: React.FC = () => {
                   <p className="mt-0.5 text-sm text-slate-600 dark:text-slate-300">{n.message}</p>
                   <p className="mt-1 text-xs text-slate-400">{formatDateTime(n.createdAt)}</p>
                 </div>
+                {/* R6: delete button matching vendor/customer notification pages */}
+                <button
+                  onClick={e => deleteNotif(n.id, e)}
+                  title="Delete"
+                  className="ml-2 flex-shrink-0 rounded-lg p-1.5 text-slate-300 opacity-0 transition-all group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
               </div>
             </div>
           ))}

@@ -18,7 +18,12 @@ export const createProductSchema = z.object({
   hasVariants: z.boolean().default(false),
 });
 
-export const updateProductSchema = createProductSchema.partial();
+// updateProductSchema extends createProductSchema with the status field.
+// status is intentionally excluded from createProductSchema (new products
+// default to DRAFT via the Prisma schema) but must be patchable via PATCH.
+export const updateProductSchema = createProductSchema.partial().extend({
+  status: z.enum(['ACTIVE', 'DRAFT', 'ARCHIVED']).optional(),
+});
 export const productQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
@@ -34,13 +39,19 @@ export type ProductQueryDto = z.infer<typeof productQuerySchema>;
 
 export async function listProducts(query: ProductQueryDto) {
   const { page, limit, categoryId, vendorId, status, q } = query;
-  // status='ALL' bypasses the filter (used by admin to see every status)
-  const statusFilter = !status || status === 'ALL' ? {} : { status: status as 'ACTIVE' | 'DRAFT' | 'ARCHIVED' };
+  // status omitted or 'ALL' → no status filter (admin/vendor see everything)
+  // status = specific value  → filter to that value
+  // status omitted AND called from public → callers must pass status='ACTIVE' explicitly
+  const statusWhere =
+    !status || status === 'ALL'
+      ? {}                                                          // no filter — return all statuses
+      : { status: status as 'ACTIVE' | 'DRAFT' | 'ARCHIVED' };    // explicit filter
+
   const where = {
     deletedAt: null,
     ...(categoryId ? { categoryId } : {}),
-    ...(vendorId ? { vendorId } : {}),
-    ...(status ? statusFilter : { status: 'ACTIVE' as const }),
+    ...(vendorId   ? { vendorId }   : {}),
+    ...statusWhere,
     ...(q ? { name: { contains: q, mode: 'insensitive' as const } } : {}),
   };
 

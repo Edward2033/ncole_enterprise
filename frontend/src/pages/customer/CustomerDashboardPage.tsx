@@ -60,21 +60,37 @@ const CustomerDashboardPage: React.FC = () => {
   const { user } = useAuth();
   const [orders, setOrders] = useState<NcoleOrder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     ordersService.myOrders(1, 20)
       .then(res => setOrders(res.data))
-      .catch(() => null)
+      .catch((e) => setError((e as Error).message || 'Failed to load orders.'))
       .finally(() => setLoading(false));
   }, []);
 
   const total     = orders.length;
   const pending   = orders.filter(o => ['PENDING', 'CONFIRMED', 'PROCESSING'].includes(o.status)).length;
   const completed = orders.filter(o => o.status === 'DELIVERED').length;
+  // C4: total amount spent across all delivered orders
+  const totalSpent = orders.filter(o => o.status === 'DELIVERED').reduce((s, o) => s + o.total, 0);
   const recent    = orders.slice(0, 5);
 
   return (
     <div className="space-y-6">
+
+      {/* C1: surface fetch errors with a retry option */}
+      {error && (
+        <div className="flex items-center justify-between rounded-2xl border border-red-200 bg-red-50 dark:bg-red-900/20 px-4 py-3 text-sm text-red-700 dark:text-red-400">
+          <span>{error}</span>
+          <button
+            onClick={() => { setError(null); setLoading(true); ordersService.myOrders(1, 20).then(r => setOrders(r.data)).catch(e => setError((e as Error).message)).finally(() => setLoading(false)); }}
+            className="ml-4 rounded-lg bg-red-100 dark:bg-red-800 px-3 py-1 text-xs font-semibold hover:bg-red-200 dark:hover:bg-red-700 transition"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* ── Welcome banner ────────────────────────────────────────────────── */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-500 via-orange-600 to-amber-500 p-6 text-white shadow-lg shadow-orange-200 dark:shadow-orange-900/30 animate-in fade-in slide-in-from-top-4 duration-500">
@@ -93,7 +109,7 @@ const CustomerDashboardPage: React.FC = () => {
       </div>
 
       {/* ── Stats ─────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <StatCard
           icon={<ShoppingBag className="h-5 w-5 text-blue-600" />}
           label="Total Orders" value={loading ? '—' : total}
@@ -108,6 +124,12 @@ const CustomerDashboardPage: React.FC = () => {
           icon={<CheckCircle className="h-5 w-5 text-emerald-600" />}
           label="Delivered" value={loading ? '—' : completed}
           color="bg-emerald-100 dark:bg-emerald-900/30" delay="160ms"
+        />
+        {/* C4: total spent KPI */}
+        <StatCard
+          icon={<TrendingUp className="h-5 w-5 text-violet-600" />}
+          label="Total Spent" value={loading ? '—' : formatRWF(totalSpent)}
+          color="bg-violet-100 dark:bg-violet-900/30" delay="240ms"
         />
       </div>
 

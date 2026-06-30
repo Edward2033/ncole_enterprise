@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Search } from 'lucide-react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { Search, ChevronDown } from 'lucide-react';
 import { vendorOrdersService, type NcoleVendorOrder } from '@/services/api';
 import { PCard, PBadge, PButton, Spinner } from '@/components/ui/portal-ui';
 import { formatRWF, formatDate, ORDER_STATUS_COLOR, ORDER_STATUS_LABEL, type OrderStatus } from '@/lib/utils';
@@ -17,25 +17,42 @@ const FILTERS: OrderStatusFilter[] = ['ALL', 'PENDING', 'CONFIRMED', 'PROCESSING
 const VendorOrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<NcoleVendorOrder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
   const [filter, setFilter] = useState<OrderStatusFilter>('ALL');
   const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState<string | null>(null);
   const [updating, setUpdating] = useState<string | null>(null);
 
-  const load = () => {
-    vendorOrdersService.list()
-      .then(res => setOrders(res.data))
+  // V4: memoised load — stable reference used by handleStatusUpdate
+  const load = useCallback((resetList = true) => {
+    const targetPage = resetList ? 1 : page + 1;
+    if (resetList) {
+      setLoading(true);
+      setPage(1);
+    } else {
+      setLoadingMore(true);
+    }
+    vendorOrdersService.list(targetPage, 20)
+      .then(res => {
+        // V5: accumulate pages instead of replacing
+        setOrders(prev => resetList ? res.data : [...prev, ...res.data]);
+        setHasMore(res.data.length === 20);
+        if (!resetList) setPage(targetPage);
+      })
       .catch(() => null)
-      .finally(() => setLoading(false));
-  };
+      .finally(() => { setLoading(false); setLoadingMore(false); });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(true); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleStatusUpdate = async (id: string, status: OrderStatus) => {
     setUpdating(id);
     await vendorOrdersService.updateStatus(id, status).catch(() => null);
     setUpdating(null);
-    load();
+    load(true);
   };
 
   const visible = orders
@@ -118,6 +135,17 @@ const VendorOrdersPage: React.FC = () => {
               </PCard>
             );
           })}
+          {/* V5: load-more button — only shown when not filtering so page boundaries are meaningful */}
+          {hasMore && filter === 'ALL' && !search && (
+            <button
+              onClick={() => load(false)}
+              disabled={loadingMore}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 dark:border-slate-700 py-3 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 transition"
+            >
+              {loadingMore ? <Spinner size="sm" /> : <ChevronDown className="h-4 w-4" />}
+              {loadingMore ? 'Loading…' : 'Load more orders'}
+            </button>
+          )}
         </div>
       )}
     </div>

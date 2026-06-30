@@ -80,15 +80,16 @@ export async function apiFetch<T = unknown>(path: string, init: RequestInit = {}
 
         if (newToken) {
           queue.forEach(({ resolve }) => resolve(newToken));
-        } else {
-          // Refresh failed — reject every queued request so they don't hang forever
-          queue.forEach(({ reject }) => reject(new Error('Session expired. Please sign in again.')));
-        }
-        queue = [];
-
-        if (newToken) {
+          queue = [];
           attachAuth(newToken);
           res = await doRequest();
+        } else {
+          // Refresh failed — reject every queued request and throw immediately
+          // so callers receive a clear message instead of the raw 401 backend text.
+          const sessionErr = new Error('Session expired. Please sign in again.');
+          queue.forEach(({ reject }) => reject(sessionErr));
+          queue = [];
+          throw sessionErr;
         }
       }
     }
@@ -206,6 +207,11 @@ export const deliveriesService = {
     apiFetch(`/orders/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
 };
 
+// R2+R3: rider profile service — fetches vehicle info, status, verification
+export const riderService = {
+  getMyProfile: () => apiFetch<ApiResp<NcoleRiderProfile>>('/riders/me'),
+};
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface ApiResp<T> { success: boolean; data: T; }
@@ -302,6 +308,16 @@ export interface NcoleVendorOrder {
   id: string; orderNumber: string; status: string; paymentStatus: string;
   paymentMethod: string; subtotal: number; deliveryFee: number; total: number;
   createdAt: string; updatedAt: string; items: NcoleVendorOrderItem[];
+}
+
+export interface NcoleRiderProfile {
+  id: string; userId: string;
+  vehicleType: string | null;
+  plateNumber: string | null;
+  status: 'AVAILABLE' | 'BUSY' | 'OFFLINE';
+  isVerified: boolean;
+  createdAt: string; updatedAt: string;
+  user: { name: string; email: string; phone: string | null };
 }
 
 export interface NcoleDeliveryAddress {

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Package, ChevronRight } from 'lucide-react';
 import { ordersService, type NcoleOrder } from '@/services/api';
-import { formatPrice } from '@/lib/format';
+import { formatRWF } from '@/lib/utils';
 
 const STATUS_COLORS: Record<string, string> = {
   PENDING: 'bg-amber-100 text-amber-700',
@@ -55,7 +55,7 @@ const OrdersPage: React.FC = () => {
                   <span className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_COLORS[order.status] ?? 'bg-slate-100 text-slate-600'}`}>
                     {order.status.replace(/_/g, ' ')}
                   </span>
-                  <span className="text-base font-bold text-slate-900">{formatPrice(order.total)}</span>
+                  <span className="text-base font-bold text-slate-900">{formatRWF(order.total)}</span>
                 </div>
               </div>
               <div className="mt-3 flex items-center justify-between">

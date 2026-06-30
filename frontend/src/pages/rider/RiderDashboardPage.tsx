@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Truck, CheckCircle, Clock, DollarSign, ArrowRight } from 'lucide-react';
+import { Truck, CheckCircle, Clock, DollarSign, ArrowRight, ChevronDown } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { deliveriesService, type NcoleDelivery } from '@/services/api';
 import { PCard, PBadge, Spinner } from '@/components/ui/portal-ui';
@@ -10,11 +10,13 @@ const RiderDashboardPage: React.FC = () => {
   const { user } = useAuth();
   const [items, setItems] = useState<NcoleDelivery[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    deliveriesService.getAssigned()
+    // R7: fetch more than the default 20 so the dashboard shows a full picture
+    deliveriesService.getAssigned(1, 100)
       .then(res => setItems(res.data))
-      .catch(() => null)
+      .catch(e => setError((e as Error).message || 'Could not load deliveries.'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -24,6 +26,14 @@ const RiderDashboardPage: React.FC = () => {
   const earnings = completed.reduce((s, o) => s + o.deliveryFee, 0);
 
   if (loading) return <div className="flex justify-center pt-16"><Spinner size="lg" /></div>;
+
+  // R5: show a friendly message when the rider has no profile yet (403 from backend)
+  if (error) return (
+    <div className="flex flex-col items-center pt-16 gap-3 text-center">
+      <p className="text-sm text-slate-500">{error}</p>
+      <p className="text-xs text-slate-400">If you were recently registered as a rider, please wait for admin activation.</p>
+    </div>
+  );
 
   return (
     <div className="space-y-5">

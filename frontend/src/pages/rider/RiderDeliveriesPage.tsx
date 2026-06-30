@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Truck, ArrowRight } from 'lucide-react';
+import { Truck, ArrowRight, ChevronDown } from 'lucide-react';
 import { deliveriesService, type NcoleDelivery } from '@/services/api';
 import { PCard, PBadge, Spinner } from '@/components/ui/portal-ui';
 import { formatRWF, formatDateTime, ORDER_STATUS_COLOR, ORDER_STATUS_LABEL, type OrderStatus } from '@/lib/utils';
@@ -8,13 +8,23 @@ import { formatRWF, formatDateTime, ORDER_STATUS_COLOR, ORDER_STATUS_LABEL, type
 const RiderDeliveriesPage: React.FC = () => {
   const [items, setItems] = useState<NcoleDelivery[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
 
-  useEffect(() => {
-    deliveriesService.getAssigned()
-      .then(res => setItems(res.data))
+  const loadPage = (p: number, reset: boolean) => {
+    if (reset) setLoading(true); else setLoadingMore(true);
+    deliveriesService.getAssigned(p, 20)
+      .then(res => {
+        setItems(prev => reset ? res.data : [...prev, ...res.data]);
+        setHasMore(res.data.length === 20);
+        setPage(p);
+      })
       .catch(() => null)
-      .finally(() => setLoading(false));
-  }, []);
+      .finally(() => { setLoading(false); setLoadingMore(false); });
+  };
+
+  useEffect(() => { loadPage(1, true); }, []);
 
   const active = items.filter(o => ['READY_FOR_PICKUP', 'OUT_FOR_DELIVERY'].includes(o.status));
   const history = items.filter(o => ['DELIVERED', 'CANCELLED'].includes(o.status));
@@ -75,6 +85,18 @@ const RiderDeliveriesPage: React.FC = () => {
           <Truck className="h-12 w-12 text-slate-300 mb-3" />
           <p className="text-slate-500">No deliveries assigned yet.</p>
         </div>
+      )}
+
+      {/* R7: load-more button */}
+      {hasMore && (
+        <button
+          onClick={() => loadPage(page + 1, false)}
+          disabled={loadingMore}
+          className="flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 dark:border-slate-700 py-3 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 transition"
+        >
+          {loadingMore ? <Spinner size="sm" /> : <ChevronDown className="h-4 w-4" />}
+          {loadingMore ? 'Loading…' : 'Load more deliveries'}
+        </button>
       )}
     </div>
   );

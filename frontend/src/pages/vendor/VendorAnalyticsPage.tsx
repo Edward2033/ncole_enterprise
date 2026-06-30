@@ -8,22 +8,27 @@ const VendorAnalyticsPage: React.FC = () => {
   const [orders, setOrders] = useState<NcoleVendorOrder[]>([]);
   const [products, setProducts] = useState<NcoleVendorProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const profile = await vendorProfileService.getMyProfile();
-        const [oRes, pRes] = await Promise.all([
-          vendorOrdersService.list(1, 100),
-          vendorProductsService.list(1, 100, profile.data.id),
-        ]);
-        setOrders(oRes.data);
-        setProducts(pRes.data);
-      } catch { /* ignore */ }
-      finally { setLoading(false); }
-    };
-    load();
+  const load = React.useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const profile = await vendorProfileService.getMyProfile();
+      const [oRes, pRes] = await Promise.all([
+        vendorOrdersService.list(1, 100),
+        vendorProductsService.list(1, 100, profile.data.id),
+      ]);
+      setOrders(oRes.data);
+      setProducts(pRes.data);
+    } catch (e) {
+      setError((e as Error).message || 'Failed to load analytics.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => { load(); }, [load]);
 
   const monthlyRevenue = Array.from({ length: 6 }, (_, i) => {
     const d = new Date(); d.setMonth(d.getMonth() - (5 - i));
@@ -45,9 +50,27 @@ const VendorAnalyticsPage: React.FC = () => {
     status, count: orders.filter(o => o.status === status).length,
   }));
 
-  const topProducts = [...products].sort((a, b) => b.stockQty - a.stockQty).slice(0, 5);
+  // V3 fix: sort by revenue contribution (items sold × price), not raw stock
+  const productRevenue = products.map(p => ({
+    ...p,
+    revenue: orders
+      .filter(o => o.status === 'DELIVERED')
+      .flatMap(o => o.items)
+      .filter(i => i.productId === p.id)
+      .reduce((s, i) => s + i.total, 0),
+  }));
+  const topProducts = [...productRevenue].sort((a, b) => b.revenue - a.revenue).slice(0, 5);
+  // V2 fix: scale bar width relative to the max revenue, not raw stock value
+  const maxRevenue = topProducts.reduce((m, p) => Math.max(m, p.revenue), 1);
 
   if (loading) return <div className="flex justify-center pt-16"><Spinner size="lg" /></div>;
+
+  if (error) return (
+    <div className="flex flex-col items-center pt-16 gap-4 text-center">
+      <p className="text-sm text-red-500">{error}</p>
+      <button onClick={load} className="rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-violet-700 transition">Retry</button>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -79,18 +102,25 @@ const VendorAnalyticsPage: React.FC = () => {
         </PCard>
       </div>
       <PCard>
-        <h2 className="mb-4 font-semibold dark:text-white">Products by Stock</h2>
-        <div className="space-y-2">
-          {topProducts.map(p => (
-            <div key={p.id} className="flex items-center gap-3">
-              <p className="w-40 truncate text-sm dark:text-white">{p.name}</p>
-              <div className="flex-1 h-2 rounded-full bg-slate-100 dark:bg-slate-700">
-                <div className="h-2 rounded-full bg-violet-500" style={{ width: `${Math.min(100, p.stockQty)}%` }} />
+        <h2 className="mb-4 font-semibold dark:text-white">Top Products by Revenue</h2>
+        {topProducts.length === 0 ? (
+          <p className="py-4 text-center text-sm text-slate-500">No delivered orders yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {topProducts.map(p => (
+              <div key={p.id} className="flex items-center gap-3">
+                <p className="w-40 truncate text-sm dark:text-white">{p.name}</p>
+                <div className="flex-1 h-2 rounded-full bg-slate-100 dark:bg-slate-700">
+                  <div
+                    className="h-2 rounded-full bg-violet-500 transition-all duration-500"
+                    style={{ width: `${Math.round((p.revenue / maxRevenue) * 100)}%` }}
+                  />
+                </div>
+                <span className="text-sm text-slate-500 w-24 text-right">{formatRWF(p.revenue)}</span>
               </div>
-              <span className="text-sm text-slate-500 w-10 text-right">{p.stockQty}</span>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </PCard>
     </div>
   );

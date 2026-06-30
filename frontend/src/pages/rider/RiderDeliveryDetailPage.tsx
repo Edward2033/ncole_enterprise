@@ -17,7 +17,9 @@ const RiderDeliveryDetailPage: React.FC = () => {
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
-    deliveriesService.getAssigned()
+    // R1: fetch up to 100 assigned orders so the detail page works even when
+    // the order is not on the first page of the default paginated response.
+    deliveriesService.getAssigned(1, 100)
       .then(res => setOrder(res.data.find(o => o.id === id) ?? null))
       .catch(() => null)
       .finally(() => setLoading(false));
@@ -33,7 +35,14 @@ const RiderDeliveryDetailPage: React.FC = () => {
     finally { setUpdating(false); }
   };
 
-  if (loading || !order) return <div className="flex justify-center pt-16"><Spinner size="lg" /></div>;
+  if (loading) return <div className="flex justify-center pt-16"><Spinner size="lg" /></div>;
+
+  if (!order) return (
+    <div className="flex flex-col items-center pt-16 gap-3 text-center">
+      <p className="text-sm text-slate-500">Delivery not found.</p>
+      <Link to="/rider/deliveries" className="text-sm font-semibold text-orange-600 hover:underline">Back to deliveries</Link>
+    </div>
+  );
 
   const transition = RIDER_TRANSITIONS[order.status as OrderStatus];
 

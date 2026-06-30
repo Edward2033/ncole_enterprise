@@ -8,7 +8,8 @@ const RiderEarningsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    deliveriesService.getAssigned()
+    // R7: fetch up to 100 completed deliveries for accurate earnings totals
+    deliveriesService.getAssigned(1, 100)
       .then(res => setItems(res.data))
       .catch(() => null)
       .finally(() => setLoading(false));

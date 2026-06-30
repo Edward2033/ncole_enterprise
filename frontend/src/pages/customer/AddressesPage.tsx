@@ -47,6 +47,9 @@ const AddressesPage: React.FC = () => {
   const [errors, setErrors]     = useState<Partial<AddrForm>>({});
   const [saving, setSaving]     = useState(false);
   const [saveError, setSaveError] = useState('');
+  // C5: track which address is pending deletion for the confirmation dialog
+  const [deleteTarget, setDeleteTarget] = useState<NcoleAddress | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -116,7 +119,10 @@ const AddressesPage: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
+    setDeleting(true);
     await addressesService.remove(id).catch(() => null);
+    setDeleting(false);
+    setDeleteTarget(null);
     load();
   };
 
@@ -269,13 +275,42 @@ const AddressesPage: React.FC = () => {
                   className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:border-orange-300 hover:text-orange-600 transition-colors">
                   <Edit2 className="h-3 w-3" /> Edit
                 </button>
-                <button onClick={() => handleDelete(addr.id)}
+                <button onClick={() => setDeleteTarget(addr)}
                   className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:border-red-300 hover:text-red-500 transition-colors">
                   <Trash2 className="h-3 w-3" /> Delete
                 </button>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* C5: delete confirmation dialog */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setDeleteTarget(null)} />
+          <div className="relative z-10 w-full max-w-sm rounded-2xl bg-white dark:bg-slate-800 p-6 shadow-xl">
+            <h3 className="font-semibold text-slate-900 dark:text-white mb-2">Delete Address</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mb-5">
+              Delete "{deleteTarget.label || deleteTarget.fullName}"? This cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => handleDelete(deleteTarget.id)}
+                disabled={deleting}
+                className="flex items-center gap-2 rounded-xl bg-red-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-red-600 disabled:opacity-50 transition"
+              >
+                {deleting && <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />}
+                {deleting ? 'Deleting…' : 'Delete'}
+              </button>
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="rounded-xl border border-slate-200 dark:border-slate-700 px-5 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
