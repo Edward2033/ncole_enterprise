@@ -33,6 +33,10 @@ yarn-debug.log*
 backups/
 *.sql.gz
 
+# ─── Temporary / scratch files ──────────────────────────────────────────────
+tmp_*.txt
+tmp_*.sql
+
 # ─── OS ───────────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
