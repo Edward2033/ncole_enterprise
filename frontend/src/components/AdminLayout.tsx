@@ -4,13 +4,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import {
   LayoutDashboard, Users, Store, Package, ShoppingBag,
   FolderOpen, BarChart2, Settings, CreditCard, Bell, Bike,
-  LogOut, Menu, X, Shield, ClipboardList, Bot,
+  LogOut, Menu, X, Shield, ClipboardList, Bot, FileText,
 } from 'lucide-react';
 
 const NAV = [
   { to: '/admin/dashboard',    icon: LayoutDashboard, label: 'Dashboard',     end: true },
   { to: '/admin/users',         icon: Users,           label: 'Users' },
   { to: '/admin/vendors',       icon: Store,           label: 'Vendors' },
+  { to: '/admin/applications',  icon: FileText,        label: 'Applications' },
   { to: '/admin/products',      icon: Package,         label: 'Products' },
   { to: '/admin/orders',        icon: ShoppingBag,     label: 'Orders' },
   { to: '/admin/categories',    icon: FolderOpen,      label: 'Categories' },

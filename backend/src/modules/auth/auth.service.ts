@@ -6,6 +6,7 @@ import { RegisterDto, LoginDto, ForgotPasswordDto, ResetPasswordDto } from './au
 import { env } from '@/config/env';
 import { audit } from '@/shared/utils/audit';
 import { sendMail, passwordResetEmailHtml } from '@/shared/utils/email';
+import { sendOtp, verifyOtp } from '@/modules/otp/otp.service';
 import crypto from 'crypto';
 
 /** Parse simple duration string like "7d", "15m", "1h" into milliseconds. */
@@ -52,6 +53,24 @@ export async function loginUser(dto: LoginDto) {
 
   audit({ userId: user.id, action: 'LOGIN', entity: 'User', entityId: user.id });
 
+  // VENDOR and RIDER require OTP verification before tokens are issued
+  if (user.role === 'VENDOR' || user.role === 'RIDER') {
+    await sendOtp(user.id, user.email, user.name);
+    return { requiresOtp: true, userId: user.id };
+  }
+
+  return issueTokens(user.id, user.email, user.role);
+}
+
+/** Called after OTP is verified — issues tokens for VENDOR / RIDER */
+export async function loginVerifyOtp(userId: string, code: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, email: true, role: true, isActive: true, deletedAt: true },
+  });
+  if (!user || user.deletedAt || !user.isActive) throw AppError.unauthorized('Invalid session');
+
+  await verifyOtp(userId, code);
   return issueTokens(user.id, user.email, user.role);
 }
 

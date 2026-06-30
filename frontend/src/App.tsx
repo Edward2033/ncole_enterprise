@@ -28,6 +28,7 @@ import { PublicAiChat } from '@/features/ai/PublicAiChat';
 // Auth
 const AuthPage          = lazy(() => import('@/pages/AuthPage'));
 const ResetPasswordPage = lazy(() => import('@/pages/ResetPasswordPage'));
+const ApplyPage         = lazy(() => import('@/pages/ApplyPage'));
 
 // Public storefront
 const Home              = lazy(() => import('@/pages/Home'));
@@ -81,6 +82,7 @@ const AdminAnalyticsPage     = lazy(() => import('@/pages/admin/AdminAnalyticsPa
 const AdminSettingsPage      = lazy(() => import('@/pages/admin/AdminSettingsPage'));
 const AdminActivityLogPage   = lazy(() => import('@/pages/admin/AdminActivityLogPage'));
 const AdminAiSettingsPage    = lazy(() => import('@/pages/admin/AdminAiSettingsPage'));
+const AdminApplicationsPage  = lazy(() => import('@/pages/admin/AdminApplicationsPage'));
 
 // ── Page loading fallback ─────────────────────────────────────────────────────
 const PageLoader = () => (
@@ -107,6 +109,7 @@ const App = () => (
                   <Route path="/login"          element={<AuthPage />} />
                   <Route path="/register"       element={<AuthPage />} />
                   <Route path="/reset-password" element={<ResetPasswordPage />} />
+                  <Route path="/apply"          element={<ApplyPage />} />
 
                   {/* ── Vendor ───────────────────────────────────────────── */}
                   <Route path="/vendor" element={<Navigate to="/vendor/dashboard" replace />} />
@@ -140,8 +143,9 @@ const App = () => (
                     <Route path="notifications" element={<AdminNotificationsPage />} />
                     <Route path="analytics"     element={<AdminAnalyticsPage />} />
                     <Route path="settings"      element={<AdminSettingsPage />} />
-                    <Route path="activity-log"  element={<AdminActivityLogPage />} />
-                    <Route path="ai-settings"   element={<AdminAiSettingsPage />} />
+                    <Route path="activity-log"   element={<AdminActivityLogPage />} />
+                    <Route path="ai-settings"    element={<AdminAiSettingsPage />} />
+                    <Route path="applications"   element={<AdminApplicationsPage />} />
                     <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
                   </Route>
 

@@ -40,6 +40,8 @@ model User {
   addresses                Address[]
   notifications            Notification[]
   notificationPreference  NotificationPreference?
+  applications            Application[]
+  otpCodes                OtpCode[]
 
   @@index([email])
   @@index([role])
@@ -535,6 +537,93 @@ enum AuditAction {
   USER_DEACTIVATED
   PASSWORD_RESET_REQUESTED
   PASSWORD_RESET_COMPLETED
+  APPLICATION_SUBMITTED
+  APPLICATION_APPROVED
+  APPLICATION_REJECTED
+  OTP_SENT
+  OTP_VERIFIED
+}
+
+// ─── Applications ─────────────────────────────────────────────────────────────
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ApplicationRole {
+  VENDOR
+  RIDER
+}
+
+model Application {
+  id              String            @id @default(cuid())
+  role            ApplicationRole
+  status          ApplicationStatus @default(PENDING)
+
+  // Personal info
+  fullName        String
+  email           String
+  phone           String
+  nationalId      String
+  dateOfBirth     DateTime          @db.Date
+  address         String
+  district        String
+  province        String
+  photoUrl        String?
+
+  // Vendor-specific
+  businessName    String?
+  businessType    String?
+  businessAddress String?
+  momoNumber      String?
+  yearsInBusiness Int?
+  description     String?
+
+  // Rider-specific
+  vehicleType     String?
+  plateNumber     String?
+  licenseNumber   String?
+  deliveryZone    String?
+  experience      String?
+
+  // Emergency contact
+  emergencyName   String
+  emergencyPhone  String
+
+  // Admin review
+  reviewedBy      String?
+  reviewNote      String?
+  reviewedAt      DateTime?
+
+  // Linked user after approval
+  userId          String?
+  user            User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([role])
+  @@map("applications")
+}
+
+// ─── OTP Codes ────────────────────────────────────────────────────────────────
+
+model OtpCode {
+  id        String    @id @default(cuid())
+  userId    String
+  code      String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("otp_codes")
 }
 
 model ActivityLog {

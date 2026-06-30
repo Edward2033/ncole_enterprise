@@ -5,10 +5,10 @@ interface AuthContextValue {
   user: NcoleUser | null;
   loading: boolean;
   isAuthenticated: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: string | null; role?: string }>;
+  signIn: (email: string, password: string) => Promise<{ error: string | null; role?: string; requiresOtp?: boolean; userId?: string }>;
+  signInOtp: (userId: string, code: string) => Promise<{ error: string | null; role?: string }>;
   signUp: (name: string, email: string, password: string) => Promise<{ error: string | null; role?: string }>;
   signOut: () => void;
-  /** Re-fetch /users/me and update the context user — call after profile updates */
   refreshUser: () => Promise<void>;
 }
 
@@ -54,6 +54,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signIn = useCallback(async (email: string, password: string) => {
     try {
       const res = await authService.login(email, password);
+      const data = res.data as any;
+      // VENDOR / RIDER get OTP challenge first
+      if (data?.requiresOtp) {
+        return { error: null, requiresOtp: true, userId: data.userId };
+      }
+      saveTokens(data.accessToken, data.refreshToken);
+      const me = await authService.me();
+      setUser(me.data);
+      return { error: null, role: me.data.role };
+    } catch (e) {
+      return { error: (e as Error).message };
+    }
+  }, []);
+
+  const signInOtp = useCallback(async (userId: string, code: string) => {
+    try {
+      const res = await authService.verifyOtp(userId, code);
       saveTokens(res.data.accessToken, res.data.refreshToken);
       const me = await authService.me();
       setUser(me.data);
@@ -95,7 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAuthenticated: !!user, signIn, signUp, signOut, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, isAuthenticated: !!user, signIn, signInOtp, signUp, signOut, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

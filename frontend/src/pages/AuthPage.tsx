@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Eye, EyeOff, ShoppingBag, ArrowRight, X, Mail } from 'lucide-react';
+import { Eye, EyeOff, ShoppingBag, ArrowRight, X, Mail, KeyRound } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { authService } from '@/services/api';
 
@@ -72,7 +72,7 @@ const ForgotPasswordModal: React.FC<{ onClose: () => void }> = ({ onClose }) => 
 };
 
 const AuthPage: React.FC = () => {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signInOtp, signUp } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as { from?: string })?.from;
@@ -85,6 +85,11 @@ const AuthPage: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
+
+  // OTP step
+  const [otpStep, setOtpStep]   = useState(false);
+  const [otpUserId, setOtpUserId] = useState('');
+  const [otpCode, setOtpCode]   = useState('');
 
   const getRedirectPath = (role: string): string => {
     if (role === 'ADMIN')  return '/admin/dashboard';
@@ -101,8 +106,68 @@ const AuthPage: React.FC = () => {
       : await signUp(name, email, password);
     setLoading(false);
     if (res.error) { setError(res.error); return; }
+    if (res.requiresOtp && res.userId) {
+      setOtpUserId(res.userId);
+      setOtpStep(true);
+      return;
+    }
     navigate(getRedirectPath(res.role ?? ''), { replace: true });
   };
+
+  const submitOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true); setError('');
+    const res = await signInOtp(otpUserId, otpCode);
+    setLoading(false);
+    if (res.error) { setError(res.error); return; }
+    navigate(getRedirectPath(res.role ?? ''), { replace: true });
+  };
+
+  // ── OTP screen ──────────────────────────────────────────────────────────
+  if (otpStep) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+        <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-xl">
+          <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-orange-100 mx-auto">
+            <KeyRound className="h-7 w-7 text-orange-500" />
+          </div>
+          <h1 className="text-center text-2xl font-bold text-slate-900">Verify Your Identity</h1>
+          <p className="mt-2 text-center text-sm text-slate-500">
+            A 6-digit code has been sent to your email. Enter it below to continue.
+          </p>
+          <form onSubmit={submitOtp} className="mt-6 space-y-4">
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-slate-700">Verification Code</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                required
+                value={otpCode}
+                onChange={e => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="000000"
+                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-center text-2xl font-mono tracking-widest outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20"
+              />
+            </div>
+            {error && <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600 ring-1 ring-red-200">{error}</div>}
+            <button
+              type="submit"
+              disabled={loading || otpCode.length < 6}
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-orange-500 py-3.5 text-sm font-semibold text-white shadow-md shadow-orange-500/20 transition hover:bg-orange-600 active:scale-95 disabled:opacity-60"
+            >
+              {loading ? 'Verifying…' : 'Continue'} {!loading && <ArrowRight className="h-4 w-4" />}
+            </button>
+          </form>
+          <button
+            onClick={() => { setOtpStep(false); setOtpCode(''); setError(''); }}
+            className="mt-4 w-full text-center text-xs text-slate-400 hover:text-slate-600"
+          >
+            ← Back to sign in
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -206,6 +271,10 @@ const AuthPage: React.FC = () => {
                 className="font-semibold text-orange-600 hover:text-orange-700">
                 {mode === 'in' ? 'Sign up free' : 'Sign in'}
               </button>
+            </p>
+            <p className="mt-3 text-center text-sm text-slate-500">
+              Want to sell or deliver?{' '}
+              <Link to="/apply" className="font-semibold text-orange-600 hover:text-orange-700">Apply as Vendor / Rider</Link>
             </p>
             <div className="mt-6 text-center">
               <Link to="/" className="text-xs text-slate-400 hover:text-slate-600">← Back to store</Link>

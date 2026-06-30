@@ -247,6 +247,56 @@ export const adminActivityLogApi = {
   },
 };
 
+// ─── Applications ────────────────────────────────────────────────────────────
+
+export interface AdminApplication {
+  id: string;
+  role: 'VENDOR' | 'RIDER';
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  fullName: string; email: string; phone: string;
+  nationalId: string; dateOfBirth: string;
+  address: string; district: string; province: string;
+  photoUrl?: string;
+  businessName?: string; businessType?: string; businessAddress?: string;
+  momoNumber?: string; yearsInBusiness?: number; description?: string;
+  vehicleType?: string; plateNumber?: string; licenseNumber?: string;
+  deliveryZone?: string; experience?: string;
+  emergencyName: string; emergencyPhone: string;
+  reviewedBy?: string; reviewNote?: string; reviewedAt?: string;
+  userId?: string;
+  createdAt: string; updatedAt: string;
+}
+
+export const adminApplicationsApi = {
+  list: (status?: string, role?: string) => {
+    const p = new URLSearchParams();
+    if (status) p.set('status', status);
+    if (role)   p.set('role',   role);
+    return apiFetch<ApiResp<AdminApplication[]>>(`/applications?${p.toString()}`);
+  },
+  get: (id: string) =>
+    apiFetch<ApiResp<AdminApplication>>(`/applications/${id}`),
+  review: (id: string, action: 'APPROVE' | 'REJECT', reviewNote?: string) =>
+    apiFetch<ApiResp<AdminApplication>>(`/applications/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ action, ...(reviewNote ? { reviewNote } : {}) }),
+    }),
+  adminApply: (body: Record<string, unknown>, autoApprove = false) =>
+    apiFetch<ApiResp<AdminApplication>>('/applications/admin/apply', {
+      method: 'POST',
+      body: JSON.stringify({ ...body, autoApprove }),
+    }),
+  uploadPhoto: async (file: File): Promise<string> => {
+    const fd = new FormData();
+    fd.append('image', file);
+    const BASE = (import.meta as any)?.env?.VITE_API_URL ?? 'http://localhost:4000/api/v1';
+    const res  = await fetch(`${BASE}/products/upload-application-photo`, { method: 'POST', body: fd });
+    if (!res.ok) throw new Error('Photo upload failed');
+    const json = await res.json();
+    return json.data.url as string;
+  },
+};
+
 // ─── Public stats ─────────────────────────────────────────────────────────────
 
 export const adminStatsApi = {

@@ -1,0 +1,19 @@
+{
+  "name": "ncole-interpress",
+  "version": "1.0.0",
+  "private": true,
+  "description": "N_COLE Interpress — Enterprise Multi-Vendor Marketplace (monorepo root)",
+  "scripts": {
+    "dev":            "npm run dev:storefront",
+    "dev:storefront": "npm --prefix frontend run dev",
+    "dev:backend":    "npm --prefix backend run dev",
+    "dev:customers":  "npm --prefix customers run dev",
+    "dev:vendors":    "npm --prefix vendors run dev",
+    "dev:rider":      "npm --prefix rider run dev",
+    "build":          "npm run build:storefront",
+    "build:storefront": "npm --prefix frontend run build",
+    "build:backend":  "npm --prefix backend run build",
+    "lint":           "npm --prefix frontend run lint",
+    "install:all":    "npm --prefix backend install && npm --prefix frontend install"
+  }
+}

@@ -25,8 +25,14 @@ export const resetPasswordSchema = z.object({
   password: z.string().min(8).max(72),
 });
 
+export const otpVerifySchema = z.object({
+  userId: z.string().min(1),
+  code:   z.string().length(6),
+});
+
 export type RegisterDto = z.infer<typeof registerSchema>;
 export type LoginDto = z.infer<typeof loginSchema>;
 export type RefreshDto = z.infer<typeof refreshSchema>;
 export type ForgotPasswordDto = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordDto = z.infer<typeof resetPasswordSchema>;
+export type OtpVerifyDto = z.infer<typeof otpVerifySchema>;

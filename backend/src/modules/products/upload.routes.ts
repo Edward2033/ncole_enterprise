@@ -57,7 +57,7 @@ function uploadBufferToCloudinary(buffer: Buffer, folder: string): Promise<strin
   });
 }
 
-// POST /products/upload-image
+// POST /products/upload-image — requires ADMIN or VENDOR
 router.post(
   '/upload-image',
   authenticate,
@@ -67,6 +67,21 @@ router.post(
     try {
       if (!req.file) throw AppError.badRequest('No image file provided');
       const url = await uploadBufferToCloudinary(req.file.buffer, 'ncole/products');
+      sendSuccess(res, { url });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// POST /products/upload-application-photo — public, used during application form
+router.post(
+  '/upload-application-photo',
+  upload.single('image'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.file) throw AppError.badRequest('No image file provided');
+      const url = await uploadBufferToCloudinary(req.file.buffer, 'ncole/applications');
       sendSuccess(res, { url });
     } catch (err) {
       next(err);

@@ -109,7 +109,9 @@ export async function apiFetch<T = unknown>(path: string, init: RequestInit = {}
 
 export const authService = {
   login: (email: string, password: string) =>
-    apiFetch<ApiResp<AuthTokens>>('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
+    apiFetch<ApiResp<AuthTokens | OtpChallenge>>('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
+  verifyOtp: (userId: string, code: string) =>
+    apiFetch<ApiResp<AuthTokens>>('/auth/verify-otp', { method: 'POST', body: JSON.stringify({ userId, code }) }),
   register: (name: string, email: string, password: string) =>
     apiFetch<ApiResp<AuthTokens>>('/auth/register', { method: 'POST', body: JSON.stringify({ name, email, password }) }),
   logout: (refreshToken: string) =>
@@ -177,6 +179,20 @@ export const statsService = {
   get: () => apiFetch<ApiResp<{ vendors: number; products: number; customers: number; orders: number }>>('/stats'),
 };
 
+export const applicationsService = {
+  submit: (body: ApplicationSubmitBody) =>
+    apiFetch<ApiResp<NcoleApplication>>('/applications', { method: 'POST', body: JSON.stringify(body) }),
+  uploadPhoto: async (file: File): Promise<string> => {
+    const fd = new FormData();
+    fd.append('image', file);
+    const BASE = (import.meta as any)?.env?.VITE_API_URL ?? 'http://localhost:4000/api/v1';
+    const res  = await fetch(`${BASE}/products/upload-application-photo`, { method: 'POST', body: fd });
+    if (!res.ok) throw new Error('Photo upload failed');
+    const json = await res.json();
+    return json.data.url as string;
+  },
+};
+
 export const vendorProfileService = {
   getMyProfile: () => apiFetch<ApiResp<NcoleVendorProfile>>('/vendors/me'),
   updateProfile: (id: string, body: Partial<NcoleVendorProfile>) =>
@@ -218,6 +234,7 @@ export interface ApiResp<T> { success: boolean; data: T; }
 export interface ListResp<T> { success: boolean; data: T[]; meta: ApiMeta; }
 export interface ApiMeta { page: number; limit: number; total: number; totalPages: number; }
 export interface AuthTokens { accessToken: string; refreshToken: string; }
+export interface OtpChallenge { requiresOtp: true; userId: string; }
 
 export interface NcoleUser {
   id: string; email: string; name: string; phone?: string;
@@ -335,3 +352,22 @@ export interface NcoleDelivery {
   items: NcoleDeliveryItem[];
   address?: NcoleDeliveryAddress;
 }
+
+export interface NcoleApplication {
+  id: string;
+  role: 'VENDOR' | 'RIDER';
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  fullName: string; email: string; phone: string;
+  nationalId: string; dateOfBirth: string;
+  address: string; district: string; province: string;
+  photoUrl?: string;
+  businessName?: string; businessType?: string; businessAddress?: string;
+  momoNumber?: string; yearsInBusiness?: number; description?: string;
+  vehicleType?: string; plateNumber?: string; licenseNumber?: string;
+  deliveryZone?: string; experience?: string;
+  emergencyName: string; emergencyPhone: string;
+  reviewNote?: string; reviewedAt?: string;
+  createdAt: string;
+}
+
+export type ApplicationSubmitBody = Omit<NcoleApplication, 'id' | 'status' | 'reviewNote' | 'reviewedAt' | 'createdAt'>;

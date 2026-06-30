@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { registerUser, loginUser, refreshTokens, logoutUser, forgotPassword, resetPassword } from './auth.service';
+import { registerUser, loginUser, loginVerifyOtp, refreshTokens, logoutUser, forgotPassword, resetPassword } from './auth.service';
 import { sendSuccess } from '@/shared/utils/response';
-import { RegisterDto, LoginDto, RefreshDto, ForgotPasswordDto, ResetPasswordDto } from './auth.schema';
+import { RegisterDto, LoginDto, RefreshDto, ForgotPasswordDto, ResetPasswordDto, OtpVerifyDto } from './auth.schema';
 
 export async function register(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
@@ -12,7 +12,15 @@ export async function register(req: Request, res: Response, next: NextFunction):
 
 export async function login(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const tokens = await loginUser(req.body as LoginDto);
+    const result = await loginUser(req.body as LoginDto);
+    sendSuccess(res, result);
+  } catch (err) { next(err); }
+}
+
+export async function verifyOtpHandler(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const { userId, code } = req.body as OtpVerifyDto;
+    const tokens = await loginVerifyOtp(userId, code);
     sendSuccess(res, tokens);
   } catch (err) { next(err); }
 }
@@ -28,7 +36,6 @@ export async function refresh(req: Request, res: Response, next: NextFunction): 
 export async function logout(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const { refreshToken } = req.body as RefreshDto;
-    // Resolve userId from the refresh token stored record — access token is not required
     await logoutUser(refreshToken);
     sendSuccess(res, { message: 'Logged out successfully' });
   } catch (err) { next(err); }

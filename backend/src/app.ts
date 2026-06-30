@@ -24,6 +24,7 @@ import billingRoutes from '@/modules/billing/billing.routes';
 import aiRoutes from '@/modules/ai/ai.routes';
 import ridersRoutes from '@/modules/riders/riders.routes';
 import settingsRoutes from '@/modules/settings/settings.routes';
+import applicationsRoutes from '@/modules/applications/applications.routes';
 import uploadRoutes from '@/modules/products/upload.routes';
 
 import { prisma } from '@/config/database';
@@ -140,6 +141,7 @@ app.use(`${prefix}/notifications`, notificationsRoutes);
 app.use(`${prefix}/billing`, billingRoutes);
 app.use(`${prefix}/ai`, aiRoutes);
 app.use(`${prefix}/riders`, ridersRoutes);
+app.use(`${prefix}/applications`, applicationsRoutes);
 app.use(`${prefix}/settings`, settingsRoutes);
 
 // ─── 404 ──────────────────────────────────────────────────────────────────────
