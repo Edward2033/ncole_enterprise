@@ -23,7 +23,7 @@ const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
     e.preventDefault();
     if (!isAuthenticated) { setShowPrompt(true); return; }
     if (product.has_variants && product.variants?.length) return;
-    addToCart({ product_id: product.id, name: product.name, sku: product.sku || product.handle, price: product.price, image }, 1);
+    addToCart({ product_id: product.id, name: product.name, sku: product.sku || product.handle, price: product.price, image, vendorId: product.vendorId }, 1);
   };
 
   return (

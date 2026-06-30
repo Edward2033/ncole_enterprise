@@ -35,6 +35,7 @@ export interface Product {
   status: string;
   has_variants: boolean;
   vendor: string | null;
+  vendorId?: string;
   product_type: string | null;
   tags: string[] | null;
   metadata: ProductMetadata | null;

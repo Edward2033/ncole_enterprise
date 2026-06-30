@@ -36,6 +36,7 @@ function toLegacy(p: NcoleProduct): Product {
     images: p.images ?? null, status: p.status,
     has_variants: p.hasVariants,
     vendor: p.vendor?.businessName ?? null,
+    vendorId: p.vendorId,
     product_type: p.category?.name ?? null,
     tags: p.tags ?? null, metadata: null,
     variants: p.variants?.map(v => ({

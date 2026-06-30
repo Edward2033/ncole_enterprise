@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Lock, Plus, MapPin, CreditCard, CheckCircle2 } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { ordersService, addressesService, type NcoleAddress } from '@/services/api';
+import { ordersService, productsService, addressesService, type NcoleAddress } from '@/services/api';
 import { formatPrice } from '@/lib/format';
 
 const PAYMENT_METHODS = [
@@ -56,29 +56,31 @@ const Checkout: React.FC = () => {
   const handlePlaceOrder = async () => {
     if (!selectedAddress) { setError('Please select a delivery address.'); return; }
     if (items.length === 0) { setError('Your cart is empty.'); return; }
-
-    // Verify every cart item has a vendorId before proceeding.
-    // Items added before this fix (no vendorId in localStorage) are caught here.
-    const missingVendor = items.filter(i => !i.vendorId);
-    if (missingVendor.length > 0) {
-      setError('Some cart items are missing vendor information. Please remove them and add them again.');
-      return;
-    }
-
     setPlacing(true);
     setError('');
     try {
-      // vendorId is now stored directly on each cart item — no extra API calls needed.
-      const orderItems = items.map((item) => ({
-        productId:    item.product_id,
-        variantId:    item.variant_id ?? null,
-        quantity:     item.quantity,
-        unitPrice:    item.price,
-        productName:  item.name,
-        variantTitle: item.variant_title ?? null,
-        sku:          item.sku ?? null,
-        vendorId:     item.vendorId!,
-      }));
+      // Build order items — vendorId is stored on the cart item for products
+      // added after the fix. For stale cart items missing vendorId, fetch the
+      // product once to resolve it rather than blocking the order.
+      const orderItems = await Promise.all(
+        items.map(async (item) => {
+          let vendorId = item.vendorId;
+          if (!vendorId) {
+            const product = await productsService.get(item.product_id).then(r => r.data);
+            vendorId = product.vendorId;
+          }
+          return {
+            productId:    item.product_id,
+            variantId:    item.variant_id ?? null,
+            quantity:     item.quantity,
+            unitPrice:    item.price,
+            productName:  item.name,
+            variantTitle: item.variant_title ?? null,
+            sku:          item.sku ?? null,
+            vendorId,
+          };
+        })
+      );
       const res = await ordersService.place({
         addressId: selectedAddress,
         paymentMethod,
