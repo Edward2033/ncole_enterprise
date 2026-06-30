@@ -60,35 +60,37 @@ export async function placeOrder(userId: string, dto: PlaceOrderDto) {
   const tax         = 0;
   const total       = subtotal + deliveryFee + tax;
 
-  const order = await prisma.$transaction(async (tx) => {
-    const created = await tx.order.create({
-      data: {
-        orderNumber:   generateOrderNumber(),
-        customerId:    customer.id,
-        addressId:     dto.addressId,
-        paymentMethod: dto.paymentMethod,
-        notes:         dto.notes,
-        subtotal,
-        deliveryFee,
-        tax,
-        total,
-        items: {
-          create: dto.items.map((item) => ({
-            productId:    item.productId,
-            variantId:    item.variantId ?? null,
-            vendorId:     item.vendorId,
-            productName:  item.productName,
-            variantTitle: item.variantTitle ?? null,
-            sku:          item.sku ?? null,
-            quantity:     item.quantity,
-            unitPrice:    item.unitPrice,
-            total:        item.unitPrice * item.quantity,
-          })),
-        },
+  // Use a direct nested write instead of an interactive transaction.
+  // prisma.$transaction(async tx=>{}) requires a persistent connection which
+  // is incompatible with Supabase PgBouncer transaction-mode pooling (port 6543).
+  // Nested writes (items: { create: [...] }) are already executed atomically
+  // by Prisma in a single implicit transaction — no wrapper needed.
+  const order = await prisma.order.create({
+    data: {
+      orderNumber:   generateOrderNumber(),
+      customerId:    customer.id,
+      addressId:     dto.addressId,
+      paymentMethod: dto.paymentMethod,
+      notes:         dto.notes,
+      subtotal,
+      deliveryFee,
+      tax,
+      total,
+      items: {
+        create: dto.items.map((item) => ({
+          productId:    item.productId,
+          variantId:    item.variantId ?? null,
+          vendorId:     item.vendorId,
+          productName:  item.productName,
+          variantTitle: item.variantTitle ?? null,
+          sku:          item.sku ?? null,
+          quantity:     item.quantity,
+          unitPrice:    item.unitPrice,
+          total:        item.unitPrice * item.quantity,
+        })),
       },
-      include: { items: true },
-    });
-    return created;
+    },
+    include: { items: true },
   });
 
   // Fire notification + auto-generate invoice (non-blocking)

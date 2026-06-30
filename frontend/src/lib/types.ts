@@ -58,5 +58,6 @@ export interface CartItem {
   sku?: string;
   price: number;
   image?: string;
+  vendorId?: string;
   options?: Record<string, string>;
 }

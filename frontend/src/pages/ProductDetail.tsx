@@ -181,6 +181,7 @@ const ProductDetail: React.FC = () => {
       variant_title: selectedVariant?.title,
       price,
       image: images[0],
+      vendorId: product.vendorId,
     }, quantity);
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
