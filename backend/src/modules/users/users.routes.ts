@@ -16,9 +16,9 @@ router.patch('/me', validate(updateProfileSchema), updateMeHandler);
 router.post('/me/change-password', validate(changePasswordSchema), changePasswordHandler);
 router.get('/', authorize('ADMIN'), listUsersHandler);
 router.post('/', authorize('ADMIN'), validate(createUserSchema), adminCreateUserHandler);
-router.patch('/:id', authorize('ADMIN'), validate(adminUpdateUserSchema), adminUpdateUserHandler);
 
-// Admin: activity / audit log
+// Admin: activity / audit log — MUST be before /:id to avoid Express treating
+// "activity-log" as a wildcard :id param and routing it to adminUpdateUserHandler
 router.get('/activity-log', authorize('ADMIN'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const page   = Math.max(1, Number(req.query['page'])   || 1);
@@ -45,5 +45,8 @@ router.get('/activity-log', authorize('ADMIN'), async (req: Request, res: Respon
     sendSuccess(res, enriched, 200, { page, limit, total, totalPages: Math.ceil(total / limit) });
   } catch (e) { next(e); }
 });
+
+// Must come AFTER all static sub-paths (/me, /activity-log, etc.)
+router.patch('/:id', authorize('ADMIN'), validate(adminUpdateUserSchema), adminUpdateUserHandler);
 
 export default router;

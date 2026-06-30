@@ -25,7 +25,9 @@ export async function doRefresh(): Promise<string | null> {
     });
 
     if (!res.ok) {
-      clearTokens();
+      // Only wipe tokens on a definitive auth rejection (401/403).
+      // A 500/network error should NOT log the user out — it may be temporary.
+      if (res.status === 401 || res.status === 403) clearTokens();
       return null;
     }
 
@@ -37,10 +39,10 @@ export async function doRefresh(): Promise<string | null> {
       return null;
     }
 
-    saveTokens(data.accessToken, data.refreshToken);
+    saveTokens(data.accessToken, data.refreshToken ?? getTokens().refreshToken);
     return data.accessToken as string;
   } catch {
-    clearTokens();
+    // Network error during refresh — do NOT clear tokens, stay logged in.
     return null;
   }
 }
@@ -48,21 +50,22 @@ export async function doRefresh(): Promise<string | null> {
 export async function apiFetch<T = unknown>(path: string, init: RequestInit = {}): Promise<T> {
   const url = `${BASE}${path}`;
 
+  // Do NOT force Content-Type when the caller is sending FormData — the browser
+  // must set it automatically so the multipart boundary is included.
+  const isFormData = init.body instanceof FormData;
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...(init.headers as Record<string, string> ?? {}),
   };
 
-  const attachAuth = (token: string | null) => {
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    else delete headers['Authorization'];
+  const buildHeaders = (): Record<string, string> => {
+    const at = getTokens().accessToken;
+    if (at) return { ...headers, Authorization: `Bearer ${at}` };
+    const { Authorization: _drop, ...rest } = headers;
+    return rest;
   };
 
-  const doRequest = async () => {
-    // Always attach the latest access token right before the request
-    attachAuth(getTokens().accessToken);
-    return fetch(url, { ...init, headers });
-  };
+  const doRequest = () => fetch(url, { ...init, headers: buildHeaders() });
 
   let res = await doRequest();
 
@@ -70,22 +73,27 @@ export async function apiFetch<T = unknown>(path: string, init: RequestInit = {}
     const rt = getTokens().refreshToken;
     if (rt) {
       if (isRefreshing) {
-        const newToken = await new Promise<string>((resolve, reject) => queue.push({ resolve, reject }));
-        attachAuth(newToken);
-        res = await doRequest();
+        // Another request is already refreshing — wait for it
+        try {
+          await new Promise<string>((resolve, reject) => queue.push({ resolve, reject }));
+          res = await doRequest();
+        } catch (queueErr) {
+          throw queueErr;
+        }
       } else {
         isRefreshing = true;
-        const newToken = await doRefresh();
-        isRefreshing = false;
+        let newToken: string | null = null;
+        try {
+          newToken = await doRefresh();
+        } finally {
+          isRefreshing = false;
+        }
 
         if (newToken) {
-          queue.forEach(({ resolve }) => resolve(newToken));
+          queue.forEach(({ resolve }) => resolve(newToken!));
           queue = [];
-          attachAuth(newToken);
-          res = await doRequest();
+          res = await doRequest(); // buildHeaders() will pick up the saved new token
         } else {
-          // Refresh failed — reject every queued request and throw immediately
-          // so callers receive a clear message instead of the raw 401 backend text.
           const sessionErr = new Error('Session expired. Please sign in again.');
           queue.forEach(({ reject }) => reject(sessionErr));
           queue = [];
