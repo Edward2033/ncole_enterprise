@@ -168,19 +168,28 @@ const OrderDetailPage: React.FC = () => {
           <Package className="h-5 w-5 text-orange-500" /> Order Items
         </h2>
         <div className="space-y-4">
-          {order.items.map(item => (
+          {order.items.map(item => {
+            const imgUrl = item.product?.images?.[0] ?? item.imageUrl;
+            return (
             <div key={item.id} className="flex items-center justify-between gap-4">
-              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-slate-100">
-                <Package className="h-5 w-5 text-slate-400" />
+              <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-xl bg-slate-100">
+                {imgUrl ? (
+                  <img src={imgUrl} alt={item.productName} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center">
+                    <Package className="h-5 w-5 text-slate-400" />
+                  </div>
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-900 truncate">{item.productName}</p>
                 {item.variantTitle && <p className="text-xs text-slate-500">{item.variantTitle}</p>}
-                <p className="text-xs text-slate-400">Qty: {item.quantity} × {formatPrice(item.unitPrice)}</p>
+                <p className="text-xs text-slate-400">Qty: {item.quantity} &times; {formatPrice(item.unitPrice)}</p>
               </div>
               <span className="font-bold text-slate-900 whitespace-nowrap">{formatPrice(item.total)}</span>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Totals */}

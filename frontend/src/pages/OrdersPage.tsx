@@ -26,7 +26,7 @@ const OrdersPage: React.FC = () => {
 
   if (loading) return (
     <div className="mx-auto max-w-4xl px-4 py-12 space-y-4 lg:px-8">
-      {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-24 animate-pulse rounded-2xl bg-slate-100" />)}
+      {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-28 animate-pulse rounded-2xl bg-slate-100" />)}
     </div>
   );
 
@@ -46,6 +46,7 @@ const OrdersPage: React.FC = () => {
         <div className="space-y-4">
           {orders.map(order => (
             <div key={order.id} className="rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-orange-200 hover:shadow-sm">
+              {/* Header row */}
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="font-bold text-slate-900">{order.orderNumber}</p>
@@ -58,8 +59,38 @@ const OrdersPage: React.FC = () => {
                   <span className="text-base font-bold text-slate-900">{formatRWF(order.total)}</span>
                 </div>
               </div>
-              <div className="mt-3 flex items-center justify-between">
-                <p className="text-sm text-slate-500">{order.items.length} item{order.items.length !== 1 ? 's' : ''}</p>
+              {/* Product thumbnails + names */}
+              {order.items.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {order.items.slice(0, 4).map(item => {
+                    const imgUrl = item.product?.images?.[0] ?? item.imageUrl;
+                    return (
+                    <div key={item.id} className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 px-2.5 py-1.5">
+                      <div className="h-8 w-8 flex-shrink-0 overflow-hidden rounded-lg bg-white border border-slate-200">
+                        {imgUrl ? (
+                          <img src={imgUrl} alt={item.productName} className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center">
+                            <Package className="h-4 w-4 text-slate-300" />
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-xs text-slate-700 max-w-[120px] truncate">
+                        {item.productName}{item.variantTitle ? ` (${item.variantTitle})` : ''}
+                      </span>
+                      <span className="text-xs text-slate-400 flex-shrink-0">x{item.quantity}</span>
+                    </div>
+                    );
+                  })}
+                  {order.items.length > 4 && (
+                    <div className="flex items-center rounded-xl border border-slate-100 bg-slate-50 px-2.5 py-1.5">
+                      <span className="text-xs text-slate-400">+{order.items.length - 4} more</span>
+                    </div>
+                  )}
+                </div>
+              )}
+              {/* Footer row */}
+              <div className="mt-3 flex items-center justify-end border-t border-slate-100 pt-3">
                 <Link to={`/order/${order.id}`} className="flex items-center gap-1 text-sm font-semibold text-orange-600 hover:gap-2 transition-all">
                   View details <ChevronRight className="h-4 w-4" />
                 </Link>

@@ -104,7 +104,7 @@ export async function getMyOrderById(userId: string, orderId: string) {
 
   const order = await prisma.order.findFirst({
     where: { id: orderId, customerId: customer.id, deletedAt: null },
-    include: { items: true },
+    include: { items: { include: { product: { select: { images: true } } } } },
   });
   if (!order) throw AppError.notFound('Order');
   return order;
@@ -117,7 +117,7 @@ export async function getMyOrders(userId: string, page: number, limit: number) {
   const [orders, total] = await Promise.all([
     prisma.order.findMany({
       where: { customerId: customer.id, deletedAt: null },
-      include: { items: true },
+      include: { items: { include: { product: { select: { images: true } } } } },
       skip: (page - 1) * limit,
       take: limit,
       orderBy: { createdAt: 'desc' },
@@ -132,7 +132,7 @@ export async function listVendorOrders(vendorId: string, page: number, limit: nu
   const [orders, total] = await Promise.all([
     prisma.order.findMany({
       where: { deletedAt: null, items: { some: { vendorId } } },
-      include: { items: { where: { vendorId } } }, // No cross-vendor access — items filtered to this vendor only
+      include: { items: { where: { vendorId }, include: { product: { select: { images: true } } } } },
       skip: (page - 1) * limit,
       take: limit,
       orderBy: { createdAt: 'desc' },
@@ -149,7 +149,7 @@ export async function listRiderOrders(userId: string, page: number, limit: numbe
   const [orders, total] = await Promise.all([
     prisma.order.findMany({
       where: { riderId: rider.id, deletedAt: null },
-      include: { items: true, address: true },
+      include: { items: { include: { product: { select: { images: true } } } }, address: true },
       skip: (page - 1) * limit,
       take: limit,
       orderBy: { createdAt: 'desc' },
@@ -171,7 +171,10 @@ export async function listAllOrders(page: number, limit: number) {
   const [orders, total] = await Promise.all([
     prisma.order.findMany({
       where: { deletedAt: null },
-      include: { customer: { include: { user: { select: { name: true, email: true } } } }, items: true },
+      include: {
+        customer: { include: { user: { select: { name: true, email: true } } } },
+        items: { include: { product: { select: { images: true } } } },
+      },
       skip: (page - 1) * limit,
       take: limit,
       orderBy: { createdAt: 'desc' },

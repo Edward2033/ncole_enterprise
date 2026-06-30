@@ -17,11 +17,11 @@ import {
 const router = Router();
 router.use(authenticate);
 
-// ─── Customer routes ──────────────────────────────────────────────────────────
-router.get('/invoices', authorize('CUSTOMER'), myInvoices);
-router.get('/invoices/:id', authorize('CUSTOMER'), invoiceDetail);
-router.post('/invoices/:id/pay', authorize('CUSTOMER'), validate(submitPaymentSchema), payInvoice);
-router.get('/payments', authorize('CUSTOMER'), myPayments);
+// ─── Customer-facing routes (all authenticated roles — any user can have invoices)
+router.get('/invoices',           authorize('CUSTOMER','ADMIN','VENDOR','RIDER'), myInvoices);
+router.get('/invoices/:id',       authorize('CUSTOMER','ADMIN','VENDOR','RIDER'), invoiceDetail);
+router.post('/invoices/:id/pay',  authorize('CUSTOMER','ADMIN','VENDOR','RIDER'), validate(submitPaymentSchema), payInvoice);
+router.get('/payments',           authorize('CUSTOMER','ADMIN','VENDOR','RIDER'), myPayments);
 
 // ─── Admin routes ─────────────────────────────────────────────────────────────
 router.get('/admin/invoices/:id', authorize('ADMIN'), adminInvoiceDetail);

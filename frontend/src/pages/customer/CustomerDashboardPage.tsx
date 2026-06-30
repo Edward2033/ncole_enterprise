@@ -186,9 +186,22 @@ const CustomerDashboardPage: React.FC = () => {
               <Link key={order.id} to={`/order/${order.id}`}
                 className="group flex items-center justify-between py-3.5 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/30 -mx-2 px-2 rounded-xl animate-in fade-in"
                 style={{ animationDelay: `${i * 50}ms`, animationFillMode: 'both' }}>
-                <div className="min-w-0">
+                {/* Thumbnail of first item */}
+                <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-slate-50 mr-3">
+                  {(order.items[0]?.product?.images?.[0] ?? order.items[0]?.imageUrl) ? (
+                    <img src={order.items[0].product?.images?.[0] ?? order.items[0].imageUrl} alt={order.items[0].productName} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center">
+                      <Package className="h-4 w-4 text-slate-300" />
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{order.orderNumber}</p>
-                  <p className="text-xs text-slate-400">{formatDateTime(order.createdAt)}</p>
+                  <p className="text-xs text-slate-400 truncate">
+                    {order.items.slice(0, 2).map(it => it.productName).join(', ')}
+                    {order.items.length > 2 ? ` +${order.items.length - 2} more` : ''}
+                  </p>
                 </div>
                 <div className="flex flex-shrink-0 items-center gap-3 pl-3">
                   <span className="text-sm font-bold text-slate-900 dark:text-white">{formatRWF(order.total)}</span>

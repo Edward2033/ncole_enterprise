@@ -120,12 +120,24 @@ const VendorOrdersPage: React.FC = () => {
                 </div>
                 {isExpanded && (
                   <div className="mt-4 border-t pt-4 dark:border-slate-700 space-y-2">
-                    {order.items.map(item => (
-                      <div key={item.id} className="flex justify-between text-sm">
-                        <span className="text-slate-600 dark:text-slate-300">{item.productName} × {item.quantity}</span>
-                        <span className="font-medium dark:text-white">{formatRWF(item.total)}</span>
+                    {order.items.map(item => {
+                      const imgUrl = item.product?.images?.[0] ?? item.imageUrl;
+                      return (
+                      <div key={item.id} className="flex items-center gap-3 text-sm">
+                        <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                          {imgUrl ? (
+                            <img src={imgUrl} alt={item.productName} className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-slate-300 text-xs">?</div>
+                          )}
+                        </div>
+                        <span className="flex-1 text-slate-600 dark:text-slate-300 truncate">
+                          {item.productName}{item.variantTitle ? ` — ${item.variantTitle}` : ''} x {item.quantity}
+                        </span>
+                        <span className="font-medium dark:text-white flex-shrink-0">{formatRWF(item.total)}</span>
                       </div>
-                    ))}
+                      );
+                    })}
                     <div className="flex justify-between text-sm font-bold border-t pt-2 dark:border-slate-700">
                       <span className="dark:text-white">Total</span>
                       <span className="text-violet-600">{formatRWF(order.total)}</span>

@@ -291,6 +291,8 @@ export interface NcoleOrder {
 export interface NcoleOrderItem {
   id: string; productName: string; variantTitle?: string;
   quantity: number; unitPrice: number; total: number;
+  imageUrl?: string;
+  product?: { images: string[] };
 }
 export interface NcoleAddress {
   id: string; userId: string; label?: string; fullName: string;
@@ -342,7 +344,8 @@ export interface NcoleVendorProduct {
 export interface NcoleVendorOrderItem {
   id: string; orderId: string; productId: string; vendorId: string;
   productName: string; variantTitle?: string; quantity: number;
-  unitPrice: number; total: number;
+  unitPrice: number; total: number; imageUrl?: string;
+  product?: { images: string[] };
 }
 
 export interface NcoleVendorOrder {
@@ -366,7 +369,8 @@ export interface NcoleDeliveryAddress {
 }
 
 export interface NcoleDeliveryItem {
-  id: string; productName: string; quantity: number; unitPrice: number; total: number;
+  id: string; productName: string; quantity: number; unitPrice: number; total: number; imageUrl?: string;
+  product?: { images: string[] };
 }
 
 export interface NcoleDelivery {

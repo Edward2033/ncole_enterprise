@@ -100,8 +100,8 @@ export async function getInvoice(invoiceId: string, userId: string) {
 }
 
 export async function getMyInvoices(userId: string, page: number, limit: number) {
-  const customer = await prisma.customer.findUnique({ where: { userId } });
-  if (!customer) throw AppError.forbidden('No customer profile');
+  let customer = await prisma.customer.findUnique({ where: { userId } });
+  if (!customer) customer = await prisma.customer.create({ data: { userId } });
 
   const [invoices, total] = await Promise.all([
     prisma.invoice.findMany({
@@ -170,8 +170,8 @@ export async function submitPayment(invoiceId: string, userId: string, dto: Subm
 }
 
 export async function getMyPayments(userId: string, page: number, limit: number) {
-  const customer = await prisma.customer.findUnique({ where: { userId } });
-  if (!customer) throw AppError.forbidden('No customer profile');
+  let customer = await prisma.customer.findUnique({ where: { userId } });
+  if (!customer) customer = await prisma.customer.create({ data: { userId } });
 
   const [payments, total] = await Promise.all([
     prisma.payment.findMany({

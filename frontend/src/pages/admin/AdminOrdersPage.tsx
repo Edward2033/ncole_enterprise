@@ -77,17 +77,26 @@ const AdminOrdersPage: React.FC = () => {
     { key: 'customer', header: 'Customer', render: o => <div><p className="text-sm dark:text-white">{o.customer?.user.name ?? '—'}</p><p className="text-xs text-slate-500">{o.customer?.user.email ?? ''}</p></div> },
     { key: 'items', header: 'Items', render: o => (
       <div className="space-y-1">
-        {o.items.slice(0, 3).map(it => (
-          <div key={it.id} className="flex items-center gap-1.5">
-            <div className="h-6 w-6 flex-shrink-0 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
-              <Package className="h-3 w-3 text-slate-400" />
+        {o.items.slice(0, 3).map(it => {
+          const imgUrl = it.product?.images?.[0];
+          return (
+            <div key={it.id} className="flex items-center gap-1.5">
+              <div className="h-7 w-7 flex-shrink-0 overflow-hidden rounded-lg border border-slate-100 bg-slate-50">
+                {imgUrl ? (
+                  <img src={imgUrl} alt={it.productName} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center">
+                    <Package className="h-3 w-3 text-slate-400" />
+                  </div>
+                )}
+              </div>
+              <span className="text-xs text-slate-700 dark:text-slate-300 truncate max-w-[150px]">
+                {it.productName}{it.variantTitle ? ` (${it.variantTitle})` : ''}
+              </span>
+              <span className="text-xs text-slate-400 flex-shrink-0">x{it.quantity}</span>
             </div>
-            <span className="text-xs text-slate-700 dark:text-slate-300 truncate max-w-[160px]">
-              {it.productName}{it.variantTitle ? ` (${it.variantTitle})` : ''}
-            </span>
-            <span className="text-xs text-slate-400 flex-shrink-0">×{it.quantity}</span>
-          </div>
-        ))}
+          );
+        })}
         {o.items.length > 3 && (
           <p className="text-[10px] text-slate-400">+{o.items.length - 3} more</p>
         )}
@@ -113,7 +122,7 @@ const AdminOrdersPage: React.FC = () => {
           <button onClick={() => setDetail(o)} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition"><Eye className="h-4 w-4"/></button>
           {NEXT[o.status] && (
             <button onClick={() => handleAdvance(o)} className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
-              → {STATUS_LABEL[NEXT[o.status]!]}
+              {'->'} {STATUS_LABEL[NEXT[o.status]!]}
             </button>
           )}
           {!['CANCELLED','DELIVERED','REFUNDED'].includes(o.status) && (
@@ -123,12 +132,12 @@ const AdminOrdersPage: React.FC = () => {
             <div className="flex gap-1 w-full mt-1">
               <select value={riderSel[o.id] ?? ''} onChange={e => setRiderSel(p => ({...p,[o.id]:e.target.value}))}
                 className="flex-1 rounded-lg border border-slate-200 px-2 py-1 text-xs dark:bg-slate-800 dark:border-slate-600 dark:text-white min-w-0">
-                <option value="">Assign rider…</option>
+                <option value="">Assign rider...</option>
                 {riders.map(r => <option key={r.id} value={r.id}>{r.user.name}</option>)}
               </select>
               <button onClick={() => handleAssign(o.id)} disabled={!riderSel[o.id] || assigning === o.id}
                 className="rounded-lg bg-orange-500 px-2.5 py-1 text-xs font-semibold text-white hover:bg-orange-600 disabled:opacity-40 transition">
-                {assigning === o.id ? '…' : 'Go'}
+                {assigning === o.id ? '...' : 'Go'}
               </button>
             </div>
           )}
@@ -153,7 +162,7 @@ const AdminOrdersPage: React.FC = () => {
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <AdminSearch value={search} onChange={setSearch} placeholder="Order # or customer…" className="flex-1 min-w-[200px] max-w-xs"/>
+        <AdminSearch value={search} onChange={setSearch} placeholder="Order # or customer..." className="flex-1 min-w-[200px] max-w-xs"/>
         <div className="flex flex-wrap gap-1.5">
           {STATUSES.map(s => (
             <button key={s} onClick={() => { setStatusFilter(s); setPage(1); }}
@@ -196,19 +205,36 @@ const AdminOrdersPage: React.FC = () => {
             {detail.address && (
               <div className="rounded-xl bg-slate-50 dark:bg-slate-700/50 px-3 py-2">
                 <p className="text-xs text-slate-400 mb-1">Delivery Address</p>
-                <p className="dark:text-white">{detail.address.fullName} · {detail.address.phone}</p>
+                <p className="dark:text-white">{detail.address.fullName} &middot; {detail.address.phone}</p>
                 <p className="text-slate-500">{detail.address.street}, {detail.address.district}, {detail.address.city}</p>
               </div>
             )}
             <div>
               <p className="font-semibold dark:text-white mb-2">Items ({detail.items.length})</p>
-              <div className="space-y-1">
-                {detail.items.map(it => (
-                  <div key={it.id} className="flex justify-between text-xs rounded-lg bg-slate-50 dark:bg-slate-700/50 px-3 py-2">
-                    <span className="dark:text-slate-300">{it.productName}{it.variantTitle ? ` — ${it.variantTitle}` : ''} ×{it.quantity}</span>
-                    <span className="font-semibold dark:text-white">{fmtRWF(it.total)}</span>
-                  </div>
-                ))}
+              <div className="space-y-2">
+                {detail.items.map(it => {
+                  const imgUrl = it.product?.images?.[0];
+                  return (
+                    <div key={it.id} className="flex items-center gap-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 px-3 py-2">
+                      <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white">
+                        {imgUrl ? (
+                          <img src={imgUrl} alt={it.productName} className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center">
+                            <Package className="h-5 w-5 text-slate-300" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium dark:text-white truncate">
+                          {it.productName}{it.variantTitle ? ` — ${it.variantTitle}` : ''}
+                        </p>
+                        <p className="text-xs text-slate-400">Qty: {it.quantity} &times; {fmtRWF(it.unitPrice)}</p>
+                      </div>
+                      <span className="font-semibold dark:text-white flex-shrink-0">{fmtRWF(it.total)}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>

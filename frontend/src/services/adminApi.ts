@@ -34,6 +34,7 @@ export interface AdminCategory {
 export interface AdminOrderItem {
   id: string; productName: string; variantTitle?: string;
   quantity: number; unitPrice: number; total: number; vendorId: string;
+  product?: { images: string[] };
 }
 
 export interface AdminOrder {
