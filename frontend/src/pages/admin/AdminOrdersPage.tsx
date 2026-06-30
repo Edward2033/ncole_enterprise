@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { ShoppingBag, RefreshCw, Eye } from 'lucide-react';
+import { ShoppingBag, RefreshCw, Eye, Package } from 'lucide-react';
 import { adminOrdersApi, adminRidersApi, type AdminOrder, type AdminRider, type ApiMeta } from '@/services/adminApi';
 import { AdminTable, type Column } from '@/components/admin/AdminTable';
 import { AdminSearch } from '@/components/admin/AdminSearch';
@@ -75,10 +75,37 @@ const AdminOrdersPage: React.FC = () => {
       ),
     },
     { key: 'customer', header: 'Customer', render: o => <div><p className="text-sm dark:text-white">{o.customer?.user.name ?? '—'}</p><p className="text-xs text-slate-500">{o.customer?.user.email ?? ''}</p></div> },
-    { key: 'items', header: 'Items', render: o => <span className="text-xs text-slate-500">{o.items.length} item{o.items.length !== 1 ? 's' : ''}</span> },
+    { key: 'items', header: 'Items', render: o => (
+      <div className="space-y-1">
+        {o.items.slice(0, 3).map(it => (
+          <div key={it.id} className="flex items-center gap-1.5">
+            <div className="h-6 w-6 flex-shrink-0 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+              <Package className="h-3 w-3 text-slate-400" />
+            </div>
+            <span className="text-xs text-slate-700 dark:text-slate-300 truncate max-w-[160px]">
+              {it.productName}{it.variantTitle ? ` (${it.variantTitle})` : ''}
+            </span>
+            <span className="text-xs text-slate-400 flex-shrink-0">×{it.quantity}</span>
+          </div>
+        ))}
+        {o.items.length > 3 && (
+          <p className="text-[10px] text-slate-400">+{o.items.length - 3} more</p>
+        )}
+      </div>
+    )},
     { key: 'total', header: 'Total', render: o => <span className="font-semibold dark:text-white">{fmtRWF(o.total)}</span> },
     { key: 'status', header: 'Status', render: o => orderStatusBadge(o.status) },
-    { key: 'payment', header: 'Payment', render: o => <span className="text-xs text-slate-500">{o.paymentMethod.replace(/_/g,' ')}</span> },
+    { key: 'payment', header: 'Payment', render: o => (
+      <div className="space-y-1">
+        <span className="text-xs text-slate-600 dark:text-slate-300">{o.paymentMethod.replace(/_/g,' ')}</span>
+        <span className={`block rounded-full px-2 py-0.5 text-[10px] font-semibold w-fit ${
+          o.paymentStatus === 'PAID'    ? 'bg-emerald-100 text-emerald-700' :
+          o.paymentStatus === 'FAILED'  ? 'bg-red-100 text-red-700' :
+          o.paymentStatus === 'REFUNDED' ? 'bg-slate-100 text-slate-600' :
+          'bg-amber-100 text-amber-700'
+        }`}>{o.paymentStatus}</span>
+      </div>
+    )},
     {
       key: 'actions', header: 'Actions',
       render: o => (

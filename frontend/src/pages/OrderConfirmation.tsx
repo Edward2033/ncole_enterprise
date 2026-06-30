@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { CheckCircle2, Package, ArrowRight } from 'lucide-react';
+import { CheckCircle2, Package, ArrowRight, CreditCard } from 'lucide-react';
 import { ordersService, type NcoleOrder } from '@/services/api';
 import { formatPrice } from '@/lib/format';
 
@@ -52,9 +52,24 @@ const OrderConfirmation: React.FC = () => {
               <span>Total</span><span className="text-orange-600">{formatPrice(order.total)}</span>
             </div>
           </div>
-          <div className="mt-4 rounded-xl bg-amber-50 p-4 text-sm text-amber-800">
-            <strong>Payment pending:</strong> Please submit your payment via {order.paymentMethod.replace('_', ' ')} to complete this order.
-          </div>
+
+          {/* Payment pending notice + direct Pay Now button */}
+          {order.paymentStatus === 'PENDING' && (
+            <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200 p-4">
+              <p className="text-sm font-semibold text-amber-800">
+                Payment pending — {order.paymentMethod.replace(/_/g, ' ')}
+              </p>
+              <p className="mt-1 text-xs text-amber-600">
+                Submit your payment reference to complete this order. Your invoice is ready in Billing.
+              </p>
+              <Link
+                to="/account/billing"
+                className="mt-3 inline-flex items-center gap-2 rounded-full bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-orange-600 transition"
+              >
+                <CreditCard className="h-4 w-4" /> Pay Now
+              </Link>
+            </div>
+          )}
         </div>
       )}
 
@@ -62,8 +77,8 @@ const OrderConfirmation: React.FC = () => {
         <Link to="/shop" className="flex items-center justify-center gap-2 rounded-full bg-orange-500 px-8 py-3.5 text-sm font-semibold text-white hover:bg-orange-600 transition">
           Continue Shopping <ArrowRight className="h-4 w-4" />
         </Link>
-        <Link to="/" className="flex items-center justify-center rounded-full border border-slate-200 px-8 py-3.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">
-          Back to Home
+        <Link to="/account/billing" className="flex items-center justify-center gap-2 rounded-full border border-slate-200 px-8 py-3.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">
+          <CreditCard className="h-4 w-4" /> My Billing
         </Link>
       </div>
     </div>
