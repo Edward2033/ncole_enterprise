@@ -65,14 +65,9 @@ const OrderDetailPage: React.FC = () => {
   useEffect(() => {
     if (!id) return;
     setLoading(true);
-    // Fetch from /orders/my and find by id — single-order endpoint not in backend routes
-    ordersService.myOrders(1, 100)
-      .then(res => {
-        const found = res.data.find(o => o.id === id);
-        if (found) setOrder(found);
-        else setError('Order not found.');
-      })
-      .catch(() => setError('Failed to load order details.'))
+    ordersService.getById(id)
+      .then(res => setOrder(res.data))
+      .catch(() => setError('Order not found.'))
       .finally(() => setLoading(false));
   }, [id]);
 

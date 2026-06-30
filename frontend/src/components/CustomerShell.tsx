@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, useNavigate, Outlet } from 'react-router-dom';
+import { NavLink, useNavigate, Outlet, Navigate } from 'react-router-dom';
 import {
   LayoutDashboard, ShoppingBag, MapPin, User, Bell,
   CreditCard, LogOut, Menu, X, Sun, Moon, ChevronRight,
@@ -18,6 +18,13 @@ const NAV = [
   { to: '/account/profile',         icon: User,            label: 'Profile'        },
 ];
 
+// Map non-customer roles to their correct portal entry
+const ROLE_HOME: Record<string, string> = {
+  ADMIN:  '/admin/dashboard',
+  VENDOR: '/vendor/dashboard',
+  RIDER:  '/rider/dashboard',
+};
+
 const THEME_KEY = 'ncole_theme';
 
 const CustomerShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -29,6 +36,11 @@ const CustomerShell: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     return stored ? stored === 'dark' : document.documentElement.classList.contains('dark');
   });
 
+  // Redirect non-customer roles away from customer shell
+  if (user && user.role !== 'CUSTOMER') {
+    const dest = ROLE_HOME[user.role] ?? '/login';
+    return <Navigate to={dest} replace />;
+  }
   useEffect(() => {
     if (dark) {
       document.documentElement.classList.add('dark');

@@ -9,8 +9,9 @@ const OrderConfirmation: React.FC = () => {
   const [order, setOrder] = useState<NcoleOrder | null>(null);
 
   useEffect(() => {
-    ordersService.myOrders(1, 50)
-      .then(res => { const found = res.data.find(o => o.id === id); if (found) setOrder(found); })
+    if (!id) return;
+    ordersService.getById(id)
+      .then(res => setOrder(res.data))
       .catch(() => null);
   }, [id]);
 

@@ -147,6 +147,8 @@ export const ordersService = {
     apiFetch<ApiResp<NcoleOrder>>('/orders', { method: 'POST', body: JSON.stringify(body) }),
   myOrders: (page = 1, limit = 10) =>
     apiFetch<ListResp<NcoleOrder>>(`/orders/my?page=${page}&limit=${limit}`),
+  getById: (id: string) =>
+    apiFetch<ApiResp<NcoleOrder>>(`/orders/my/${id}`),
 };
 
 export const addressesService = {

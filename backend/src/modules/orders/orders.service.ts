@@ -6,7 +6,7 @@ import { notifyOrderCreated, notifyOrderStatusChanged } from '@/modules/notifica
 import { generateInvoiceForOrder } from '@/modules/billing/billing.service';
 
 export const placeOrderSchema = z.object({
-  addressId: z.string().cuid(),
+  addressId: z.string().min(1, 'Address is required'),
   paymentMethod: z.nativeEnum(PaymentMethod),
   notes: z.string().optional(),
 });
@@ -22,8 +22,18 @@ function generateOrderNumber(): string {
   return `NC-${Date.now()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
 }
 
+/** Ensures a Customer row exists for the user — creates it if missing (e.g. role-changed accounts). */
+async function ensureCustomer(userId: string) {
+  const existing = await prisma.customer.findUnique({ where: { userId } });
+  if (existing) return existing;
+  return prisma.customer.create({ data: { userId } });
+}
+
 export async function placeOrder(userId: string, dto: PlaceOrderDto) {
-  const customer = await prisma.customer.findUnique({ where: { userId }, include: { cart: { include: { items: { include: { product: true, variant: true } } } } } });
+  const customer = await prisma.customer.findUnique({
+    where: { userId },
+    include: { cart: { include: { items: { include: { product: true, variant: true } } } } },
+  });
   if (!customer) throw AppError.forbidden('No customer profile');
 
   const cart = customer.cart;
@@ -80,6 +90,18 @@ export async function placeOrder(userId: string, dto: PlaceOrderDto) {
   notifyOrderCreated(userId, order.orderNumber, order.id).catch(() => null);
   generateInvoiceForOrder(order.id).catch(() => null);
 
+  return order;
+}
+
+export async function getMyOrderById(userId: string, orderId: string) {
+  const customer = await prisma.customer.findUnique({ where: { userId } });
+  if (!customer) throw AppError.forbidden('No customer profile');
+
+  const order = await prisma.order.findFirst({
+    where: { id: orderId, customerId: customer.id, deletedAt: null },
+    include: { items: true },
+  });
+  if (!order) throw AppError.notFound('Order');
   return order;
 }
 

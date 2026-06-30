@@ -1,11 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
-import { placeOrder, getMyOrders, listVendorOrders, listRiderOrders, assignRider, listAllOrders, updateOrderStatus, PlaceOrderDto, UpdateOrderStatusDto } from './orders.service';
+import { placeOrder, getMyOrders, getMyOrderById, listVendorOrders, listRiderOrders, assignRider, listAllOrders, updateOrderStatus, PlaceOrderDto, UpdateOrderStatusDto } from './orders.service';
 import { sendSuccess } from '@/shared/utils/response';
 import { prisma } from '@/config/database';
 import { Role } from '@prisma/client';
 
 export async function place(req: Request, res: Response, next: NextFunction): Promise<void> {
   try { sendSuccess(res, await placeOrder(req.user!.sub, req.body as PlaceOrderDto), 201); } catch (e) { next(e); }
+}
+
+export async function myOrderById(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const order = await getMyOrderById(req.user!.sub, req.params['id']!);
+    sendSuccess(res, order);
+  } catch (e) { next(e); }
 }
 
 export async function myOrders(req: Request, res: Response, next: NextFunction): Promise<void> {

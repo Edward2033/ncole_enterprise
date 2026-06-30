@@ -53,12 +53,11 @@ const TrackingPage: React.FC = () => {
     if (!silent) setLoading(true);
     else setRefreshing(true);
     try {
-      const res = await ordersService.myOrders(1, 100);
-      const found = res.data.find(o => o.id === orderId);
-      if (found) setOrder(found);
-      else setError('Order not found.');
+      const res = await ordersService.getById(orderId);
+      setOrder(res.data);
+      setError('');
     } catch {
-      setError('Failed to load tracking information.');
+      setError('Order not found.');
     } finally {
       setLoading(false);
       setRefreshing(false);

@@ -1,14 +1,39 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { X, Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { formatPrice } from '@/lib/format';
+import AuthPromptModal from '@/components/AuthPromptModal';
 
 const CartDrawer: React.FC = () => {
   const { items, isOpen, setIsOpen, updateQuantity, removeFromCart, subtotal } = useCart();
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+
+  const handleCheckout = () => {
+    setIsOpen(false);
+    if (!isAuthenticated) {
+      setShowAuthPrompt(true);
+    } else {
+      navigate('/checkout');
+    }
+  };
 
   return (
     <>
+      {/* Auth prompt modal for guest checkout attempt */}
+      {showAuthPrompt && (
+        <AuthPromptModal
+          onLogin={() => {
+            setShowAuthPrompt(false);
+            navigate('/login', { state: { from: '/checkout' } });
+          }}
+          onClose={() => setShowAuthPrompt(false)}
+        />
+      )}
+
       <div
         onClick={() => setIsOpen(false)}
         className={`fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm transition-opacity ${
@@ -98,13 +123,13 @@ const CartDrawer: React.FC = () => {
                 <span className="font-bold text-slate-900">{formatPrice(subtotal)}</span>
               </div>
               <p className="mb-4 text-xs text-emerald-600">Free shipping on all orders</p>
-              <Link
-                to="/checkout"
-                onClick={() => setIsOpen(false)}
+              {/* Checkout — gates on auth, shows modal for guests */}
+              <button
+                onClick={handleCheckout}
                 className="block w-full rounded-full bg-orange-500 py-3.5 text-center text-sm font-semibold text-white transition hover:bg-orange-600"
               >
                 Checkout
-              </Link>
+              </button>
               <Link
                 to="/cart"
                 onClick={() => setIsOpen(false)}

@@ -149,6 +149,9 @@ export async function reviewApplication(
     },
   });
 
+  // Always provision a Customer profile so the user can shop after approval
+  await prisma.customer.create({ data: { userId: newUser.id } });
+
   if (app.role === 'VENDOR') {
     await prisma.vendor.create({
       data: {

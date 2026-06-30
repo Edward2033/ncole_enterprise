@@ -2,44 +2,18 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Minus, Plus, Trash2, ShoppingBag, ArrowRight,
-  ShieldCheck, Truck, Tag, LogIn, UserPlus, Lock,
+  ShieldCheck, Truck, Tag, LogIn,
 } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatPrice } from '@/lib/format';
+import AuthPromptModal from '@/components/AuthPromptModal';
 
 // ── Trust badge ───────────────────────────────────────────────────────────────
 const TrustBadge: React.FC<{ icon: React.ReactNode; text: string }> = ({ icon, text }) => (
   <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
     {icon}
     <span>{text}</span>
-  </div>
-);
-
-// ── Auth wall (shown when not logged in) ──────────────────────────────────────
-const AuthWall: React.FC = () => (
-  <div className="mx-auto flex max-w-md flex-col items-center px-4 py-24 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-    <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-orange-50 dark:bg-orange-900/20 shadow-inner">
-      <Lock className="h-10 w-10 text-orange-400" />
-    </div>
-    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Sign in to view your cart</h1>
-    <p className="mt-3 text-slate-500 dark:text-slate-400 leading-relaxed">
-      You need an account to add items to your cart and place orders. It only takes a moment to join.
-    </p>
-    <div className="mt-8 flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
-      <Link to="/login"
-        className="flex items-center justify-center gap-2 rounded-full bg-orange-500 px-7 py-3.5 text-sm font-semibold text-white hover:bg-orange-600 transition-all duration-200 shadow-md shadow-orange-200 dark:shadow-orange-900/30 active:scale-95">
-        <LogIn className="h-4 w-4" /> Sign In
-      </Link>
-      <Link to="/register"
-        className="flex items-center justify-center gap-2 rounded-full border border-slate-200 dark:border-slate-700 px-7 py-3.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:border-orange-400 hover:text-orange-600 transition-all duration-200 active:scale-95">
-        <UserPlus className="h-4 w-4" /> Create Account
-      </Link>
-    </div>
-    <Link to="/shop"
-      className="mt-5 text-sm text-slate-400 hover:text-orange-600 transition-colors underline underline-offset-4">
-      Continue browsing →
-    </Link>
   </div>
 );
 
@@ -66,22 +40,22 @@ const EmptyCart: React.FC = () => (
 );
 
 // ── Main CartPage ─────────────────────────────────────────────────────────────
+// Anyone can view and manage their cart.
+// Login is only required when clicking "Proceed to Checkout".
 const CartPage: React.FC = () => {
   const { items, updateQuantity, removeFromCart, subtotal, clearCart } = useCart();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
 
-  // Auth guard — not logged in
-  if (!isAuthenticated) return <AuthWall />;
-
-  // Empty cart
+  // Empty cart — same for guests and logged-in users
   if (items.length === 0) return <EmptyCart />;
 
   const delivery = 0;
   const total    = subtotal + delivery;
 
-  const handleRemove = async (productId: string, variantId?: string) => {
+  const handleRemove = (productId: string, variantId?: string) => {
     const key = productId + (variantId ?? '');
     setRemovingId(key);
     setTimeout(() => {
@@ -90,8 +64,28 @@ const CartPage: React.FC = () => {
     }, 250);
   };
 
+  // Gate checkout: if not authenticated show the prompt modal, else navigate
+  const handleCheckout = () => {
+    if (!isAuthenticated) {
+      setShowAuthPrompt(true);
+    } else {
+      navigate('/checkout');
+    }
+  };
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 lg:px-8">
+
+      {/* Auth prompt modal — shown to guests who click Proceed to Checkout */}
+      {showAuthPrompt && (
+        <AuthPromptModal
+          onLogin={() => {
+            setShowAuthPrompt(false);
+            navigate('/login', { state: { from: '/checkout' } });
+          }}
+          onClose={() => setShowAuthPrompt(false)}
+        />
+      )}
 
       {/* Page header */}
       <div className="mb-8 flex items-center justify-between animate-in fade-in slide-in-from-top-4 duration-400">
@@ -112,7 +106,7 @@ const CartPage: React.FC = () => {
         {/* ── Cart items ───────────────────────────────────────────────────── */}
         <div className="space-y-4 lg:col-span-2">
           {items.map((item, i) => {
-            const key       = item.product_id + (item.variant_id ?? '');
+            const key        = item.product_id + (item.variant_id ?? '');
             const isRemoving = removingId === key;
 
             return (
@@ -168,7 +162,6 @@ const CartPage: React.FC = () => {
 
                   {/* Quantity + line total */}
                   <div className="mt-auto flex items-center justify-between pt-3">
-                    {/* Qty stepper */}
                     <div className="flex items-center gap-1 rounded-full border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 p-0.5">
                       <button
                         onClick={() => updateQuantity(item.product_id, item.quantity - 1, item.variant_id)}
@@ -224,10 +217,8 @@ const CartPage: React.FC = () => {
               ))}
             </div>
 
-            {/* Divider */}
             <div className="my-4 border-t border-slate-100 dark:border-slate-700" />
 
-            {/* Subtotal / delivery / total */}
             <div className="space-y-2.5 text-sm">
               <div className="flex justify-between">
                 <span className="text-slate-500 dark:text-slate-400">Subtotal</span>
@@ -253,10 +244,18 @@ const CartPage: React.FC = () => {
               <span className="text-lg font-bold text-orange-600">{formatPrice(total)}</span>
             </div>
 
-            {/* CTA */}
+            {/* Guest hint — only shown when not logged in */}
+            {!isAuthenticated && (
+              <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-slate-400 dark:text-slate-500">
+                <LogIn className="h-3.5 w-3.5" />
+                Sign in required to complete purchase
+              </p>
+            )}
+
+            {/* CTA — works for both guests (triggers modal) and logged-in users */}
             <button
-              onClick={() => navigate('/checkout')}
-              className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3.5 text-sm font-semibold text-white hover:bg-orange-600 transition-all duration-200 shadow-md shadow-orange-200 dark:shadow-orange-900/30 active:scale-[0.98]"
+              onClick={handleCheckout}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3.5 text-sm font-semibold text-white hover:bg-orange-600 transition-all duration-200 shadow-md shadow-orange-200 dark:shadow-orange-900/30 active:scale-[0.98]"
             >
               Proceed to Checkout <ArrowRight className="h-4 w-4" />
             </button>

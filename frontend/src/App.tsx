@@ -149,17 +149,15 @@ const App = () => (
                     <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
                   </Route>
 
-                  {/* ── Customer dashboard (ALL account routes inside CustomerShell) ── */}
+                  {/* ── Customer dashboard (protected, single CustomerShell wrap) ── */}
                   <Route path="/customer" element={<Navigate to="/customer/dashboard" replace />} />
-                  <Route path="/account" element={<Navigate to="/customer/dashboard" replace />} />
-                  <Route element={<ProtectedRoute><CustomerShell>{null}</CustomerShell></ProtectedRoute>}>
-                    <Route path="/customer/dashboard"      element={<ProtectedRoute><CustomerShell><CustomerDashboardPage /></CustomerShell></ProtectedRoute>} />
-                    <Route path="/account/addresses"       element={<ProtectedRoute><CustomerShell><AddressesPage /></CustomerShell></ProtectedRoute>} />
-                    <Route path="/account/orders"          element={<ProtectedRoute><CustomerShell><OrdersPage /></CustomerShell></ProtectedRoute>} />
-                    <Route path="/account/profile"         element={<ProtectedRoute><CustomerShell><ProfilePage /></CustomerShell></ProtectedRoute>} />
-                    <Route path="/account/notifications"   element={<ProtectedRoute><CustomerShell><NotificationsPage /></CustomerShell></ProtectedRoute>} />
-                    <Route path="/account/billing"         element={<ProtectedRoute><CustomerShell><BillingPage /></CustomerShell></ProtectedRoute>} />
-                  </Route>
+                  <Route path="/account"  element={<Navigate to="/customer/dashboard" replace />} />
+                  <Route path="/customer/dashboard"    element={<ProtectedRoute><CustomerShell><CustomerDashboardPage /></CustomerShell></ProtectedRoute>} />
+                  <Route path="/account/addresses"     element={<ProtectedRoute><CustomerShell><AddressesPage /></CustomerShell></ProtectedRoute>} />
+                  <Route path="/account/orders"        element={<ProtectedRoute><CustomerShell><OrdersPage /></CustomerShell></ProtectedRoute>} />
+                  <Route path="/account/profile"       element={<ProtectedRoute><CustomerShell><ProfilePage /></CustomerShell></ProtectedRoute>} />
+                  <Route path="/account/notifications" element={<ProtectedRoute><CustomerShell><NotificationsPage /></CustomerShell></ProtectedRoute>} />
+                  <Route path="/account/billing"       element={<ProtectedRoute><CustomerShell><BillingPage /></CustomerShell></ProtectedRoute>} />
 
                   {/* ── Public (Header + Footer + CartDrawer) ────────────── */}
                   <Route element={<Layout />}>
@@ -171,7 +169,7 @@ const App = () => (
                     <Route path="/collections/:handle" element={<CollectionPage />} />
                     <Route path="/unauthorized"        element={<UnauthorizedPage />} />
 
-                    <Route path="/cart"     element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
+                    <Route path="/cart"     element={<CartPage />} />
                     <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
 
                     <Route path="/orders"                   element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
