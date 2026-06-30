@@ -12,7 +12,8 @@ router.use(authenticate);
 // Any authenticated user can place an order — ADMIN/VENDOR/RIDER can shop too.
 // ensureCustomer() in the service auto-provisions a Customer profile if one
 // does not exist yet, so no role is locked out of purchasing.
-router.post('/',           authenticate,                             validate(placeOrderSchema),       place);
+// Note: authenticate is NOT repeated here — router.use(authenticate) above already covers all routes.
+router.post('/',           validate(placeOrderSchema),       place);
 router.get('/my',          authorize('CUSTOMER', 'ADMIN', 'VENDOR', 'RIDER'), myOrders);
 router.get('/my/:id',      authorize('CUSTOMER', 'ADMIN', 'VENDOR', 'RIDER'), myOrderById);
 router.get('/vendor',      authorize('VENDOR'),                      vendorOrders);

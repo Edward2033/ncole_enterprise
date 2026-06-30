@@ -56,18 +56,30 @@ const QuickAction: React.FC<{
 );
 
 // ── Main page ────────────────────────────────────────────────────────────────
+const POLL_MS = 30_000;
+
 const CustomerDashboardPage: React.FC = () => {
   const { user } = useAuth();
   const [orders, setOrders] = useState<NcoleOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const load = React.useCallback((silent = false) => {
+    if (!silent) setLoading(true);
     ordersService.myOrders(1, 20)
-      .then(res => setOrders(res.data))
-      .catch((e) => setError((e as Error).message || 'Failed to load orders.'))
-      .finally(() => setLoading(false));
+      .then(res => { setOrders(res.data); setError(null); })
+      .catch((e) => { if (!silent) setError((e as Error).message || 'Failed to load orders.'); })
+      .finally(() => { if (!silent) setLoading(false); });
   }, []);
+
+  // Initial load
+  useEffect(() => { load(false); }, [load]);
+
+  // Poll every 30s so active order statuses stay current
+  useEffect(() => {
+    const timer = setInterval(() => load(true), POLL_MS);
+    return () => clearInterval(timer);
+  }, [load]);
 
   const total     = orders.length;
   const pending   = orders.filter(o => ['PENDING', 'CONFIRMED', 'PROCESSING'].includes(o.status)).length;
@@ -84,7 +96,7 @@ const CustomerDashboardPage: React.FC = () => {
         <div className="flex items-center justify-between rounded-2xl border border-red-200 bg-red-50 dark:bg-red-900/20 px-4 py-3 text-sm text-red-700 dark:text-red-400">
           <span>{error}</span>
           <button
-            onClick={() => { setError(null); setLoading(true); ordersService.myOrders(1, 20).then(r => setOrders(r.data)).catch(e => setError((e as Error).message)).finally(() => setLoading(false)); }}
+            onClick={() => { setError(null); load(false); }}
             className="ml-4 rounded-lg bg-red-100 dark:bg-red-800 px-3 py-1 text-xs font-semibold hover:bg-red-200 dark:hover:bg-red-700 transition"
           >
             Retry

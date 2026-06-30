@@ -101,8 +101,10 @@ export async function placeOrder(userId: string, dto: PlaceOrderDto) {
 }
 
 export async function getMyOrderById(userId: string, orderId: string) {
-  const customer = await prisma.customer.findUnique({ where: { userId } });
-  if (!customer) throw AppError.forbidden('No customer profile');
+  // Use ensureCustomer to auto-create a Customer row if missing,
+  // consistent with placeOrder. Prevents 403 for valid users.
+  const customer = await prisma.customer.findUnique({ where: { userId } })
+    ?? await prisma.customer.create({ data: { userId } });
 
   const order = await prisma.order.findFirst({
     where: { id: orderId, customerId: customer.id, deletedAt: null },

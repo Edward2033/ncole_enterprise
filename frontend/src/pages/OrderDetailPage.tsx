@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Package, MapPin, CreditCard, Clock,
-  CheckCircle2, XCircle, Truck, ShoppingBag, ChevronRight,
+  CheckCircle2, XCircle, Truck, ShoppingBag, ChevronRight, RefreshCw,
 } from 'lucide-react';
 import { ordersService, type NcoleOrder } from '@/services/api';
 import { formatPrice } from '@/lib/format';
@@ -31,16 +31,20 @@ const STATUS_COLOR: Record<string, string> = {
   REFUNDED: 'bg-slate-100 text-slate-600',
 };
 
-// Timeline steps (ordered progression)
+// All 6 active stages in order — customer sees every step
 const TIMELINE_STEPS = [
-  { key: 'PENDING', label: 'Order Placed', icon: ShoppingBag },
-  { key: 'CONFIRMED', label: 'Confirmed', icon: CheckCircle2 },
-  { key: 'PROCESSING', label: 'Processing', icon: Package },
-  { key: 'OUT_FOR_DELIVERY', label: 'On the Way', icon: Truck },
-  { key: 'DELIVERED', label: 'Delivered', icon: CheckCircle2 },
+  { key: 'PENDING',          label: 'Order Placed',     icon: ShoppingBag  },
+  { key: 'CONFIRMED',        label: 'Confirmed',         icon: CheckCircle2 },
+  { key: 'PROCESSING',       label: 'Processing',        icon: Package      },
+  { key: 'READY_FOR_PICKUP', label: 'Ready for Pickup',  icon: MapPin       },
+  { key: 'OUT_FOR_DELIVERY', label: 'On the Way',        icon: Truck        },
+  { key: 'DELIVERED',        label: 'Delivered',         icon: CheckCircle2 },
 ];
 
-const STEP_ORDER = ['PENDING', 'CONFIRMED', 'PROCESSING', 'OUT_FOR_DELIVERY', 'DELIVERED'];
+const STEP_ORDER = [
+  'PENDING', 'CONFIRMED', 'PROCESSING',
+  'READY_FOR_PICKUP', 'OUT_FOR_DELIVERY', 'DELIVERED',
+];
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
@@ -55,21 +59,37 @@ const Skeleton: React.FC = () => (
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
+const POLL_INTERVAL_MS = 30_000; // 30 seconds
+
 const OrderDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [order, setOrder] = useState<NcoleOrder | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
+  const fetchOrder = useCallback((silent = false) => {
     if (!id) return;
-    setLoading(true);
+    if (!silent) setLoading(true);
+    else setRefreshing(true);
     ordersService.getById(id)
-      .then(res => setOrder(res.data))
-      .catch(() => setError('Order not found.'))
-      .finally(() => setLoading(false));
+      .then(res => { setOrder(res.data); setError(''); })
+      .catch(() => { if (!silent) setError('Order not found.'); })
+      .finally(() => { setLoading(false); setRefreshing(false); });
   }, [id]);
+
+  // Initial load
+  useEffect(() => { fetchOrder(false); }, [fetchOrder]);
+
+  // Poll every 30s so the customer sees status changes without manual reload.
+  // Only polls for active (non-terminal) orders to avoid unnecessary requests.
+  useEffect(() => {
+    const TERMINAL = ['DELIVERED', 'CANCELLED', 'REFUNDED'];
+    if (!id || (order && TERMINAL.includes(order.status))) return;
+    const timer = setInterval(() => fetchOrder(true), POLL_INTERVAL_MS);
+    return () => clearInterval(timer);
+  }, [id, order, fetchOrder]);
 
   if (loading) return <Skeleton />;
 
@@ -92,12 +112,19 @@ const OrderDetailPage: React.FC = () => {
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 lg:px-8">
       {/* Back nav */}
-      <div className="mb-6 flex items-center gap-2 text-sm text-slate-500">
-        <Link to="/orders" className="flex items-center gap-1.5 hover:text-orange-600 transition-colors">
-          <ArrowLeft className="h-4 w-4" /> My Orders
-        </Link>
-        <ChevronRight className="h-3.5 w-3.5" />
-        <span className="text-slate-700 font-medium">{order.orderNumber}</span>
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm text-slate-500">
+          <Link to="/orders" className="flex items-center gap-1.5 hover:text-orange-600 transition-colors">
+            <ArrowLeft className="h-4 w-4" /> My Orders
+          </Link>
+          <ChevronRight className="h-3.5 w-3.5" />
+          <span className="text-slate-700 font-medium">{order.orderNumber}</span>
+        </div>
+        <button onClick={() => fetchOrder(true)} disabled={refreshing}
+          className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-orange-500 transition disabled:opacity-40">
+          <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+          {refreshing ? 'Refreshing…' : 'Refresh'}
+        </button>
       </div>
 
       {/* Header card */}
@@ -119,13 +146,13 @@ const OrderDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Order Timeline */}
+      {/* Order Timeline — all 6 stages including READY_FOR_PICKUP */}
       {!isCancelled && (
         <div className="rounded-2xl border border-slate-200 bg-white p-6 mb-5">
           <h2 className="mb-5 font-bold text-slate-900">Order Timeline</h2>
           <div className="relative flex items-start justify-between overflow-x-auto pb-2">
             {/* progress bar */}
-            <div className="absolute top-4 left-0 right-0 h-0.5 bg-slate-200 mx-10" aria-hidden="true">
+            <div className="absolute top-4 left-0 right-0 h-0.5 bg-slate-200 mx-6" aria-hidden="true">
               <div
                 className="h-full bg-orange-500 transition-all duration-500"
                 style={{ width: currentStep >= 0 ? `${(currentStep / (TIMELINE_STEPS.length - 1)) * 100}%` : '0%' }}
@@ -135,13 +162,13 @@ const OrderDetailPage: React.FC = () => {
               const done = i <= currentStep;
               const Icon = step.icon;
               return (
-                <div key={step.key} className="relative flex flex-col items-center gap-2 flex-1 min-w-[70px]">
+                <div key={step.key} className="relative flex flex-col items-center gap-2 flex-1 min-w-[60px]">
                   <div className={`z-10 flex h-9 w-9 items-center justify-center rounded-full border-2 transition-colors ${
                     done ? 'border-orange-500 bg-orange-500 text-white' : 'border-slate-200 bg-white text-slate-300'
                   }`}>
                     <Icon className="h-4 w-4" />
                   </div>
-                  <span className={`text-center text-[11px] font-medium leading-tight ${done ? 'text-orange-600' : 'text-slate-400'}`}>
+                  <span className={`text-center text-[10px] font-medium leading-tight ${done ? 'text-orange-600' : 'text-slate-400'}`}>
                     {step.label}
                   </span>
                 </div>
@@ -171,23 +198,23 @@ const OrderDetailPage: React.FC = () => {
           {order.items.map(item => {
             const imgUrl = item.product?.images?.[0] ?? item.imageUrl;
             return (
-            <div key={item.id} className="flex items-center justify-between gap-4">
-              <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-xl bg-slate-100">
-                {imgUrl ? (
-                  <img src={imgUrl} alt={item.productName} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center">
-                    <Package className="h-5 w-5 text-slate-400" />
-                  </div>
-                )}
+              <div key={item.id} className="flex items-center justify-between gap-4">
+                <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-xl bg-slate-100">
+                  {imgUrl ? (
+                    <img src={imgUrl} alt={item.productName} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center">
+                      <Package className="h-5 w-5 text-slate-400" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-900 truncate">{item.productName}</p>
+                  {item.variantTitle && <p className="text-xs text-slate-500">{item.variantTitle}</p>}
+                  <p className="text-xs text-slate-400">Qty: {item.quantity} &times; {formatPrice(item.unitPrice)}</p>
+                </div>
+                <span className="font-bold text-slate-900 whitespace-nowrap">{formatPrice(item.total)}</span>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-900 truncate">{item.productName}</p>
-                {item.variantTitle && <p className="text-xs text-slate-500">{item.variantTitle}</p>}
-                <p className="text-xs text-slate-400">Qty: {item.quantity} &times; {formatPrice(item.unitPrice)}</p>
-              </div>
-              <span className="font-bold text-slate-900 whitespace-nowrap">{formatPrice(item.total)}</span>
-            </div>
             );
           })}
         </div>
@@ -228,7 +255,7 @@ const OrderDetailPage: React.FC = () => {
           <div className="flex justify-between">
             <span className="text-slate-500">Payment Status</span>
             <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-              order.paymentStatus === 'PAID' ? 'bg-emerald-100 text-emerald-700' :
+              order.paymentStatus === 'PAID'   ? 'bg-emerald-100 text-emerald-700' :
               order.paymentStatus === 'FAILED' ? 'bg-red-100 text-red-700' :
               'bg-amber-100 text-amber-700'
             }`}>
