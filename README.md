@@ -379,7 +379,7 @@ docker-compose exec backend npx prisma migrate deploy
 ### Backend → Render
 1. Create a Web Service on [render.com](https://render.com)
 2. Root directory: `backend/`
-3. Build command: `npm install && npx prisma generate && npm run build`
+3. Build command: `npm ci && npx prisma generate && npm run build`
 4. Start command: `npx prisma migrate deploy && node dist/server.js`
 5. Add all environment variables from `backend/.env.example`
 
