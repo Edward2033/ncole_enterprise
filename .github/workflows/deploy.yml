@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ${{ github.repository_owner }}/ncole
 
@@ -99,7 +99,7 @@ jobs:
             -H "Accept: application/json" \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
             "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
-            -d '{"clearCache": false}'
+            -d '{"clearCache": true}'
 
       - name: Wait for deploy to start
         run: sleep 60
