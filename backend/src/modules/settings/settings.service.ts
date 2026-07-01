@@ -145,8 +145,8 @@ export const bannerSchema = z.object({
   buttonText:  z.string().max(100).optional(),
   linkUrl:     z.string().max(500).optional(),
   isActive:    z.boolean().default(true),
-  startDate:   z.string().datetime().optional(),
-  endDate:     z.string().datetime().optional(),
+  startDate:   z.string().datetime().optional().or(z.literal('')).transform(v => v || undefined),
+  endDate:     z.string().datetime().optional().or(z.literal('')).transform(v => v || undefined),
 });
 
 export const bannerPatchSchema = bannerSchema.partial();

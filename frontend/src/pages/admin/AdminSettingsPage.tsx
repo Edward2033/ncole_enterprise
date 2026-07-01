@@ -5,6 +5,47 @@ import {
   Edit2, Save, X, Plus, Trash2, Pencil, AlertCircle, RefreshCw,
 } from 'lucide-react';
 import ImageUploader from '@/components/ImageUploader';
+
+// ─── Site link options (shared by Hero Slides + Banners) ─────────────────────
+
+const BUTTON_TEXT_OPTIONS = [
+  'Shop Now', 'Explore', 'View Collection', 'Learn More', 'Get Started',
+  'Order Now', 'See Deals', 'Browse Products', 'Become a Vendor', 'Apply Now',
+  'Contact Us', 'View All',
+];
+
+const BUTTON_LINK_OPTIONS = [
+  { label: 'Storefront — Home',          value: '/' },
+  { label: 'Shop — All Products',        value: '/shop' },
+  { label: 'Apply (Vendor / Rider)',      value: '/apply' },
+  { label: 'Login / Register',           value: '/login' },
+  { label: 'Cart',                       value: '/cart' },
+  { label: 'Orders',                     value: '/orders' },
+  { label: 'Customer Dashboard',         value: '/customer/dashboard' },
+  { label: 'Vendor Dashboard',           value: '/vendor/dashboard' },
+  { label: 'Rider Dashboard',            value: '/rider/dashboard' },
+  { label: 'Admin Dashboard',            value: '/admin/dashboard' },
+  { label: 'Billing',                    value: '/account/billing' },
+  { label: 'Notifications',              value: '/account/notifications' },
+];
+
+const selectCls = 'w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white px-3 py-2 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition disabled:opacity-60 disabled:cursor-not-allowed';
+
+const ButtonTextSelect: React.FC<{ value: string; onChange: (v: string) => void; disabled?: boolean }> = ({ value, onChange, disabled }) => (
+  <select className={selectCls} value={value} onChange={e => onChange(e.target.value)} disabled={disabled}>
+    <option value="">— None —</option>
+    {BUTTON_TEXT_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+    {value && !BUTTON_TEXT_OPTIONS.includes(value) && <option value={value}>{value}</option>}
+  </select>
+);
+
+const ButtonLinkSelect: React.FC<{ value: string; onChange: (v: string) => void; disabled?: boolean }> = ({ value, onChange, disabled }) => (
+  <select className={selectCls} value={value} onChange={e => onChange(e.target.value)} disabled={disabled}>
+    <option value="">— None —</option>
+    {BUTTON_LINK_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+    {value && !BUTTON_LINK_OPTIONS.some(o => o.value === value) && <option value={value}>{value}</option>}
+  </select>
+);
 import { adminUsersApi, adminSettingsApi, type PlatformConfig, type HeroSlide, type Banner, type MaintenanceConfig } from '@/services/adminApi';
 import { apiFetch } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -267,8 +308,12 @@ const HeroSection: React.FC = () => {
             />
           </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Button Text"><input className={inputCls} value={form.buttonText} onChange={e => setForm(f => ({ ...f, buttonText: e.target.value }))} /></Field>
-            <Field label="Button Link"><input className={inputCls} type="url" value={form.buttonLink} onChange={e => setForm(f => ({ ...f, buttonLink: e.target.value }))} placeholder="https://…" /></Field>
+            <Field label="Button Text">
+              <ButtonTextSelect value={form.buttonText} onChange={v => setForm(f => ({ ...f, buttonText: v }))} disabled={saving} />
+            </Field>
+            <Field label="Button Link">
+              <ButtonLinkSelect value={form.buttonLink} onChange={v => setForm(f => ({ ...f, buttonLink: v }))} disabled={saving} />
+            </Field>
             <Field label="Sort Order"><input className={inputCls} type="number" value={form.sortOrder} onChange={e => setForm(f => ({ ...f, sortOrder: Number(e.target.value) }))} /></Field>
           </div>
           <div className="flex items-center gap-2">
@@ -337,8 +382,8 @@ const BannersSection: React.FC = () => {
         description: form.description || undefined,
         buttonText:  form.buttonText  || undefined,
         linkUrl:     form.linkUrl     || undefined,
-        startDate:   form.startDate   || undefined,
-        endDate:     form.endDate     || undefined,
+        startDate:   form.startDate   ? new Date(form.startDate).toISOString() : undefined,
+        endDate:     form.endDate     ? new Date(form.endDate).toISOString()   : undefined,
       };
       if (modal?.mode === 'edit' && modal.banner) { await adminSettingsApi.updateBanner(modal.banner.id, body); }
       else { await adminSettingsApi.createBanner(body); }
@@ -406,8 +451,12 @@ const BannersSection: React.FC = () => {
             />
           </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Button Text"><input className={inputCls} value={form.buttonText} onChange={e => setForm(f => ({ ...f, buttonText: e.target.value }))} /></Field>
-            <Field label="Button Link"><input className={inputCls} type="url" value={form.linkUrl} onChange={e => setForm(f => ({ ...f, linkUrl: e.target.value }))} placeholder="https://…" /></Field>
+            <Field label="Button Text">
+              <ButtonTextSelect value={form.buttonText} onChange={v => setForm(f => ({ ...f, buttonText: v }))} disabled={saving} />
+            </Field>
+            <Field label="Button Link">
+              <ButtonLinkSelect value={form.linkUrl} onChange={v => setForm(f => ({ ...f, linkUrl: v }))} disabled={saving} />
+            </Field>
             <Field label="Start Date"><input className={inputCls} type="datetime-local" value={form.startDate} onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))} /></Field>
             <Field label="End Date"><input className={inputCls} type="datetime-local" value={form.endDate} onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))} /></Field>
           </div>
