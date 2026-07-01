@@ -53,16 +53,19 @@ jobs:
       - name: Validate Prisma schema
         env:
           DATABASE_URL: postgresql://ncole:testpassword@localhost:5432/ncole_test
+          DIRECT_URL: postgresql://ncole:testpassword@localhost:5432/ncole_test
         run: npx prisma validate
 
       - name: Generate Prisma client
         env:
           DATABASE_URL: postgresql://ncole:testpassword@localhost:5432/ncole_test
+          DIRECT_URL: postgresql://ncole:testpassword@localhost:5432/ncole_test
         run: npx prisma generate
 
       - name: Run Prisma migrations
         env:
           DATABASE_URL: postgresql://ncole:testpassword@localhost:5432/ncole_test
+          DIRECT_URL: postgresql://ncole:testpassword@localhost:5432/ncole_test
         run: npx prisma migrate deploy
 
       - name: TypeScript type check
