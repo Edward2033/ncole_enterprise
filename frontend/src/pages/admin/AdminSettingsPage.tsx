@@ -4,6 +4,7 @@ import {
   ToggleLeft, ToggleRight, ChevronRight, CheckCircle, Lock,
   Edit2, Save, X, Plus, Trash2, Pencil, AlertCircle, RefreshCw,
 } from 'lucide-react';
+import ImageUploader from '@/components/ImageUploader';
 import { adminUsersApi, adminSettingsApi, type PlatformConfig, type HeroSlide, type Banner, type MaintenanceConfig } from '@/services/adminApi';
 import { apiFetch } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -258,9 +259,12 @@ const HeroSection: React.FC = () => {
           {formError && <Alert type="error" message={formError} />}
           <Field label="Title" required><input className={inputCls} value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} /></Field>
           <Field label="Subtitle"><input className={inputCls} value={form.subtitle} onChange={e => setForm(f => ({ ...f, subtitle: e.target.value }))} /></Field>
-          <Field label="Image URL" required>
-            <input className={inputCls} type="url" value={form.imageUrl} onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))} placeholder="https://…" />
-            {form.imageUrl && <img src={form.imageUrl} alt="" className="mt-2 h-24 w-full rounded-xl object-cover border border-slate-200 dark:border-slate-700" onError={e => { (e.target as HTMLImageElement).style.opacity = '0.2'; }} />}
+          <Field label="Image" required>
+            <ImageUploader
+              value={form.imageUrl}
+              onChange={url => setForm(f => ({ ...f, imageUrl: url }))}
+              disabled={saving}
+            />
           </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Button Text"><input className={inputCls} value={form.buttonText} onChange={e => setForm(f => ({ ...f, buttonText: e.target.value }))} /></Field>
@@ -272,7 +276,7 @@ const HeroSection: React.FC = () => {
             <label htmlFor="sl-active" className="text-sm text-slate-700 dark:text-slate-300">Active</label>
           </div>
           <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-slate-700">
-            <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-50 transition">{saving && <Spinner />}{modal?.mode === 'edit' ? 'Save Changes' : 'Create Slide'}</button>
+            <button type="submit" disabled={saving || !form.imageUrl} className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-50 transition">{saving && <Spinner />}{modal?.mode === 'edit' ? 'Save Changes' : 'Create Slide'}</button>
             <button type="button" onClick={() => setModal(null)} className="rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition">Cancel</button>
           </div>
         </form>
@@ -394,9 +398,12 @@ const BannersSection: React.FC = () => {
           {formError && <Alert type="error" message={formError} />}
           <Field label="Title" required><input className={inputCls} value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} /></Field>
           <Field label="Description"><textarea className={`${inputCls} resize-none`} rows={2} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} /></Field>
-          <Field label="Image URL" required>
-            <input className={inputCls} type="url" value={form.imageUrl} onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))} placeholder="https://…" />
-            {form.imageUrl && <img src={form.imageUrl} alt="" className="mt-2 h-20 w-full rounded-xl object-cover border border-slate-200 dark:border-slate-700" onError={e => { (e.target as HTMLImageElement).style.opacity = '0.2'; }} />}
+          <Field label="Image" required>
+            <ImageUploader
+              value={form.imageUrl}
+              onChange={url => setForm(f => ({ ...f, imageUrl: url }))}
+              disabled={saving}
+            />
           </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Button Text"><input className={inputCls} value={form.buttonText} onChange={e => setForm(f => ({ ...f, buttonText: e.target.value }))} /></Field>
@@ -409,7 +416,7 @@ const BannersSection: React.FC = () => {
             <label htmlFor="bn-active" className="text-sm text-slate-700 dark:text-slate-300">Active</label>
           </div>
           <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-slate-700">
-            <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-50 transition">{saving && <Spinner />}{modal?.mode === 'edit' ? 'Save Changes' : 'Create Banner'}</button>
+            <button type="submit" disabled={saving || !form.imageUrl} className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-50 transition">{saving && <Spinner />}{modal?.mode === 'edit' ? 'Save Changes' : 'Create Banner'}</button>
             <button type="button" onClick={() => setModal(null)} className="rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition">Cancel</button>
           </div>
         </form>
