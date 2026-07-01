@@ -1,6 +1,32 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { authService, saveTokens, clearTokens, getTokens, type NcoleUser } from '@/services/api';
 
+// Guest cart merge — reads localStorage cart and merges into backend after login
+const GUEST_CART_KEY = 'ecom_cart';
+
+async function mergeGuestCart() {
+  try {
+    const raw = localStorage.getItem(GUEST_CART_KEY);
+    if (!raw) return;
+    const items: Array<{ product_id: string; variant_id?: string; quantity: number; price: number; name: string; vendorId?: string }> = JSON.parse(raw);
+    if (!items.length) return;
+    // Import apiFetch lazily to avoid circular deps
+    const { apiFetch } = await import('@/services/api');
+    for (const item of items) {
+      try {
+        await apiFetch('/cart/items', {
+          method: 'POST',
+          body: JSON.stringify({
+            productId: item.product_id,
+            variantId: item.variant_id ?? null,
+            quantity:  item.quantity,
+          }),
+        });
+      } catch { /* skip items that fail — don't block login */ }
+    }
+  } catch { /* never block login on merge failure */ }
+}
+
 interface AuthContextValue {
   user: NcoleUser | null;
   loading: boolean;
@@ -55,11 +81,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const res = await authService.login(email, password);
       const data = res.data as any;
-      // VENDOR / RIDER get OTP challenge first
       if (data?.requiresOtp) {
         return { error: null, requiresOtp: true, userId: data.userId };
       }
       saveTokens(data.accessToken, data.refreshToken);
+      await mergeGuestCart();
       const me = await authService.me();
       setUser(me.data);
       return { error: null, role: me.data.role };
@@ -72,6 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const res = await authService.verifyOtp(userId, code);
       saveTokens(res.data.accessToken, res.data.refreshToken);
+      await mergeGuestCart();
       const me = await authService.me();
       setUser(me.data);
       return { error: null, role: me.data.role };
@@ -84,6 +111,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const res = await authService.register(name, email, password);
       saveTokens(res.data.accessToken, res.data.refreshToken);
+      await mergeGuestCart();
       const me = await authService.me();
       setUser(me.data);
       return { error: null, role: me.data.role };

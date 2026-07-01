@@ -108,10 +108,9 @@
     @apply font-mono;
   }
 
-  /* Minimum tap target */
-  button, a, [role="button"] {
+  /* Minimum tap target — only for interactive elements that aren't icon-only */
+  button:not(.fab-btn):not(.icon-btn), a[role="button"] {
     min-height: 44px;
-    min-width: 44px;
   }
 
   /* Prevent text overflow globally */
@@ -149,6 +148,19 @@
   90%           { box-shadow: 0 10px 35px -3px rgba(249,115,22,0.65); }
 }
 .animate-fab-pulse { animation: fabPulse 4s ease-in-out infinite; }
+
+/* Responsive table container — horizontal scroll only inside tables */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Responsive images */
+img {
+  max-width: 100%;
+  height: auto;
+}
 
 /* Prevent horizontal scroll on all containers */
 .overflow-x-hidden { overflow-x: hidden; }

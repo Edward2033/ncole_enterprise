@@ -29,7 +29,6 @@ const Checkout: React.FC = () => {
   const [addrForm, setAddrForm] = useState({ fullName: '', phone: '', street: '', district: '', city: '', province: 'Kigali', country: 'Rwanda' });
 
   useEffect(() => {
-    if (!isAuthenticated) { navigate('/login', { state: { from: '/checkout' } }); return; }
     addressesService.list()
       .then(res => {
         setAddresses(res.data);
@@ -110,13 +109,13 @@ const Checkout: React.FC = () => {
   const total = subtotal;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 lg:px-8">
+    <div className="mx-auto max-w-6xl px-4 py-6 lg:py-10 lg:px-8">
       <div className="mb-2 flex items-center gap-2 text-sm text-slate-500">
         <Lock className="h-4 w-4" /> Secure Checkout
       </div>
-      <h1 className="mb-8 text-3xl font-bold text-slate-900">Checkout</h1>
+      <h1 className="mb-6 text-2xl font-bold text-slate-900 lg:text-3xl lg:mb-8">Checkout</h1>
 
-      <div className="grid gap-8 lg:grid-cols-3">
+      <div className="grid gap-6 lg:gap-8 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           {/* Delivery Address */}
           <section className="rounded-2xl border border-slate-200 bg-white p-6">

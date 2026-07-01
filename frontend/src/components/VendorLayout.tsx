@@ -23,6 +23,12 @@ const VendorLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+
+  // Lock body scroll when mobile drawer is open
+  useEffect(() => {
+    document.body.style.overflow = open ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [open]);
   const [dark, setDark] = useState(() => {
     const stored = localStorage.getItem(THEME_KEY);
     return stored ? stored === 'dark' : document.documentElement.classList.contains('dark');

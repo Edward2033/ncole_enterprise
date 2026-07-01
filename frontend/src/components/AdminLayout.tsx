@@ -38,6 +38,12 @@ const AdminLayout: React.FC = () => {
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+  // Lock body scroll when mobile drawer is open
+  useEffect(() => {
+    document.body.style.overflow = drawerOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [drawerOpen]);
+
   const handleSignOut = () => {
     signOut();
     navigate('/login', { replace: true });
