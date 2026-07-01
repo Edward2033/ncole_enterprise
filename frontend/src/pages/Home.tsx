@@ -30,10 +30,10 @@ const TESTIMONIALS = [
 const VENDORS: never[] = [];
 
 const SectionHeader: React.FC<{ title: string; sub: string; link?: { to: string; label: string } }> = ({ title, sub, link }) => (
-  <div className="mb-10 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+  <div className="mb-8 flex flex-col gap-2 sm:mb-10 sm:flex-row sm:items-end sm:justify-between">
     <div>
-      <h2 className="text-3xl font-bold text-slate-900">{title}</h2>
-      <p className="mt-1 text-slate-500">{sub}</p>
+      <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">{title}</h2>
+      <p className="mt-1 text-sm text-slate-500 sm:text-base">{sub}</p>
     </div>
     {link && (
       <Link to={link.to} className="flex items-center gap-1 text-sm font-semibold text-orange-600 hover:gap-2 transition-all">
@@ -76,9 +76,9 @@ const Home: React.FC = () => {
             { icon: Zap, text: 'Same-day dispatch' },
             { icon: Sparkles, text: 'AI-powered shopping' },
           ].map(f => (
-            <div key={f.text} className="flex items-center gap-3 px-6 py-5">
-              <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-600">
-                <f.icon className="h-5 w-5" />
+            <div key={f.text} className="flex items-center gap-3 px-4 py-4 sm:px-6 sm:py-5">
+              <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-600 sm:h-10 sm:w-10">
+                <f.icon className="h-4 w-4 sm:h-5 sm:w-5" />
               </span>
               <span className="text-sm font-medium text-slate-700">{f.text}</span>
             </div>
@@ -87,7 +87,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* ── Categories Grid ── */}
-      <section className="mx-auto max-w-7xl px-4 py-16 lg:px-8">
+      <section className="mx-auto max-w-7xl px-4 py-10 sm:py-16 lg:px-8">
         <SectionHeader title="Shop by Category" sub="Browse our curated collection of product categories" link={{ to: '/shop', label: 'All categories' }} />
         {collections.length === 0 ? (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
@@ -112,7 +112,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* ── Featured Products ── */}
-      <section className="bg-slate-50 py-16">
+      <section className="bg-slate-50 py-10 sm:py-16">
         <div className="mx-auto max-w-7xl px-4 lg:px-8">
           <SectionHeader title="Featured Products" sub="Hand-picked by our curation team" link={{ to: '/shop', label: 'View all' }} />
           <ProductGrid products={featured} loading={loading} />
@@ -120,21 +120,21 @@ const Home: React.FC = () => {
       </section>
 
       {/* ── AI Assistant Banner ── */}
-      <section className="mx-auto max-w-7xl px-4 py-16 lg:px-8">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-600 via-violet-700 to-indigo-800 p-10 lg:p-14">
+      <section className="mx-auto max-w-7xl px-4 py-10 sm:py-16 lg:px-8">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600 via-violet-700 to-indigo-800 p-6 sm:rounded-3xl sm:p-10 lg:p-14">
           {/* decorative circles */}
           <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white/5" />
           <div className="absolute -bottom-10 left-1/2 h-48 w-48 rounded-full bg-orange-500/20" />
-          <div className="relative grid gap-8 lg:grid-cols-2 lg:items-center">
+          <div className="relative grid gap-6 sm:gap-8 lg:grid-cols-2 lg:items-center">
             <div>
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-white">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-white sm:px-4 sm:py-1.5">
                 <Sparkles className="h-3 w-3" /> Powered by Google Gemini
               </span>
-              <h2 className="mt-4 text-3xl font-bold text-white sm:text-4xl">Meet N-COLE AI</h2>
-              <p className="mt-3 max-w-lg text-violet-200">
+              <h2 className="mt-3 text-2xl font-bold text-white sm:mt-4 sm:text-3xl lg:text-4xl">Meet N-COLE AI</h2>
+              <p className="mt-2 text-sm text-violet-200 sm:mt-3 sm:text-base sm:max-w-lg">
                 Ask anything — find products, track orders, get invoice explanations, and personalised recommendations. Available 24/7 on every page.
               </p>
-              <div className="mt-6 flex flex-wrap gap-3 text-sm text-violet-200">
+              <div className="mt-4 flex flex-wrap gap-2 text-xs text-violet-200 sm:mt-6 sm:gap-3 sm:text-sm">
                 {['Product discovery', 'Order tracking', 'Invoice help', 'Smart recommendations'].map(tag => (
                   <span key={tag} className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> {tag}
@@ -163,17 +163,17 @@ const Home: React.FC = () => {
       </section>
 
       {/* ── Trending Products ── */}
-      <section className="mx-auto max-w-7xl px-4 pb-16 lg:px-8">
+      <section className="mx-auto max-w-7xl px-4 pb-10 sm:pb-16 lg:px-8">
         <SectionHeader title="Trending Now" sub="Most popular products this week" link={{ to: '/shop', label: 'See all trending' }} />
         <ProductGrid products={trending} loading={loadingTrend} />
       </section>
 
       {/* ── Vendor Spotlight ── */}
-      <section className="bg-gradient-to-b from-slate-900 to-slate-800 py-16">
+      <section className="bg-gradient-to-b from-slate-900 to-slate-800 py-10 sm:py-16">
         <div className="mx-auto max-w-7xl px-4 lg:px-8">
-          <div className="mb-10 flex items-end justify-between">
+          <div className="mb-8 flex items-end justify-between sm:mb-10">
             <div>
-              <h2 className="text-3xl font-bold text-white">Top Vendors</h2>
+              <h2 className="text-2xl font-bold text-white sm:text-3xl">Top Vendors</h2>
               <p className="mt-1 text-slate-400">Trusted by thousands of buyers every month</p>
             </div>
             <Link to="/shop" className="flex items-center gap-1 text-sm font-semibold text-orange-400 hover:gap-2 transition-all">
@@ -201,9 +201,9 @@ const Home: React.FC = () => {
       </section>
 
       {/* ── Why Choose Us ── */}
-      <section className="mx-auto max-w-7xl px-4 py-16 lg:px-8">
-        <div className="mb-12 text-center">
-          <h2 className="text-3xl font-bold text-slate-900">Why N_COLE Interpress?</h2>
+      <section className="mx-auto max-w-7xl px-4 py-10 sm:py-16 lg:px-8">
+        <div className="mb-8 text-center sm:mb-12">
+          <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">Why N_COLE Interpress?</h2>
           <p className="mt-2 text-slate-500">Built for Rwanda, designed for Africa</p>
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -222,8 +222,8 @@ const Home: React.FC = () => {
       </section>
 
       {/* ── Stats banner ── */}
-      <section className="bg-orange-500 py-12">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 text-center sm:grid-cols-4 lg:px-8">
+      <section className="bg-orange-500 py-10 sm:py-12">
+        <div className="mx-auto grid max-w-7xl gap-6 px-4 text-center grid-cols-2 sm:grid-cols-4 sm:gap-8 lg:px-8">
           {[
             { label: 'Active Vendors', value: fmt(stats.vendors) },
             { label: 'Products Listed', value: fmt(stats.products) },
@@ -231,17 +231,17 @@ const Home: React.FC = () => {
             { label: 'Orders Completed', value: fmt(stats.orders) },
           ].map(s => (
             <div key={s.label}>
-              <p className="text-3xl font-bold text-white">{s.value}</p>
-              <p className="mt-1 text-sm font-medium text-orange-100">{s.label}</p>
+              <p className="text-2xl font-bold text-white sm:text-3xl">{s.value}</p>
+              <p className="mt-1 text-xs font-medium text-orange-100 sm:text-sm">{s.label}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* ── Testimonials ── */}
-      <section className="mx-auto max-w-7xl px-4 py-16 lg:px-8">
-        <div className="mb-12 text-center">
-          <h2 className="text-3xl font-bold text-slate-900">What Our Community Says</h2>
+      <section className="mx-auto max-w-7xl px-4 py-10 sm:py-16 lg:px-8">
+        <div className="mb-8 text-center sm:mb-12">
+          <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">What Our Community Says</h2>
           <p className="mt-2 text-slate-500">Real stories from real people</p>
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -266,10 +266,10 @@ const Home: React.FC = () => {
       </section>
 
       {/* ── Newsletter ── */}
-      <section className="bg-slate-900 py-16">
+      <section className="bg-slate-900 py-10 sm:py-16">
         <div className="mx-auto max-w-2xl px-4 text-center lg:px-8">
-          <TrendingUp className="mx-auto h-10 w-10 text-orange-400" />
-          <h2 className="mt-4 text-3xl font-bold text-white">Stay Ahead of the Market</h2>
+          <TrendingUp className="mx-auto h-8 w-8 text-orange-400 sm:h-10 sm:w-10" />
+          <h2 className="mt-4 text-2xl font-bold text-white sm:text-3xl">Stay Ahead of the Market</h2>
           <p className="mt-3 text-slate-400">Get exclusive deals, new vendor alerts, and weekly picks delivered to your inbox.</p>
           {subscribed ? (
             <div className="mt-8 rounded-2xl bg-emerald-500/20 py-5 text-emerald-400 font-semibold">

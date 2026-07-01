@@ -70,9 +70,17 @@ const AdminApplicationsPage: React.FC = () => {
         confirm.action === 'approve' ? 'APPROVE' : 'REJECT',
       );
       setConfirm(null);
+      setActionError(null);
       await load();
     } catch (e) {
-      setActionError((e as Error).message);
+      const msg = (e as Error).message;
+      setActionError(
+        msg.includes('already been reviewed')
+          ? 'This application was already reviewed. Refreshing list…'
+          : msg,
+      );
+      // Still reload so the UI reflects the actual DB state
+      await load();
     } finally {
       setActing(false);
     }

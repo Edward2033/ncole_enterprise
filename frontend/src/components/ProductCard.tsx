@@ -33,7 +33,7 @@ const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
       )}
       <Link
         to={`/products/${product.handle}`}
-        className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/60"
+        className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/60 active:scale-[0.98]"
       >
         <div className="relative aspect-square overflow-hidden bg-slate-50">
           {image ? (
@@ -48,7 +48,9 @@ const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
           </div>
           {!product.has_variants && (
             <button onClick={handleQuickAdd} aria-label="Add to cart"
-              className="absolute bottom-3 right-3 flex h-10 w-10 translate-y-2 items-center justify-center rounded-full bg-slate-900 text-white opacity-0 shadow-lg transition-all duration-300 hover:bg-orange-500 group-hover:translate-y-0 group-hover:opacity-100">
+              className="absolute bottom-3 right-3 flex h-11 w-11 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg transition-all duration-200 hover:bg-orange-500 active:scale-95
+                         opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0
+                         sm:opacity-0 sm:translate-y-2">
               <ShoppingCart className="h-4 w-4" />
             </button>
           )}

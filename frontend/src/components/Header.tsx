@@ -178,9 +178,9 @@ const Header: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile menu */}
-      {mobileOpen && (
-        <div className="border-t border-slate-100 bg-white px-4 py-4 lg:hidden">
+      {/* Mobile menu — smooth slide-in, no layout shift */}
+      <div className={`overflow-hidden transition-all duration-300 ease-in-out lg:hidden ${mobileOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0 pointer-events-none'}`}>
+        <div className="border-t border-slate-100 bg-white px-4 py-4">
           <form onSubmit={handleSearch} className="mb-4">
             <div className="relative">
               <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -231,7 +231,7 @@ const Header: React.FC = () => {
             )}
           </nav>
         </div>
-      )}
+      </div>
     </header>
   );
 };

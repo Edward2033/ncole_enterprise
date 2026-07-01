@@ -22,8 +22,8 @@ import VendorRoute from '@/routes/VendorRoute';
 import RiderRoute from '@/routes/RiderRoute';
 
 // ── AI (eager — floats on all public pages) ───────────────────────────────────
-import { PublicAiChat } from '@/features/ai/PublicAiChat';
-import WhatsAppButton from '@/components/WhatsAppButton';
+// Removed: PublicAiChat and WhatsAppButton are now handled by FloatingActionButtons
+// inside each layout component to prevent duplicate floating buttons.
 
 // ── Lazy page chunks ──────────────────────────────────────────────────────────
 // Auth
@@ -197,9 +197,7 @@ const App = () => (
                 </Routes>
               </Suspense>
 
-              {/* Floating AI — public/customer pages only */}
-              <PublicAiChat />
-              <WhatsAppButton />
+              {/* Floating buttons are now handled per-layout via FloatingActionButtons */}
 
             </BrowserRouter>
           </TooltipProvider>

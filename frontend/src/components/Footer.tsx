@@ -31,7 +31,7 @@ const Footer: React.FC = () => {
   const whatsapp    = site?.whatsappNumber ? site.whatsappNumber.replace(/\D/g, '') : null;
 
   return (
-    <footer className="mt-20 bg-slate-900 text-slate-300">
+    <footer className="mt-10 bg-slate-900 text-slate-300 sm:mt-20" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       {/* Newsletter */}
       <div className="border-b border-slate-800">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-2 lg:px-8">
@@ -42,11 +42,11 @@ const Footer: React.FC = () => {
           {done ? (
             <div className="flex items-center gap-2 text-emerald-400 font-semibold">✓ You're subscribed!</div>
           ) : (
-            <form onSubmit={handleSubscribe} className="flex gap-3">
+            <form onSubmit={handleSubscribe} className="flex flex-col gap-3 sm:flex-row">
               <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 className="flex-1 rounded-full bg-slate-800 px-5 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500" />
-              <button type="submit" className="flex items-center gap-2 rounded-full bg-orange-500 px-5 py-3 text-sm font-semibold text-white hover:bg-orange-600 transition whitespace-nowrap">
+              <button type="submit" className="flex items-center justify-center gap-2 rounded-full bg-orange-500 px-5 py-3 text-sm font-semibold text-white hover:bg-orange-600 transition whitespace-nowrap">
                 <Send className="h-4 w-4" /> Subscribe
               </button>
             </form>

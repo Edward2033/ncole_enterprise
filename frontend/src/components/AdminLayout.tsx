@@ -6,6 +6,7 @@ import {
   FolderOpen, BarChart2, Settings, CreditCard, Bell, Bike,
   LogOut, Menu, X, Shield, ClipboardList, Bot, FileText, Globe,
 } from 'lucide-react';
+import FloatingActionButtons from '@/components/FloatingActionButtons';
 
 const NAV = [
   { to: '/admin/dashboard',    icon: LayoutDashboard, label: 'Dashboard',     end: true },
@@ -151,6 +152,13 @@ const AdminLayout: React.FC = () => {
           <Outlet />
         </main>
       </div>
+
+      <FloatingActionButtons
+        portal="ADMIN"
+        accentClass="bg-orange-500"
+        greeting="Hi! I'm N-COLE Admin AI. How can I help with platform analytics today?"
+        showWhatsApp={false}
+      />
     </div>
   );
 };

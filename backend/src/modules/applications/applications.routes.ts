@@ -8,10 +8,10 @@ const router = Router();
 // Public — anyone can submit an application
 router.post('/', handleSubmit);
 
-// Admin-only routes
-router.get('/',           authenticate, authorize('ADMIN'), handleList);
-router.get('/:id',        authenticate, authorize('ADMIN'), handleGetOne);
-router.patch('/:id',      authenticate, authorize('ADMIN'), handleReview);
+// Admin-only routes — static paths MUST come before /:id wildcard
 router.post('/admin/apply', authenticate, authorize('ADMIN'), handleAdminApply);
+router.get('/',             authenticate, authorize('ADMIN'), handleList);
+router.get('/:id',          authenticate, authorize('ADMIN'), handleGetOne);
+router.patch('/:id',        authenticate, authorize('ADMIN'), handleReview);
 
 export default router;

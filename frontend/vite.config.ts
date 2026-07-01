@@ -5,7 +5,7 @@ import path from 'path';
 export default defineConfig({
   root: path.resolve(__dirname),
   server: {
-    host: 'localhost',
+    host: '0.0.0.0',
     port: 5173,
     open: true,
   },

@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
-import { AiChat } from '@/features/ai/AiChat';
+import FloatingActionButtons from '@/components/FloatingActionButtons';
 
 const NAV = [
   { to: '/vendor/dashboard',      icon: LayoutDashboard, label: 'Dashboard'     },
@@ -134,10 +134,11 @@ const VendorLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         </header>
         <main className="flex-1 overflow-y-auto p-4 lg:p-6 animate-in fade-in duration-300">{children}</main>
       </div>
-      <AiChat
+      <FloatingActionButtons
         portal="VENDOR"
         accentClass="bg-violet-600"
         greeting="Hi! I'm N-COLE. How can I help with your vendor store today?"
+        showWhatsApp={false}
       />
     </div>
   );

@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
-import { AiChat } from '@/features/ai/AiChat';
+import FloatingActionButtons from '@/components/FloatingActionButtons';
 
 const NAV = [
   { to: '/customer/dashboard',      icon: LayoutDashboard, label: 'Dashboard'      },
@@ -223,11 +223,11 @@ const CustomerShell: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         </main>
       </div>
 
-      {/* AI Chat */}
-      <AiChat
+      <FloatingActionButtons
         portal="CUSTOMER"
         accentClass="bg-orange-500"
         greeting="Hi! I'm your N-COLE assistant. I can help with orders, invoices, and products!"
+        showWhatsApp={false}
       />
     </div>
   );

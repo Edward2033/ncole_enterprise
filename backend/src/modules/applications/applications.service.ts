@@ -133,47 +133,58 @@ export async function reviewApplication(
 
   // ── APPROVE ──────────────────────────────────────────────────────────────
   const existingUser = await prisma.user.findUnique({ where: { email: app.email } });
-  if (existingUser) throw AppError.conflict('A user account with this email already exists');
+  let userId: string;
+  let tempPassword = '';
 
-  const tempPassword = crypto.randomBytes(8).toString('hex');
-  const passwordHash = await hashPassword(tempPassword);
-
-  const newUser = await prisma.user.create({
-    data: {
-      email:        app.email,
-      name:         app.fullName,
-      phone:        app.phone,
-      passwordHash,
-      role:         app.role as 'VENDOR' | 'RIDER',
-      isActive:     true,
-    },
-  });
-
-  // Always provision a Customer profile so the user can shop after approval
-  await prisma.customer.create({ data: { userId: newUser.id } });
+  if (existingUser) {
+    // Account already exists — reuse it (handles re-approval / duplicate submissions)
+    userId = existingUser.id;
+  } else {
+    tempPassword = crypto.randomBytes(8).toString('hex');
+    const passwordHash = await hashPassword(tempPassword);
+    const created = await prisma.user.create({
+      data: {
+        email:        app.email,
+        name:         app.fullName,
+        phone:        app.phone,
+        passwordHash,
+        role:         app.role as 'VENDOR' | 'RIDER',
+        isActive:     true,
+      },
+    });
+    userId = created.id;
+    // Provision Customer profile so the user can also shop
+    await prisma.customer.create({ data: { userId } });
+  }
 
   if (app.role === 'VENDOR') {
-    await prisma.vendor.create({
-      data: {
-        userId:      newUser.id,
-        businessName: app.businessName!,
-        description: app.description ?? null,
-        logoUrl:     app.photoUrl ?? null,
-        momoNumber:  app.momoNumber ?? null,
-        isVerified:  true,
-        isActive:    true,
-      },
-    });
+    const vendorExists = await prisma.vendor.findUnique({ where: { userId } });
+    if (!vendorExists) {
+      await prisma.vendor.create({
+        data: {
+          userId,
+          businessName: app.businessName!,
+          description: app.description ?? null,
+          logoUrl:     app.photoUrl ?? null,
+          momoNumber:  app.momoNumber ?? null,
+          isVerified:  true,
+          isActive:    true,
+        },
+      });
+    }
   } else {
-    await prisma.rider.create({
-      data: {
-        userId:      newUser.id,
-        vehicleType: app.vehicleType ?? null,
-        plateNumber: app.plateNumber ?? null,
-        isVerified:  true,
-        status:      'OFFLINE',
-      },
-    });
+    const riderExists = await prisma.rider.findUnique({ where: { userId } });
+    if (!riderExists) {
+      await prisma.rider.create({
+        data: {
+          userId,
+          vehicleType: app.vehicleType ?? null,
+          plateNumber: app.plateNumber ?? null,
+          isVerified:  true,
+          status:      'OFFLINE',
+        },
+      });
+    }
   }
 
   const updated = await prisma.application.update({
@@ -183,7 +194,7 @@ export async function reviewApplication(
       reviewedBy: adminId,
       reviewNote: dto.reviewNote ?? null,
       reviewedAt: new Date(),
-      userId:     newUser.id,
+      userId,
     },
   });
 
@@ -192,27 +203,29 @@ export async function reviewApplication(
     action: 'APPLICATION_APPROVED',
     entity: 'Application',
     entityId: id,
-    metadata: { newUserId: newUser.id },
+    metadata: { newUserId: userId },
   });
 
-  // Generate 72-hour password-set token
-  const resetToken = crypto.randomBytes(32).toString('hex');
-  await prisma.passwordResetToken.create({
-    data: { token: resetToken, userId: newUser.id, expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000) },
-  });
+  // Generate 72-hour password-set token (only for newly created accounts)
+  if (tempPassword) {
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    await prisma.passwordResetToken.create({
+      data: { token: resetToken, userId, expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000) },
+    });
 
-  await sendMail({
-    to:      app.email,
-    subject: `Welcome to N_COLE Interpress — Your ${app.role === 'VENDOR' ? 'Vendor' : 'Rider'} account is ready`,
-    html:    approvalEmailHtml({
-      name:           app.fullName,
-      role:           app.role as 'VENDOR' | 'RIDER',
-      email:          app.email,
-      tempPassword,
-      setPasswordUrl: `${env.APP_URL}/reset-password?token=${resetToken}`,
-      loginUrl:       `${env.APP_URL}/login`,
-    }),
-  });
+    await sendMail({
+      to:      app.email,
+      subject: `Welcome to N_COLE Interpress — Your ${app.role === 'VENDOR' ? 'Vendor' : 'Rider'} account is ready`,
+      html:    approvalEmailHtml({
+        name:           app.fullName,
+        role:           app.role as 'VENDOR' | 'RIDER',
+        email:          app.email,
+        tempPassword,
+        setPasswordUrl: `${env.APP_URL}/reset-password?token=${resetToken}`,
+        loginUrl:       `${env.APP_URL}/login`,
+      }),
+    });
+  }
 
   return updated;
 }

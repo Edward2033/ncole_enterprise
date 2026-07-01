@@ -99,7 +99,7 @@ const Hero: React.FC = () => {
   if (!slide) return null;
 
   return (
-    <section className="relative h-[92vh] min-h-[560px] max-h-[780px] overflow-hidden bg-slate-900">
+    <section className="relative h-[70vh] min-h-[480px] max-h-[780px] overflow-hidden bg-slate-900 sm:h-[80vh] lg:h-[92vh]">
       {/* Background image */}
       <div
         key={slide.id}
@@ -111,31 +111,31 @@ const Hero: React.FC = () => {
 
       {/* Content */}
       <div className={`relative flex h-full flex-col justify-center transition-all duration-500 ${animating ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}>
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
-            <h1 className="mt-2 text-4xl font-bold leading-tight text-white sm:text-5xl lg:text-6xl">
+            <h1 className="mt-2 text-2xl font-bold leading-tight text-white sm:text-4xl lg:text-6xl line-clamp-3">
               {slide.title}
             </h1>
             {slide.subtitle && (
-              <p className="mt-5 max-w-xl text-lg leading-relaxed text-slate-300">{slide.subtitle}</p>
+              <p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-300 sm:mt-5 sm:text-lg line-clamp-3">{slide.subtitle}</p>
             )}
-            <div className="mt-8 flex flex-wrap gap-4">
+            <div className="mt-5 flex flex-wrap gap-3 sm:mt-8 sm:gap-4">
               {slide.buttonText && slide.buttonLink && (
                 <Link
                   to={slide.buttonLink}
-                  className="inline-flex items-center gap-2 rounded-full bg-orange-500 px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-orange-500/30 transition hover:bg-orange-600 active:scale-95"
+                  className="inline-flex items-center gap-2 rounded-full bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-orange-500/30 transition hover:bg-orange-600 active:scale-95 sm:px-7 sm:py-3.5"
                 >
                   {slide.buttonText} <ArrowRight className="h-4 w-4" />
                 </Link>
               )}
               <Link
                 to="/shop"
-                className="inline-flex items-center gap-2 rounded-full border border-white/25 px-7 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/10 active:scale-95"
+                className="inline-flex items-center gap-2 rounded-full border border-white/25 px-5 py-3 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/10 active:scale-95 sm:px-7 sm:py-3.5"
               >
                 Browse Products
               </Link>
             </div>
-            <div className="mt-10 flex flex-wrap gap-x-8 gap-y-3 text-sm text-slate-300">
+            <div className="mt-6 hidden flex-wrap gap-x-6 gap-y-2 text-sm text-slate-300 sm:flex sm:mt-10 sm:gap-x-8">
               {['Free delivery on all orders', 'MTN MoMo & Airtel Money', 'Verified vendors only'].map(t => (
                 <span key={t} className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-emerald-400" /> {t}
