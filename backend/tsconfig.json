@@ -5,10 +5,12 @@
     "moduleResolution": "node",
 
     "lib": ["ES2020"],
-    "outDir": "./dist",
+
     "rootDir": "./src",
+    "outDir": "./dist",
 
     "strict": true,
+
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -26,7 +28,9 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+
+    "ignoreDeprecations": "6.0"
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "prisma"]
