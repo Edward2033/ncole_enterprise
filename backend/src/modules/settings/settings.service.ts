@@ -187,6 +187,50 @@ export async function deleteBanner(id: string): Promise<void> {
   await set('banners', filtered);
 }
 
+// ─── Site Settings ───────────────────────────────────────────────────────────
+
+export const siteSettingsSchema = z.object({
+  siteName:       z.string().min(1).max(100),
+  supportEmail:   z.string().email(),
+  contactEmail:   z.string().email(),
+  whatsappNumber: z.string().max(20),
+  phoneNumber:    z.string().max(20),
+  githubUrl:      z.string().url().optional().or(z.literal('')),
+  linkedinUrl:    z.string().url().optional().or(z.literal('')),
+  facebookUrl:    z.string().url().optional().or(z.literal('')),
+  twitterUrl:     z.string().url().optional().or(z.literal('')),
+  footerText:     z.string().max(300).optional().or(z.literal('')),
+  address:        z.string().max(200).optional().or(z.literal('')),
+});
+
+export const siteSettingsPatchSchema = siteSettingsSchema.partial();
+export type SiteSettings = z.infer<typeof siteSettingsSchema>;
+
+const SITE_SETTINGS_DEFAULTS: SiteSettings = {
+  siteName:       'N_COLE Interpress',
+  supportEmail:   'support@ncoleinterpress.com',
+  contactEmail:   'hello@ncoleinterpress.com',
+  whatsappNumber: '+250794890144',
+  phoneNumber:    '+250794890144',
+  githubUrl:      'https://github.com/Edward2033',
+  linkedinUrl:    '',
+  facebookUrl:    'https://facebook.com/edwardycole',
+  twitterUrl:     '',
+  footerText:     "Rwanda's premier multi-vendor e-commerce marketplace. Powered by AI. Built for Africa.",
+  address:        'KG 8 Ave, Kigali, Rwanda',
+};
+
+export async function getSiteSettings(): Promise<SiteSettings> {
+  return get('site_settings', SITE_SETTINGS_DEFAULTS);
+}
+
+export async function updateSiteSettings(dto: Partial<SiteSettings>): Promise<SiteSettings> {
+  const current = await getSiteSettings();
+  const updated = { ...current, ...dto };
+  await set('site_settings', updated);
+  return updated;
+}
+
 // ─── Maintenance Mode ─────────────────────────────────────────────────────────
 
 export const maintenanceSchema = z.object({

@@ -383,3 +383,25 @@ export const adminSettingsApi = {
   updateMaintenance: (body: Partial<MaintenanceConfig>) =>
     apiFetch<ApiResp<MaintenanceConfig>>('/settings/maintenance', { method: 'PATCH', body: JSON.stringify(body) }),
 };
+
+// ─── Site Settings ────────────────────────────────────────────────────────────
+
+export interface SiteSettings {
+  siteName: string;
+  supportEmail: string;
+  contactEmail: string;
+  whatsappNumber: string;
+  phoneNumber: string;
+  githubUrl?: string;
+  linkedinUrl?: string;
+  facebookUrl?: string;
+  twitterUrl?: string;
+  footerText?: string;
+  address?: string;
+}
+
+export const adminSiteSettingsApi = {
+  get: () => apiFetch<ApiResp<SiteSettings>>('/settings/site-settings'),
+  update: (body: Partial<SiteSettings>) =>
+    apiFetch<ApiResp<SiteSettings>>('/settings/site-settings', { method: 'PUT', body: JSON.stringify(body) }),
+};

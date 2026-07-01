@@ -31,7 +31,12 @@ function getTransport() {
 }
 
 export async function sendMail(opts: MailOptions): Promise<void> {
-  const from = env.SMTP_FROM ?? 'N_COLE Interpress <noreply@ncoleinterpress.com>';
+  let from = env.SMTP_FROM ?? 'N_COLE Interpress <noreply@ncoleinterpress.com>';
+  try {
+    const { getSiteSettings } = await import('@/modules/settings/settings.service');
+    const site = await getSiteSettings();
+    if (site.supportEmail) from = `N_COLE Interpress <${site.supportEmail}>`;
+  } catch { /* use default */ }
   try {
     const transport = getTransport();
     if (!transport) {

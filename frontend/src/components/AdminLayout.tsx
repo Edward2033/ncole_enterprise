@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import {
   LayoutDashboard, Users, Store, Package, ShoppingBag,
   FolderOpen, BarChart2, Settings, CreditCard, Bell, Bike,
-  LogOut, Menu, X, Shield, ClipboardList, Bot, FileText,
+  LogOut, Menu, X, Shield, ClipboardList, Bot, FileText, Globe,
 } from 'lucide-react';
 
 const NAV = [
@@ -21,6 +21,7 @@ const NAV = [
   { to: '/admin/analytics',     icon: BarChart2,       label: 'Analytics' },
   { to: '/admin/activity-log',  icon: ClipboardList,   label: 'Activity Log' },
   { to: '/admin/ai-settings',   icon: Bot,             label: 'AI Settings' },
+  { to: '/admin/site-settings', icon: Globe,           label: 'Site Settings' },
   { to: '/admin/settings',      icon: Settings,        label: 'Settings' },
 ];
 

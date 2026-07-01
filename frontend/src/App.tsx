@@ -23,6 +23,7 @@ import RiderRoute from '@/routes/RiderRoute';
 
 // ── AI (eager — floats on all public pages) ───────────────────────────────────
 import { PublicAiChat } from '@/features/ai/PublicAiChat';
+import WhatsAppButton from '@/components/WhatsAppButton';
 
 // ── Lazy page chunks ──────────────────────────────────────────────────────────
 // Auth
@@ -83,6 +84,7 @@ const AdminSettingsPage      = lazy(() => import('@/pages/admin/AdminSettingsPag
 const AdminActivityLogPage   = lazy(() => import('@/pages/admin/AdminActivityLogPage'));
 const AdminAiSettingsPage    = lazy(() => import('@/pages/admin/AdminAiSettingsPage'));
 const AdminApplicationsPage  = lazy(() => import('@/pages/admin/AdminApplicationsPage'));
+const AdminSiteSettingsPage  = lazy(() => import('@/pages/admin/AdminSiteSettingsPage'));
 
 // ── Page loading fallback ─────────────────────────────────────────────────────
 const PageLoader = () => (
@@ -146,6 +148,7 @@ const App = () => (
                     <Route path="activity-log"   element={<AdminActivityLogPage />} />
                     <Route path="ai-settings"    element={<AdminAiSettingsPage />} />
                     <Route path="applications"   element={<AdminApplicationsPage />} />
+                    <Route path="site-settings"  element={<AdminSiteSettingsPage />} />
                     <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
                   </Route>
 
@@ -196,6 +199,7 @@ const App = () => (
 
               {/* Floating AI — public/customer pages only */}
               <PublicAiChat />
+              <WhatsAppButton />
 
             </BrowserRouter>
           </TooltipProvider>

@@ -5,6 +5,7 @@ import {
   listHeroSlides, createHeroSlide, updateHeroSlide, deleteHeroSlide, reorderHeroSlides,
   listBanners, createBanner, updateBanner, deleteBanner,
   getMaintenanceConfig, updateMaintenanceConfig,
+  getSiteSettings, updateSiteSettings,
 } from './settings.service';
 
 // ─── Platform ─────────────────────────────────────────────────────────────────
@@ -55,6 +56,16 @@ export async function patchBanner(req: Request, res: Response, next: NextFunctio
 
 export async function deleteBanner_(req: Request, res: Response, next: NextFunction): Promise<void> {
   try { await deleteBanner(req.params['id']!); sendSuccess(res, null); } catch (e) { next(e); }
+}
+
+// ─── Site Settings ─────────────────────────────────────────────────────────
+
+export async function getSiteSettingsHandler(_req: Request, res: Response, next: NextFunction): Promise<void> {
+  try { sendSuccess(res, await getSiteSettings()); } catch (e) { next(e); }
+}
+
+export async function putSiteSettingsHandler(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try { sendSuccess(res, await updateSiteSettings(req.body)); } catch (e) { next(e); }
 }
 
 // ─── Maintenance ──────────────────────────────────────────────────────────────

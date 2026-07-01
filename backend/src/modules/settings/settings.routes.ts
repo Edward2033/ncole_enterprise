@@ -5,12 +5,14 @@ import { validate } from '@/middleware/validate';
 import {
   platformPatchSchema, heroSlideSchema, heroSlidePatchSchema,
   bannerSchema, bannerPatchSchema, maintenancePatchSchema,
+  siteSettingsPatchSchema,
 } from './settings.service';
 import {
   getPlatform, patchPlatform,
   getSlides, postSlide, patchSlide, deleteSlide, reorderSlides,
   getBanners, postBanner, patchBanner, deleteBanner_,
   getMaintenance, patchMaintenance,
+  getSiteSettingsHandler, putSiteSettingsHandler,
 } from './settings.controller';
 
 const router = Router();
@@ -30,6 +32,14 @@ router.get('/hero-slides/public', async (_req: Request, res: Response, next: Nex
     const { listHeroSlides } = await import('./settings.service');
     const slides = await listHeroSlides();
     res.json({ success: true, data: slides.filter(s => s.isActive) });
+  } catch (e) { next(e); }
+});
+
+// ─── Public site settings (footer/contact/social — no auth) ──────────────────
+router.get('/site', async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { getSiteSettings } = await import('./settings.service');
+    res.json({ success: true, data: await getSiteSettings() });
   } catch (e) { next(e); }
 });
 
@@ -56,5 +66,9 @@ router.delete('/banners/:id', authorize('ADMIN'), deleteBanner_);
 // ─── Maintenance ──────────────────────────────────────────────────────────────
 router.get(  '/maintenance', authorize('ADMIN'), getMaintenance);
 router.patch('/maintenance', authorize('ADMIN'), validate(maintenancePatchSchema), patchMaintenance);
+
+// ─── Site Settings ────────────────────────────────────────────────────────────
+router.get('/site-settings', authorize('ADMIN'), getSiteSettingsHandler);
+router.put('/site-settings', authorize('ADMIN'), validate(siteSettingsPatchSchema), putSiteSettingsHandler);
 
 export default router;
