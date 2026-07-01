@@ -57,24 +57,11 @@ const inputCls =
   'w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white px-3 py-2 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition';
 
 // ─── Image upload helper ──────────────────────────────────────────────────────
-// ─── Image upload helper ────────────────────────────────────────────────────────────────────────────
-// ─── Image upload helper ────────────────────────────────────────────────────────────────────────────
-/**
- * Upload a File via POST /products/upload-image.
- * Uses getTokens() + doRefresh() from api.ts so the token is always
- * current. On a 401 it refreshes once then retries — same behaviour
- * as every other apiFetch call in the app.
- * NOTE: Do NOT set Content-Type — the browser sets multipart/form-data
- *       with the correct boundary automatically when body is FormData.
- */
+import { getTokens, doRefresh } from '@/services/api';
+import { API_BASE } from '@/config/api';
+
 async function uploadToCloudinary(file: File): Promise<string> {
-  const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:4000/api/v1';
 
-  // Import token helpers — the same functions used by every apiFetch call.
-  const { getTokens, doRefresh } = await import('@/services/api');
-
-  // Fail fast: if there is no token at all, do not send an unauthenticated
-  // request. Attempt a refresh first; if that also fails, surface a clear error.
   let token = getTokens().accessToken;
   if (!token) {
     token = await doRefresh();
@@ -86,7 +73,7 @@ async function uploadToCloudinary(file: File): Promise<string> {
     fd.append('image', file);
     // Do NOT set Content-Type — the browser must set multipart/form-data
     // with the correct boundary automatically when the body is FormData.
-    return fetch(BASE + '/products/upload-image', {
+    return fetch(API_BASE + '/products/upload-image', {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + t },
       body: fd,

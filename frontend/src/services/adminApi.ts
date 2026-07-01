@@ -1,4 +1,5 @@
 import { apiFetch } from './api';
+import { API_BASE } from '@/config/api';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -290,8 +291,7 @@ export const adminApplicationsApi = {
   uploadPhoto: async (file: File): Promise<string> => {
     const fd = new FormData();
     fd.append('image', file);
-    const BASE = (import.meta as any)?.env?.VITE_API_URL ?? 'http://localhost:4000/api/v1';
-    const res  = await fetch(`${BASE}/products/upload-application-photo`, { method: 'POST', body: fd });
+    const res = await fetch(`${API_BASE}/products/upload-application-photo`, { method: 'POST', body: fd });
     if (!res.ok) throw new Error('Photo upload failed');
     const json = await res.json();
     return json.data.url as string;

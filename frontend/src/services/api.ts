@@ -1,5 +1,5 @@
 // Single fetch-based API client for the N_COLE Express backend
-const BASE = (import.meta as any)?.env?.VITE_API_URL ?? 'http://localhost:4000/api/v1';
+import { API_BASE as BASE } from '@/config/api';
 const TOKENS_KEY = 'ncole_tokens';
 
 export function getTokens(): { accessToken: string | null; refreshToken: string | null } {
@@ -209,8 +209,7 @@ export const applicationsService = {
   uploadPhoto: async (file: File): Promise<string> => {
     const fd = new FormData();
     fd.append('image', file);
-    const BASE = (import.meta as any)?.env?.VITE_API_URL ?? 'http://localhost:4000/api/v1';
-    const res  = await fetch(`${BASE}/products/upload-application-photo`, { method: 'POST', body: fd });
+    const res = await fetch(`${BASE}/products/upload-application-photo`, { method: 'POST', body: fd });
     if (!res.ok) throw new Error('Photo upload failed');
     const json = await res.json();
     return json.data.url as string;

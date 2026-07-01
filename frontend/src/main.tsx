@@ -2,6 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
+import { API_BASE } from './config/api';
 
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -18,7 +19,7 @@ class ErrorBoundary extends React.Component<
           <p style={{ color: '#64748b', fontSize: '0.9rem', maxWidth: '400px', marginBottom: '1.5rem' }}>
             The app encountered an unexpected error. Make sure the backend is running on{' '}
             <code style={{ background: '#f1f5f9', padding: '0 4px', borderRadius: '4px' }}>
-              {import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api/v1'}
+              {API_BASE}
             </code>
           </p>
           <button
