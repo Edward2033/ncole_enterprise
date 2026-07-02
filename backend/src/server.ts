@@ -9,6 +9,7 @@ import app from './app';
 import { env } from './config/env';
 import { logger } from './config/logger';
 import { prisma } from './config/database';
+import { verifyTransport } from './shared/utils/email';
 
 if (process.env.NODE_ENV !== 'test') {
   console.log('DATABASE_URL loaded:', Boolean(process.env.DATABASE_URL));
@@ -73,6 +74,7 @@ const server = app.listen(env.PORT, async () => {
     await connectWithRetry(5, 500);
 
     logger.info('✅ Database connected');
+    verifyTransport();
     logger.info(
       `🚀 N_COLE Interpress API running on port ${env.PORT} [${env.NODE_ENV}]`
     );

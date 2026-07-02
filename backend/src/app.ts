@@ -32,6 +32,11 @@ import { getMaintenanceConfig } from '@/modules/settings/settings.service';
 
 const app = express();
 
+// Trust exactly one proxy hop (Render load balancer).
+// Required so express-rate-limit reads the real client IP from X-Forwarded-For.
+// Must NOT be `true` — that would allow IP spoofing and triggers ERR_ERL_PERMISSIVE_TRUST_PROXY.
+app.set('trust proxy', 1);
+
 // ─── Security ─────────────────────────────────────────────────────────────────
 app.use(helmet());
 

@@ -19,14 +19,17 @@ let _transport: nodemailer.Transporter<SMTPTransport.SentMessageInfo> | null = n
 function getTransport(): nodemailer.Transporter<SMTPTransport.SentMessageInfo> | null {
   if (!env.SMTP_HOST) return null;
   if (!_transport) {
+    const port = env.SMTP_PORT ?? 587;
     const opts: SMTPTransport.Options & { family?: number } = {
       host: env.SMTP_HOST,
-      port: env.SMTP_PORT ?? 587,
-      secure: (env.SMTP_PORT ?? 587) === 465,
-      family: 4,
+      port,
+      secure: port === 465,          // true = implicit TLS (465); false = STARTTLS (587)
+      requireTLS: port !== 465,      // on port 587 enforce STARTTLS — fail fast if server won't upgrade
+      family: 4,                     // force IPv4 — Render free tier cannot route IPv6
       connectionTimeout: 10_000,
       greetingTimeout: 10_000,
       socketTimeout: 15_000,
+      dnsTimeout: 5_000,
       auth: env.SMTP_USER && env.SMTP_PASS
         ? { user: env.SMTP_USER, pass: env.SMTP_PASS }
         : undefined,
@@ -36,13 +39,34 @@ function getTransport(): nodemailer.Transporter<SMTPTransport.SentMessageInfo> |
   return _transport;
 }
 
+/**
+ * Call once at server startup to confirm SMTP credentials are valid.
+ * Logs clearly — never throws, never blocks startup.
+ */
+export function verifyTransport(): void {
+  const transport = getTransport();
+  if (!transport) {
+    logger.info('[EMAIL] SMTP_HOST not set — email disabled, using console log fallback');
+    return;
+  }
+  transport.verify().then(() => {
+    logger.info('[EMAIL] SMTP transporter verified — ready to send');
+  }).catch((err: unknown) => {
+    logger.error('[EMAIL] SMTP transporter verification failed', { err });
+  });
+}
+
 export async function sendMail(opts: MailOptions): Promise<void> {
-  let from = env.SMTP_FROM ?? 'N_COLE Interpress <noreply@ncoleinterpress.com>';
+  // Gmail requires the envelope sender to match the authenticated account.
+  // Use SMTP_FROM as display name only; always use SMTP_USER as the actual address.
+  const authAddress = env.SMTP_USER ?? 'noreply@ncoleinterpress.com';
+  let displayName = 'N_COLE Interpress';
   try {
     const { getSiteSettings } = await import('@/modules/settings/settings.service');
     const site = await getSiteSettings();
-    if (site.supportEmail) from = `N_COLE Interpress <${site.supportEmail}>`;
+    if (site.supportEmail) displayName = 'N_COLE Interpress';
   } catch { /* use default */ }
+  const from = `${displayName} <${authAddress}>`;
   try {
     const transport = getTransport();
     if (!transport) {
