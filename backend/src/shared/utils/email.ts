@@ -22,6 +22,10 @@ function getTransport() {
       host: env.SMTP_HOST,
       port: env.SMTP_PORT ?? 587,
       secure: (env.SMTP_PORT ?? 587) === 465,
+      family: 4,
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 15_000,
       auth: env.SMTP_USER && env.SMTP_PASS
         ? { user: env.SMTP_USER, pass: env.SMTP_PASS }
         : undefined,
