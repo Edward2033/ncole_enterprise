@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { CartProvider } from '@/contexts/CartContext';
+import { SiteSettingsProvider } from '@/contexts/SiteSettingsContext';
 
 // ── Layouts (eager — needed immediately on every route) ───────────────────────
 import Layout from '@/components/Layout';
@@ -97,6 +98,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <ThemeProvider defaultTheme="light">
+    <SiteSettingsProvider>
     <AuthProvider>
       <CartProvider>
         <QueryClientProvider client={queryClient}>
@@ -204,6 +206,7 @@ const App = () => (
         </QueryClientProvider>
       </CartProvider>
     </AuthProvider>
+    </SiteSettingsProvider>
   </ThemeProvider>
 );
 

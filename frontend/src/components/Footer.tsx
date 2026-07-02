@@ -1,34 +1,26 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingBag, Mail, Phone, MapPin, Send, ArrowRight, Github, Linkedin, Facebook, Twitter } from 'lucide-react';
 import { useCollections } from '@/hooks/useProducts';
-import { API_BASE } from '@/config/api';
-import type { SiteSettings } from '@/services/adminApi';
+import { useSiteSettings } from '@/contexts/SiteSettingsContext';
 
 const Footer: React.FC = () => {
   const collections = useCollections();
   const [email, setEmail] = useState('');
   const [done, setDone] = useState(false);
-  const [site, setSite] = useState<SiteSettings | null>(null);
-
-  useEffect(() => {
-    fetch(`${API_BASE}/settings/site`)
-      .then(r => r.json())
-      .then(j => { if (j?.data) setSite(j.data); })
-      .catch(() => null);
-  }, []);
+  const site = useSiteSettings();
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
     if (email) { setDone(true); setEmail(''); }
   };
 
-  const siteName    = site?.siteName    || 'N_COLE Interpress';
-  const footerText  = site?.footerText  || "Rwanda's premier multi-vendor e-commerce marketplace. Powered by AI. Built for Africa.";
-  const contactEmail = site?.contactEmail || null;
-  const phone       = site?.phoneNumber  || null;
-  const address     = site?.address      || null;
-  const whatsapp    = site?.whatsappNumber ? site.whatsappNumber.replace(/\D/g, '') : null;
+  const siteName     = site.siteName    || 'N_COLE Interpress';
+  const footerText   = site.footerText  || "Rwanda's premier multi-vendor e-commerce marketplace. Powered by AI. Built for Africa.";
+  const contactEmail = site.contactEmail || null;
+  const phone        = site.phoneNumber  || null;
+  const address      = site.address      || null;
+  const whatsapp     = site.whatsappNumber ? site.whatsappNumber.replace(/\D/g, '') : null;
 
   return (
     <footer className="mt-10 bg-slate-900 text-slate-300 sm:mt-20" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
@@ -67,10 +59,10 @@ const Footer: React.FC = () => {
 
           {/* Social links */}
           <div className="mt-5 flex gap-3">
-            {site?.githubUrl   && <a href={site.githubUrl}   target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition"><Github   className="h-5 w-5" /></a>}
-            {site?.linkedinUrl && <a href={site.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition"><Linkedin  className="h-5 w-5" /></a>}
-            {site?.facebookUrl && <a href={site.facebookUrl} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition"><Facebook  className="h-5 w-5" /></a>}
-            {site?.twitterUrl  && <a href={site.twitterUrl}  target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition"><Twitter   className="h-5 w-5" /></a>}
+            {site.githubUrl   && <a href={site.githubUrl}   target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition"><Github   className="h-5 w-5" /></a>}
+            {site.linkedinUrl && <a href={site.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition"><Linkedin  className="h-5 w-5" /></a>}
+            {site.facebookUrl && <a href={site.facebookUrl} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition"><Facebook  className="h-5 w-5" /></a>}
+            {site.twitterUrl  && <a href={site.twitterUrl}  target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition"><Twitter   className="h-5 w-5" /></a>}
           </div>
         </div>
 
