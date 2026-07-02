@@ -26,7 +26,8 @@ const envSchema = z.object({
   GEMINI_API_KEY: z.string().optional(),
   GEMINI_MODEL: z.string().default('gemini-2.0-flash'),
   RESEND_API_KEY: z.string().optional(),
-  RESEND_FROM: z.string().default('N_COLE Interpress <onboarding@resend.dev>'),
+  EMAIL_FROM: z.string().default('N_COLE Interpress <no-reply@youngdevsofficial.com>'),
+  EMAIL_REPLY_TO: z.string().default('support@youngdevsofficial.com'),
   APP_URL: z.string().default('https://ncoleinterpress.com'),
 });
 

@@ -1,6 +1,7 @@
 /**
  * Email utility — Resend SDK.
- * Never throws — email failures must never break auth flows.
+ * sendMail never throws — email failures must never crash auth flows.
+ * verifyTransport logs clearly at startup so misconfiguration is visible immediately.
  */
 import { Resend } from 'resend';
 import { env } from '@/config/env';
@@ -20,32 +21,75 @@ function getClient(): Resend | null {
   return _resend;
 }
 
-/** Call once at server startup to confirm the Resend client initialises. */
+/** Resolve the correct from address.
+ *  - Production: EMAIL_FROM env var (must be a verified Resend domain).
+ *  - Development / no key: onboarding@resend.dev (Resend sandbox, no domain needed).
+ */
+function resolveFrom(): string {
+  if (env.RESEND_API_KEY && env.NODE_ENV === 'production') {
+    return env.EMAIL_FROM;
+  }
+  // Dev or missing key — use Resend sandbox sender so test sends still work
+  return env.NODE_ENV === 'production'
+    ? env.EMAIL_FROM
+    : 'N_COLE Interpress <onboarding@resend.dev>';
+}
+
+/**
+ * Call once at server startup.
+ * Logs confirmation or a clear warning — never throws, never blocks startup.
+ */
 export function verifyTransport(): void {
   if (!env.RESEND_API_KEY) {
-    logger.info('[EMAIL] RESEND_API_KEY not set — email disabled, using console log fallback');
+    logger.warn(
+      '[EMAIL] RESEND_API_KEY is not set — emails will be logged to console only. ' +
+      'Add RESEND_API_KEY to Render environment variables to enable delivery.',
+    );
     return;
   }
-  logger.info('[EMAIL] Resend client initialised — ready to send');
+  logger.info(
+    `[EMAIL] Email service initialized with Resend | from: ${env.EMAIL_FROM} | reply-to: ${env.EMAIL_REPLY_TO}`,
+  );
 }
 
 export async function sendMail(opts: MailOptions): Promise<void> {
-  const from = env.RESEND_FROM;
+  const client = getClient();
+  const from   = resolveFrom();
+
+  if (!client) {
+    logger.warn(`[EMAIL-DEV] No RESEND_API_KEY — email NOT delivered | to: ${opts.to} | subject: ${opts.subject}`);
+    logger.info(`[EMAIL-DEV] Preview: ${opts.html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 300)}`);
+    return;
+  }
+
   try {
-    const client = getClient();
-    if (!client) {
-      logger.info(`[EMAIL-DEV] To: ${opts.to} | Subject: ${opts.subject}`);
-      logger.info(`[EMAIL-DEV] ${opts.html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200)}`);
-      return;
-    }
-    const { error } = await client.emails.send({ from, to: opts.to, subject: opts.subject, html: opts.html });
+    const { data, error } = await client.emails.send({
+      from,
+      to:       opts.to,
+      subject:  opts.subject,
+      html:     opts.html,
+      replyTo:  env.EMAIL_REPLY_TO,
+    });
+
     if (error) {
-      logger.error('Failed to send email', { error, to: opts.to, subject: opts.subject });
+      logger.error('[EMAIL] Resend rejected the request', {
+        from,
+        to:      opts.to,
+        subject: opts.subject,
+        code:    (error as { statusCode?: number }).statusCode,
+        message: (error as { message?: string }).message,
+      });
       return;
     }
-    logger.info(`Email sent to ${opts.to}: ${opts.subject}`);
+
+    logger.info(`[EMAIL] Delivered | id: ${data?.id} | from: ${from} | to: ${opts.to} | subject: ${opts.subject}`);
   } catch (err) {
-    logger.error('Failed to send email', { err, to: opts.to, subject: opts.subject });
+    logger.error('[EMAIL] Unexpected error', {
+      from,
+      to:      opts.to,
+      subject: opts.subject,
+      err,
+    });
   }
 }
 
