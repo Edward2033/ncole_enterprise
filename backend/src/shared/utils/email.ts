@@ -21,18 +21,11 @@ function getClient(): Resend | null {
   return _resend;
 }
 
-/** Resolve the correct from address.
- *  - Production: EMAIL_FROM env var (must be a verified Resend domain).
- *  - Development / no key: onboarding@resend.dev (Resend sandbox, no domain needed).
+/** Resolve the correct from address — always uses EMAIL_FROM env var.
+ *  Set to onboarding@resend.dev for testing, or your verified domain in production.
  */
 function resolveFrom(): string {
-  if (env.RESEND_API_KEY && env.NODE_ENV === 'production') {
-    return env.EMAIL_FROM;
-  }
-  // Dev or missing key — use Resend sandbox sender so test sends still work
-  return env.NODE_ENV === 'production'
-    ? env.EMAIL_FROM
-    : 'N_COLE Interpress <onboarding@resend.dev>';
+  return env.EMAIL_FROM;
 }
 
 /**
