@@ -1,10 +1,8 @@
 /**
- * Email utility — nodemailer v9 compatible.
- * Uses SMTP when SMTP_HOST is configured; logs to console in dev.
+ * Email utility — Resend SDK.
  * Never throws — email failures must never break auth flows.
  */
-import nodemailer from 'nodemailer';
-import SMTPTransport from 'nodemailer/lib/smtp-transport';
+import { Resend } from 'resend';
 import { env } from '@/config/env';
 import { logger } from '@/config/logger';
 
@@ -14,67 +12,37 @@ interface MailOptions {
   html: string;
 }
 
-let _transport: nodemailer.Transporter<SMTPTransport.SentMessageInfo> | null = null;
+let _resend: Resend | null = null;
 
-function getTransport(): nodemailer.Transporter<SMTPTransport.SentMessageInfo> | null {
-  if (!env.SMTP_HOST) return null;
-  if (!_transport) {
-    const port = env.SMTP_PORT ?? 587;
-    const opts: SMTPTransport.Options & { family?: number } = {
-      host: env.SMTP_HOST,
-      port,
-      secure: port === 465,          // true = implicit TLS (465); false = STARTTLS (587)
-      requireTLS: port !== 465,      // on port 587 enforce STARTTLS — fail fast if server won't upgrade
-      family: 4,                     // force IPv4 — Render free tier cannot route IPv6
-      connectionTimeout: 10_000,
-      greetingTimeout: 10_000,
-      socketTimeout: 15_000,
-      dnsTimeout: 5_000,
-      auth: env.SMTP_USER && env.SMTP_PASS
-        ? { user: env.SMTP_USER, pass: env.SMTP_PASS }
-        : undefined,
-    };
-    _transport = nodemailer.createTransport(opts);
-  }
-  return _transport;
+function getClient(): Resend | null {
+  if (!env.RESEND_API_KEY) return null;
+  if (!_resend) _resend = new Resend(env.RESEND_API_KEY);
+  return _resend;
 }
 
-/**
- * Call once at server startup to confirm SMTP credentials are valid.
- * Logs clearly — never throws, never blocks startup.
- */
+/** Call once at server startup to confirm the Resend client initialises. */
 export function verifyTransport(): void {
-  const transport = getTransport();
-  if (!transport) {
-    logger.info('[EMAIL] SMTP_HOST not set — email disabled, using console log fallback');
+  if (!env.RESEND_API_KEY) {
+    logger.info('[EMAIL] RESEND_API_KEY not set — email disabled, using console log fallback');
     return;
   }
-  transport.verify().then(() => {
-    logger.info('[EMAIL] SMTP transporter verified — ready to send');
-  }).catch((err: unknown) => {
-    logger.error('[EMAIL] SMTP transporter verification failed', { err });
-  });
+  logger.info('[EMAIL] Resend client initialised — ready to send');
 }
 
 export async function sendMail(opts: MailOptions): Promise<void> {
-  // Gmail requires the envelope sender to match the authenticated account.
-  // Use SMTP_FROM as display name only; always use SMTP_USER as the actual address.
-  const authAddress = env.SMTP_USER ?? 'noreply@ncoleinterpress.com';
-  let displayName = 'N_COLE Interpress';
+  const from = env.RESEND_FROM;
   try {
-    const { getSiteSettings } = await import('@/modules/settings/settings.service');
-    const site = await getSiteSettings();
-    if (site.supportEmail) displayName = 'N_COLE Interpress';
-  } catch { /* use default */ }
-  const from = `${displayName} <${authAddress}>`;
-  try {
-    const transport = getTransport();
-    if (!transport) {
+    const client = getClient();
+    if (!client) {
       logger.info(`[EMAIL-DEV] To: ${opts.to} | Subject: ${opts.subject}`);
       logger.info(`[EMAIL-DEV] ${opts.html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200)}`);
       return;
     }
-    await transport.sendMail({ from, to: opts.to, subject: opts.subject, html: opts.html });
+    const { error } = await client.emails.send({ from, to: opts.to, subject: opts.subject, html: opts.html });
+    if (error) {
+      logger.error('Failed to send email', { error, to: opts.to, subject: opts.subject });
+      return;
+    }
     logger.info(`Email sent to ${opts.to}: ${opts.subject}`);
   } catch (err) {
     logger.error('Failed to send email', { err, to: opts.to, subject: opts.subject });

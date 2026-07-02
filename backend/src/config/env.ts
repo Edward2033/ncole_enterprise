@@ -25,11 +25,8 @@ const envSchema = z.object({
   AIRTEL_ENVIRONMENT: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
   GEMINI_MODEL: z.string().default('gemini-2.0-flash'),
-  SMTP_HOST: z.string().optional(),
-  SMTP_PORT: z.coerce.number().optional(),
-  SMTP_USER: z.string().optional(),
-  SMTP_PASS: z.string().optional(),
-  SMTP_FROM: z.string().optional(),
+  RESEND_API_KEY: z.string().optional(),
+  RESEND_FROM: z.string().default('N_COLE Interpress <onboarding@resend.dev>'),
   APP_URL: z.string().default('https://ncoleinterpress.com'),
 });
 
