@@ -48,6 +48,8 @@ function getClient(): GoogleGenerativeAI {
 export async function chat(dto: ChatDto, userId?: string, userName?: string): Promise<string> {
   const client = getClient();
 
+  logger.info('[AI] Request received', { portal: dto.portal, model: env.GEMINI_MODEL, userId, messageLength: dto.message.length });
+
   const systemPrompt = buildSystemPrompt(dto.portal as AiPortal, userName);
   const contextData = await buildContext(dto.portal as AiPortal, userId);
 
@@ -73,12 +75,19 @@ export async function chat(dto: ChatDto, userId?: string, userName?: string): Pr
   try {
     const result = await chatSession.sendMessage(dto.message);
     const text = result.response.text();
+    logger.info('[AI] Response received', { portal: dto.portal, model: env.GEMINI_MODEL, replyLength: text?.length ?? 0 });
     if (!text) throw AppError.internal('AI returned an empty response.');
     return text;
   } catch (err) {
     if (err instanceof AppError) throw err;
 
     const raw = err instanceof Error ? err.message : String(err);
+
+    // 401 / API_KEY_INVALID — key is set but rejected by Google
+    if (raw.includes('401') || raw.includes('API_KEY_INVALID') || raw.includes('UNAUTHENTICATED')) {
+      logger.error('[AI] Invalid API key — check GEMINI_API_KEY in environment variables', { model: env.GEMINI_MODEL, raw });
+      throw new AppError('AI assistant is temporarily unavailable. Please try again later.', 503);
+    }
 
     // 429 quota errors — distinguish daily exhaustion from per-minute throttle
     if (raw.includes('429') || raw.includes('Too Many Requests') || raw.includes('RESOURCE_EXHAUSTED')) {
@@ -87,14 +96,13 @@ export async function chat(dto: ChatDto, userId?: string, userName?: string): Pr
         logger.warn('[AI] Daily free-tier quota exhausted', { model: env.GEMINI_MODEL });
         throw new AppError('The AI assistant has reached its daily usage limit. Please try again tomorrow or contact support to upgrade the plan.', 429);
       }
-      // Per-minute rate limit — transient, ask user to retry
       const retryMatch = raw.match(/retry.*?(\d+).*?s/i);
       const retryIn = retryMatch ? `${retryMatch[1]} seconds` : 'a moment';
       logger.warn('[AI] Per-minute rate limit hit', { model: env.GEMINI_MODEL, retryIn });
       throw new AppError(`The AI assistant is busy right now. Please try again in ${retryIn}.`, 429);
     }
 
-    logger.error('[AI] Gemini API call failed', { model: env.GEMINI_MODEL, portal: dto.portal, err });
+    logger.error('[AI] Gemini API call failed', { model: env.GEMINI_MODEL, portal: dto.portal, raw, err });
     throw new AppError(`AI service error: ${raw}`, 502);
   }
 }

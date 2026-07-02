@@ -7,8 +7,6 @@ import {
 import { productsService, type NcoleProduct, type NcoleVariant } from '@/services/api';
 import { formatPrice } from '@/lib/format';
 import { useCart } from '@/contexts/CartContext';
-import { useAuth } from '@/contexts/AuthContext';
-import AuthPromptModal from '@/components/AuthPromptModal';
 import ProductCard from '@/components/ProductCard';
 import type { Product } from '@/lib/types';
 
@@ -84,7 +82,6 @@ const RelatedSkeleton: React.FC = () => (
 const ProductDetail: React.FC = () => {
   const { handle } = useParams<{ handle: string }>();
   const { addToCart } = useCart();
-  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const [product, setProduct] = useState<NcoleProduct | null>(null);
@@ -93,7 +90,6 @@ const ProductDetail: React.FC = () => {
   const [selectedVariant, setSelectedVariant] = useState<NcoleVariant | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
-  const [showPrompt, setShowPrompt] = useState(false);
 
   // Related products
   const [related, setRelated] = useState<NcoleProduct[]>([]);
@@ -173,7 +169,6 @@ const ProductDetail: React.FC = () => {
   const inStock = selectedVariant ? selectedVariant.stockQty > 0 : product.stockQty > 0;
 
   const handleAddToCart = () => {
-    if (!isAuthenticated) { setShowPrompt(true); return; }
     if (!inStock) return;
     addToCart({
       product_id: product.id,
@@ -190,13 +185,6 @@ const ProductDetail: React.FC = () => {
 
   return (
     <>
-      {showPrompt && (
-        <AuthPromptModal
-          onClose={() => setShowPrompt(false)}
-          onLogin={() => { setShowPrompt(false); navigate('/login'); }}
-        />
-      )}
-
       <div className="mx-auto max-w-7xl px-4 py-8 lg:px-8">
         {/* Breadcrumb */}
         <nav className="mb-6 flex items-center gap-1 text-sm text-slate-400" aria-label="Breadcrumb">

@@ -1,17 +1,12 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import { ShoppingCart, Star } from 'lucide-react';
 import { Product } from '@/lib/types';
 import { formatPrice } from '@/lib/format';
 import { useCart } from '@/contexts/CartContext';
-import { useAuth } from '@/contexts/AuthContext';
-import AuthPromptModal from '@/components/AuthPromptModal';
 
 const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
   const { addToCart } = useCart();
-  const { isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-  const [showPrompt, setShowPrompt] = useState(false);
   const image = product.images?.[0];
   const price = product.has_variants && product.variants?.length
     ? Math.min(...product.variants.map(v => v.price))
@@ -21,16 +16,12 @@ const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!isAuthenticated) { setShowPrompt(true); return; }
     if (product.has_variants && product.variants?.length) return;
     addToCart({ product_id: product.id, name: product.name, sku: product.sku || product.handle, price: product.price, image, vendorId: product.vendorId }, 1);
   };
 
   return (
     <>
-      {showPrompt && (
-        <AuthPromptModal onClose={() => setShowPrompt(false)} onLogin={() => { setShowPrompt(false); navigate('/login'); }} />
-      )}
       <Link
         to={`/products/${product.handle}`}
         className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/60 active:scale-[0.98]"
