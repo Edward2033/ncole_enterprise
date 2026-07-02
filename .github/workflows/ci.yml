@@ -62,11 +62,11 @@ jobs:
           DIRECT_URL: postgresql://ncole:testpassword@localhost:5432/ncole_test
         run: npx prisma generate
 
-      - name: Run Prisma migrations
+      - name: Push schema to test DB
         env:
           DATABASE_URL: postgresql://ncole:testpassword@localhost:5432/ncole_test
           DIRECT_URL: postgresql://ncole:testpassword@localhost:5432/ncole_test
-        run: npx prisma migrate deploy
+        run: npx prisma db push --accept-data-loss
 
       - name: TypeScript type check
         run: npx tsc --noEmit
