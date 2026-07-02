@@ -76,8 +76,8 @@ const Home: React.FC = () => {
             { icon: Zap, text: 'Same-day dispatch' },
             { icon: Sparkles, text: 'AI-powered shopping' },
           ].map(f => (
-            <div key={f.text} className="flex items-center gap-3 px-4 py-4 sm:px-6 sm:py-5">
-              <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-600 sm:h-10 sm:w-10">
+            <div key={f.text} className="flex items-center gap-3 px-4 py-3.5 sm:px-6 sm:py-5">
+              <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-600 sm:h-10 sm:w-10">
                 <f.icon className="h-4 w-4 sm:h-5 sm:w-5" />
               </span>
               <span className="text-sm font-medium text-slate-700">{f.text}</span>
@@ -87,24 +87,24 @@ const Home: React.FC = () => {
       </section>
 
       {/* ── Categories Grid ── */}
-      <section className="mx-auto max-w-7xl px-4 py-10 sm:py-16 lg:px-8">
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:py-16 lg:px-8">
         <SectionHeader title="Shop by Category" sub="Browse our curated collection of product categories" link={{ to: '/shop', label: 'All categories' }} />
         {collections.length === 0 ? (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-6">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-28 animate-pulse rounded-2xl bg-slate-100" />
+              <div key={i} className="h-24 animate-pulse rounded-2xl bg-slate-100 sm:h-28" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-6">
             {collections.slice(0, 12).map((c, i) => (
               <Link key={c.id} to={`/shop/category/${c.handle}`}
                 style={{ animationDelay: `${i * 60}ms` }}
-                className="group flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white p-5 text-center transition-all duration-300 hover:-translate-y-1 hover:border-orange-300 hover:shadow-lg animate-fade-in">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-orange-100 to-amber-100 text-orange-600 transition-transform duration-300 group-hover:scale-110">
-                  <Package className="h-6 w-6" />
+                className="group flex flex-col items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white p-4 text-center transition-all duration-300 hover:-translate-y-1 hover:border-orange-300 hover:shadow-lg animate-fade-in sm:gap-3 sm:p-5">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-orange-100 to-amber-100 text-orange-600 transition-transform duration-300 group-hover:scale-110 sm:h-12 sm:w-12">
+                  <Package className="h-5 w-5 sm:h-6 sm:w-6" />
                 </div>
-                <span className="text-sm font-semibold text-slate-800 group-hover:text-orange-600">{c.title}</span>
+                <span className="text-xs font-semibold text-slate-800 group-hover:text-orange-600 sm:text-sm line-clamp-2">{c.title}</span>
               </Link>
             ))}
           </div>

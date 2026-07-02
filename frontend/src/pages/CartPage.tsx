@@ -74,7 +74,7 @@ const CartPage: React.FC = () => {
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 lg:px-8">
+    <div className="mx-auto max-w-6xl px-3 py-8 sm:px-4 lg:px-8 lg:py-10">
 
       {/* Auth prompt modal — shown to guests who click Proceed to Checkout */}
       {showAuthPrompt && (
@@ -88,9 +88,9 @@ const CartPage: React.FC = () => {
       )}
 
       {/* Page header */}
-      <div className="mb-8 flex items-center justify-between animate-in fade-in slide-in-from-top-4 duration-400">
+      <div className="mb-6 flex items-center justify-between animate-in fade-in slide-in-from-top-4 duration-400 sm:mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Shopping Cart</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white sm:text-3xl">Shopping Cart</h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             {items.length} item{items.length !== 1 ? 's' : ''} in your cart
           </p>
@@ -101,7 +101,7 @@ const CartPage: React.FC = () => {
         </button>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
 
         {/* ── Cart items ───────────────────────────────────────────────────── */}
         <div className="space-y-4 lg:col-span-2">
@@ -112,16 +112,17 @@ const CartPage: React.FC = () => {
             return (
               <div
                 key={key}
-                className={`group flex gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-300
+                className={`group flex gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition-all duration-300
                   dark:border-slate-700 dark:bg-slate-800
                   hover:border-orange-200 hover:shadow-md dark:hover:border-orange-800
                   animate-in fade-in slide-in-from-left-4
+                  sm:gap-4 sm:p-4
                   ${isRemoving ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}
                 `}
                 style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'both' }}
               >
                 {/* Product image */}
-                <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700">
+                <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700 sm:h-24 sm:w-24">
                   {item.image ? (
                     <img
                       src={item.image} alt={item.name} loading="lazy"

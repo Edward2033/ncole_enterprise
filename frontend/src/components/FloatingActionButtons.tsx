@@ -151,8 +151,8 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({
           style={{
             right: '1rem',
             bottom: `calc(${showWhatsApp ? '8rem' : '5rem'} + env(safe-area-inset-bottom, 0px))`,
-            width: 'min(360px, calc(100vw - 2rem))',
-            maxHeight: 'min(580px, calc(100dvh - 10rem))',
+            width: 'min(360px, calc(100vw - 1.5rem))',
+            maxHeight: 'min(560px, calc(100dvh - 12rem))',
           }}
         >
           {/* Header */}

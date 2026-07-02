@@ -109,7 +109,7 @@ const Checkout: React.FC = () => {
   const total = subtotal;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 lg:py-10 lg:px-8">
+    <div className="mx-auto max-w-6xl px-3 py-6 sm:px-4 lg:py-10 lg:px-8">
       <div className="mb-2 flex items-center gap-2 text-sm text-slate-500">
         <Lock className="h-4 w-4" /> Secure Checkout
       </div>
@@ -145,16 +145,17 @@ const Checkout: React.FC = () => {
             )}
 
             {showAddAddress && (
-              <form onSubmit={handleSaveAddress} className="grid gap-4 sm:grid-cols-2">
+              <form onSubmit={handleSaveAddress} className="grid gap-3 sm:gap-4 sm:grid-cols-2">
                 {[
-                  { key: 'fullName', ph: 'Full Name', span: true },
-                  { key: 'phone', ph: 'Phone (e.g. +250781234567)', span: true },
-                  { key: 'street', ph: 'Street Address', span: true },
-                  { key: 'district', ph: 'District' },
-                  { key: 'city', ph: 'City' },
-                  { key: 'province', ph: 'Province' },
+                  { key: 'fullName',  ph: 'Full Name',                    span: true,  ac: 'name' },
+                  { key: 'phone',     ph: 'Phone (e.g. +250781234567)',   span: true,  ac: 'tel' },
+                  { key: 'street',    ph: 'Street Address',               span: true,  ac: 'street-address' },
+                  { key: 'district',  ph: 'District',                     span: false, ac: 'address-level2' },
+                  { key: 'city',      ph: 'City',                         span: false, ac: 'address-level1' },
+                  { key: 'province',  ph: 'Province',                     span: false, ac: 'address-level1' },
                 ].map(f => (
                   <input key={f.key} required placeholder={f.ph}
+                    autoComplete={f.ac}
                     value={(addrForm as Record<string, string>)[f.key]}
                     onChange={e => setAddrForm(prev => ({ ...prev, [f.key]: e.target.value }))}
                     className={`rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-orange-400 ${f.span ? 'sm:col-span-2' : ''}`}

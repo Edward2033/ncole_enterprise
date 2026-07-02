@@ -35,9 +35,12 @@ let _genai: GoogleGenerativeAI | null = null;
 
 function getClient(): GoogleGenerativeAI {
   if (!env.GEMINI_API_KEY) {
-    // Return 503 (service unavailable) with a user-friendly message — not 500
     const err = new AppError('AI assistant is not available. The GEMINI_API_KEY is not configured.', 503);
     throw err;
+  }
+  if (!env.GEMINI_API_KEY.startsWith('AIza')) {
+    logger.error('[AI] GEMINI_API_KEY appears invalid — Gemini keys must start with "AIza"', { keyPrefix: env.GEMINI_API_KEY.slice(0, 6) });
+    throw new AppError('AI assistant is not available. The GEMINI_API_KEY is invalid.', 503);
   }
   if (!_genai) _genai = new GoogleGenerativeAI(env.GEMINI_API_KEY);
   return _genai;
@@ -48,7 +51,14 @@ function getClient(): GoogleGenerativeAI {
 export async function chat(dto: ChatDto, userId?: string, userName?: string): Promise<string> {
   const client = getClient();
 
-  logger.info('[AI] Request received', { portal: dto.portal, model: env.GEMINI_MODEL, userId, messageLength: dto.message.length });
+  logger.info('[AI] Request received', {
+    portal: dto.portal,
+    model: env.GEMINI_MODEL,
+    userId,
+    messageLength: dto.message.length,
+    historyLength: dto.history.length,
+    message: dto.message.slice(0, 200), // log first 200 chars for debugging
+  });
 
   const systemPrompt = buildSystemPrompt(dto.portal as AiPortal, userName);
   const contextData = await buildContext(dto.portal as AiPortal, userId);
@@ -73,9 +83,12 @@ export async function chat(dto: ChatDto, userId?: string, userName?: string): Pr
   const chatSession = model.startChat({ history });
 
   try {
+    logger.info('[AI] Sending message to Gemini', { portal: dto.portal, model: env.GEMINI_MODEL, endpoint: `generativelanguage.googleapis.com/v1beta/models/${env.GEMINI_MODEL}:generateContent` });
     const result = await chatSession.sendMessage(dto.message);
-    const text = result.response.text();
-    logger.info('[AI] Response received', { portal: dto.portal, model: env.GEMINI_MODEL, replyLength: text?.length ?? 0 });
+    const raw = result.response;
+    logger.info('[AI] Raw Gemini response received', { portal: dto.portal, candidatesCount: raw.candidates?.length ?? 0 });
+    const text = raw.text();
+    logger.info('[AI] Response parsed', { portal: dto.portal, replyLength: text?.length ?? 0 });
     if (!text) throw AppError.internal('AI returned an empty response.');
     return text;
   } catch (err) {

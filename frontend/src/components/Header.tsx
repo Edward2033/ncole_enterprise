@@ -35,8 +35,9 @@ const Header: React.FC = () => {
   return (
     <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/95 backdrop-blur">
       {/* Announcement bar */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 py-2 text-center text-xs font-medium text-white">
-        🇷🇼 Free delivery across Rwanda · MTN MoMo &amp; Airtel Money accepted · Verified vendors only
+      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 py-1.5 text-center text-xs font-medium text-white overflow-hidden">
+        <span className="hidden sm:inline">🇷🇼 Free delivery across Rwanda · MTN MoMo &amp; Airtel Money accepted · Verified vendors only</span>
+        <span className="sm:hidden">🇷🇼 Free delivery · MTN MoMo &amp; Airtel Money</span>
       </div>
 
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3.5 lg:px-8">
@@ -179,7 +180,7 @@ const Header: React.FC = () => {
       </div>
 
       {/* Mobile menu — smooth slide-in, no layout shift */}
-      <div className={`overflow-hidden transition-all duration-300 ease-in-out lg:hidden ${mobileOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0 pointer-events-none'}`}>
+      <div className={`overflow-hidden transition-all duration-300 ease-in-out lg:hidden ${mobileOpen ? 'max-h-[640px] opacity-100' : 'max-h-0 opacity-0 pointer-events-none'}`}>
         <div className="border-t border-slate-100 bg-white px-4 py-4">
           <form onSubmit={handleSearch} className="mb-4">
             <div className="relative">

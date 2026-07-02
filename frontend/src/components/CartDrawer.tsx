@@ -70,15 +70,21 @@ const CartDrawer: React.FC = () => {
             <div className="flex-1 space-y-4 overflow-y-auto p-5">
               {items.map((item) => (
                 <div key={item.product_id + (item.variant_id || '')} className="flex gap-3">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="h-20 w-20 flex-shrink-0 rounded-xl border border-slate-100 object-cover"
-                  />
+                  {item.image ? (
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="h-20 w-20 flex-shrink-0 rounded-xl border border-slate-100 object-cover"
+                    />
+                  ) : (
+                    <div className="h-20 w-20 flex-shrink-0 rounded-xl border border-slate-100 bg-slate-50 flex items-center justify-center">
+                      <ShoppingBag className="h-8 w-8 text-slate-200" />
+                    </div>
+                  )}
                   <div className="flex flex-1 flex-col">
                     <div className="flex justify-between gap-2">
-                      <div>
-                        <p className="text-sm font-semibold text-slate-900">{item.name}</p>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-slate-900 truncate">{item.name}</p>
                         {item.variant_title && (
                           <p className="text-xs text-slate-400">{item.variant_title}</p>
                         )}

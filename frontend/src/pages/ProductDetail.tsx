@@ -185,26 +185,26 @@ const ProductDetail: React.FC = () => {
 
   return (
     <>
-      <div className="mx-auto max-w-7xl px-4 py-8 lg:px-8">
+      <div className="mx-auto max-w-7xl px-3 py-6 sm:px-4 sm:py-8 lg:px-8">
         {/* Breadcrumb */}
-        <nav className="mb-6 flex items-center gap-1 text-sm text-slate-400" aria-label="Breadcrumb">
-          <Link to="/" className="hover:text-orange-600 transition-colors">Home</Link>
-          <ChevronRight className="h-3.5 w-3.5" />
-          <Link to="/shop" className="hover:text-orange-600 transition-colors">Shop</Link>
+        <nav className="mb-6 flex items-center gap-1 text-sm text-slate-400 overflow-x-auto whitespace-nowrap pb-1 scrollbar-none" aria-label="Breadcrumb">
+          <Link to="/" className="hover:text-orange-600 transition-colors flex-shrink-0">Home</Link>
+          <ChevronRight className="h-3.5 w-3.5 flex-shrink-0" />
+          <Link to="/shop" className="hover:text-orange-600 transition-colors flex-shrink-0">Shop</Link>
           {product.category && (
             <>
-              <ChevronRight className="h-3.5 w-3.5" />
-              <Link to={`/shop/category/${product.category.slug}`} className="hover:text-orange-600 transition-colors">
+              <ChevronRight className="h-3.5 w-3.5 flex-shrink-0" />
+              <Link to={`/shop/category/${product.category.slug}`} className="hover:text-orange-600 transition-colors flex-shrink-0">
                 {product.category.name}
               </Link>
             </>
           )}
-          <ChevronRight className="h-3.5 w-3.5" />
-          <span className="text-slate-700 line-clamp-1">{product.name}</span>
+          <ChevronRight className="h-3.5 w-3.5 flex-shrink-0" />
+          <span className="text-slate-700 truncate max-w-[140px] sm:max-w-xs">{product.name}</span>
         </nav>
 
         {/* Main product section */}
-        <div className="grid gap-12 md:grid-cols-2">
+        <div className="grid gap-6 md:gap-12 md:grid-cols-2">
           {/* ── Image Gallery ── */}
           <div>
             <div className="overflow-hidden rounded-2xl border border-slate-100 bg-slate-50">
@@ -257,7 +257,7 @@ const ProductDetail: React.FC = () => {
               </Link>
             )}
 
-            <h1 className="mt-2 text-3xl font-bold text-slate-900">{product.name}</h1>
+            <h1 className="mt-2 text-2xl font-bold text-slate-900 sm:text-3xl">{product.name}</h1>
 
             {/* Rating (static UI — no reviews API yet) */}
             <div className="mt-3 flex items-center gap-2">
@@ -270,8 +270,8 @@ const ProductDetail: React.FC = () => {
             </div>
 
             {/* Price */}
-            <div className="mt-5 flex items-baseline gap-3">
-              <span className="text-4xl font-bold text-slate-900">{formatPrice(price)}</span>
+            <div className="mt-4 flex flex-wrap items-baseline gap-3 sm:mt-5">
+              <span className="text-3xl font-bold text-slate-900 sm:text-4xl">{formatPrice(price)}</span>
               {inStock ? (
                 <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-600">
                   In Stock ({selectedVariant ? selectedVariant.stockQty : product.stockQty} left)
@@ -320,7 +320,7 @@ const ProductDetail: React.FC = () => {
             )}
 
             {/* Quantity + Add to Cart */}
-            <div className="mt-8 flex items-center gap-4">
+            <div className="mt-6 flex items-center gap-3 sm:mt-8 sm:gap-4">
               <div className="flex items-center rounded-full border border-slate-200">
                 <button
                   onClick={() => setQuantity(q => Math.max(1, q - 1))}
@@ -356,7 +356,7 @@ const ProductDetail: React.FC = () => {
             </div>
 
             {/* Trust badges */}
-            <div className="mt-8 grid grid-cols-3 gap-4 rounded-2xl bg-slate-50 p-5 text-center text-xs text-slate-500">
+            <div className="mt-6 grid grid-cols-3 gap-3 rounded-2xl bg-slate-50 p-4 text-center text-xs text-slate-500 sm:mt-8 sm:gap-4 sm:p-5">
               <div className="flex flex-col items-center gap-1.5">
                 <Truck className="h-5 w-5 text-orange-500" />
                 <span>Free Delivery</span>
@@ -404,7 +404,7 @@ const ProductDetail: React.FC = () => {
             {relatedLoading ? (
               <RelatedSkeleton />
             ) : (
-              <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-3 lg:grid-cols-4">
                 {related.slice(0, 4).map(p => (
                   <ProductCard key={p.id} product={toLegacy(p)} />
                 ))}
@@ -443,7 +443,7 @@ const ProductDetail: React.FC = () => {
               <Eye className="h-5 w-5 text-slate-400" />
               <h2 className="text-2xl font-bold text-slate-900">Recently Viewed</h2>
             </div>
-            <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-3 lg:grid-cols-4">
               {recentlyViewed.slice(0, 4).map(p => (
                 <ProductCard key={p.id} product={p} />
               ))}

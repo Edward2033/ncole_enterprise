@@ -172,7 +172,7 @@ const AuthPage: React.FC = () => {
   return (
     <>
       {showForgot && <ForgotPasswordModal onClose={() => setShowForgot(false)} />}
-      <div className="flex min-h-screen bg-slate-50">
+      <div className="flex min-h-[100dvh] bg-slate-50">
         {/* Left branding panel (desktop only) */}
         <div className="hidden flex-col justify-between bg-gradient-to-br from-slate-900 via-slate-900 to-orange-950 p-12 lg:flex lg:w-[45%]">
           <Link to="/" className="flex items-center gap-3">
@@ -204,7 +204,9 @@ const AuthPage: React.FC = () => {
         </div>
 
         {/* Right form panel */}
-        <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
+        <div className="flex flex-1 flex-col items-center justify-center px-5 py-10 sm:px-6 sm:py-12"
+          style={{ paddingBottom: 'max(2.5rem, env(safe-area-inset-bottom))' }}
+        >
           <div className="w-full max-w-md">
             <Link to="/" className="mb-8 flex items-center gap-2 lg:hidden">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-500 text-white">

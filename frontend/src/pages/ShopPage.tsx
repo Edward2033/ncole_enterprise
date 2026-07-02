@@ -38,7 +38,7 @@ const ListCard: React.FC<{ product: Product }> = ({ product }) => {
       <div className="flex flex-1 flex-col justify-between min-w-0">
         <div>
           {product.vendor && <span className="text-[11px] font-semibold uppercase tracking-wide text-orange-500">{product.vendor}</span>}
-          <h3 className="mt-0.5 font-semibold text-slate-900 group-hover:text-orange-600 line-clamp-1">{product.name}</h3>
+          <h3 className="mt-0.5 font-semibold text-slate-900 line-clamp-1">{product.name}</h3>
           <p className="mt-1 text-sm text-slate-500 line-clamp-2">{product.description}</p>
         </div>
         <div className="mt-2 flex items-center justify-between">
@@ -117,7 +117,7 @@ const ShopPage: React.FC = () => {
 
   // Skeleton
   const SkeletonGrid = () => (
-    <div className={`grid gap-5 ${layout === 'grid' ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-3' : 'grid-cols-1'}`}>
+    <div className={`grid gap-3 sm:gap-5 ${layout === 'grid' ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-3' : 'grid-cols-1'}`}>
       {Array.from({ length: PAGE_SIZE }).map((_, i) => (
         <div key={i} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
           <div className={`animate-pulse bg-slate-100 ${layout === 'grid' ? 'aspect-square' : 'h-24 w-24'}`} />
@@ -131,11 +131,11 @@ const ShopPage: React.FC = () => {
   );
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 lg:px-8">
+    <div className="mx-auto max-w-7xl px-3 py-6 sm:px-4 sm:py-10 lg:px-8">
       {/* Header */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">{q ? `Search: "${q}"` : 'All Products'}</h1>
+          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">{q ? `Search: "${q}"` : 'All Products'}</h1>
           <p className="mt-1 text-slate-500">{loading ? '…' : filtered.length} products {hasFilters ? 'matching your filters' : 'available'}</p>
         </div>
         {/* Mobile filter toggle */}
@@ -147,9 +147,11 @@ const ShopPage: React.FC = () => {
         </button>
       </div>
 
-      <div className="flex gap-8">
+      <div className={`flex gap-6 lg:gap-8 ${showFilters ? 'flex-col lg:flex-row' : 'flex-row'}`}>
         {/* Sidebar filters */}
-        <aside className={`w-56 flex-shrink-0 space-y-5 ${showFilters ? 'block' : 'hidden lg:block'}`}>
+        <aside className={`space-y-4 flex-shrink-0 ${
+          showFilters ? 'block w-full lg:w-56' : 'hidden lg:block lg:w-56'
+        }`}>
           {/* Search */}
           <form onSubmit={handleSearch} className="relative">
             <input name="q" defaultValue={q} placeholder="Search products…"
@@ -258,7 +260,7 @@ const ShopPage: React.FC = () => {
               </button>
             </div>
           ) : layout === 'grid' ? (
-            <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-3 lg:grid-cols-3">
               {paginated.map(p => <ProductCard key={p.id} product={p} />)}
             </div>
           ) : (
