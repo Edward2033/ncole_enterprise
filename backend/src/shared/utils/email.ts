@@ -4,6 +4,7 @@
  * Never throws — email failures must never break auth flows.
  */
 import nodemailer from 'nodemailer';
+import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { env } from '@/config/env';
 import { logger } from '@/config/logger';
 
@@ -13,12 +14,12 @@ interface MailOptions {
   html: string;
 }
 
-let _transport: ReturnType<typeof nodemailer.createTransport> | null = null;
+let _transport: nodemailer.Transporter<SMTPTransport.SentMessageInfo> | null = null;
 
-function getTransport() {
+function getTransport(): nodemailer.Transporter<SMTPTransport.SentMessageInfo> | null {
   if (!env.SMTP_HOST) return null;
   if (!_transport) {
-    _transport = nodemailer.createTransport({
+    const opts: SMTPTransport.Options & { family?: number } = {
       host: env.SMTP_HOST,
       port: env.SMTP_PORT ?? 587,
       secure: (env.SMTP_PORT ?? 587) === 465,
@@ -29,7 +30,8 @@ function getTransport() {
       auth: env.SMTP_USER && env.SMTP_PASS
         ? { user: env.SMTP_USER, pass: env.SMTP_PASS }
         : undefined,
-    });
+    };
+    _transport = nodemailer.createTransport(opts);
   }
   return _transport;
 }
