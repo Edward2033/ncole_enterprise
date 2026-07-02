@@ -26,6 +26,7 @@ model User {
   passwordHash String
   name         String
   phone        String?
+  avatarUrl    String?
   role         Role          @default(CUSTOMER)
   isActive     Boolean       @default(true)
   deletedAt    DateTime?

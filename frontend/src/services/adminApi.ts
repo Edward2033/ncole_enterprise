@@ -5,7 +5,7 @@ import { API_BASE } from '@/config/api';
 
 export interface AdminUser {
   id: string; email: string; name: string; phone?: string;
-  role: string; isActive: boolean; createdAt: string;
+  role: string; isActive: boolean; createdAt: string; avatarUrl?: string;
 }
 
 export interface AdminVendor {
@@ -90,12 +90,16 @@ export interface ListResp<T> { success: boolean; data: T[]; meta: ApiMeta; }
 export const adminUsersApi = {
   list: (page = 1, limit = 20) =>
     apiFetch<ListResp<AdminUser>>(`/users?page=${page}&limit=${limit}`),
-  update: (id: string, body: { name?: string; phone?: string; role?: string; isActive?: boolean }) =>
+  update: (id: string, body: { name?: string; email?: string; phone?: string; role?: string; isActive?: boolean }) =>
     apiFetch<ApiResp<AdminUser>>(`/users/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
   create: (body: { name: string; email: string; password: string; phone?: string; role: string }) =>
     apiFetch<ApiResp<AdminUser>>('/users', { method: 'POST', body: JSON.stringify(body) }),
   changePassword: (body: { currentPassword: string; newPassword: string }) =>
     apiFetch('/users/me/change-password', { method: 'POST', body: JSON.stringify(body) }),
+  resetUserPassword: (id: string, body: { newPassword: string; notifyUser?: boolean }) =>
+    apiFetch<ApiResp<{ message: string }>>(`/users/${id}/reset-password`, { method: 'POST', body: JSON.stringify(body) }),
+  updateMe: (body: { name?: string; email?: string; phone?: string; avatarUrl?: string }) =>
+    apiFetch<ApiResp<AdminUser>>('/users/me', { method: 'PATCH', body: JSON.stringify(body) }),
 };
 
 // ─── Vendors ──────────────────────────────────────────────────────────────────

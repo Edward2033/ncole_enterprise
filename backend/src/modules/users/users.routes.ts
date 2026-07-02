@@ -3,7 +3,8 @@ import { getMeHandler, updateMeHandler, listUsersHandler, adminUpdateUserHandler
 import { authenticate } from '@/middleware/authenticate';
 import { authorize } from '@/middleware/authorize';
 import { validate } from '@/middleware/validate';
-import { updateProfileSchema, adminUpdateUserSchema, createUserSchema, changePasswordSchema } from './users.service';
+import { updateProfileSchema, adminUpdateUserSchema, adminResetPasswordSchema, createUserSchema, changePasswordSchema } from './users.service';
+import { adminResetUserPassword } from './users.service';
 import { prisma } from '@/config/database';
 import { sendSuccess } from '@/shared/utils/response';
 
@@ -48,5 +49,13 @@ router.get('/activity-log', authorize('ADMIN'), async (req: Request, res: Respon
 
 // Must come AFTER all static sub-paths (/me, /activity-log, etc.)
 router.patch('/:id', authorize('ADMIN'), validate(adminUpdateUserSchema), adminUpdateUserHandler);
+
+router.post('/:id/reset-password', authorize('ADMIN'), validate(adminResetPasswordSchema), async (req, res, next) => {
+  try {
+    await adminResetUserPassword(req.user!.sub, req.params['id']!, req.body);
+    const { sendSuccess } = await import('@/shared/utils/response');
+    sendSuccess(res, { message: 'Password reset successfully' });
+  } catch (e) { next(e); }
+});
 
 export default router;

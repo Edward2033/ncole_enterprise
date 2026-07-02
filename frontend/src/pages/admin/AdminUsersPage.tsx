@@ -1,21 +1,23 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Users, UserX, UserCheck, Plus, Pencil, KeyRound, RefreshCw, ShieldCheck, Store, User, Bike } from 'lucide-react';
+import { Users, UserX, UserCheck, Plus, Pencil, KeyRound, RefreshCw, ShieldCheck, Store, User, Bike, Eye, EyeOff } from 'lucide-react';
 import { adminUsersApi, type AdminUser, type ApiMeta } from '@/services/adminApi';
 import { AdminTable, type Column } from '@/components/admin/AdminTable';
 import { AdminSearch } from '@/components/admin/AdminSearch';
 import { AdminModal, ConfirmModal } from '@/components/admin/AdminModal';
-import { AdminBadge, roleBadge, statusBadge } from '@/components/admin/AdminBadge';
+import { roleBadge, statusBadge } from '@/components/admin/AdminBadge';
 import { fmtDate } from '@/lib/adminFormat';
 
 const ROLES = ['ALL', 'CUSTOMER', 'VENDOR', 'RIDER', 'ADMIN'] as const;
 const ALL_ROLES = ['CUSTOMER', 'VENDOR', 'RIDER', 'ADMIN'] as const;
 
 interface CreateForm { name: string; email: string; password: string; phone: string; role: string; }
-interface EditForm { name: string; phone: string; role: string; }
+interface EditForm { name: string; email: string; phone: string; role: string; isActive: boolean; }
+interface ResetPwdForm { newPassword: string; confirmPassword: string; }
 interface PwdForm { currentPassword: string; newPassword: string; confirmPassword: string; }
 
 const EMPTY_CREATE: CreateForm = { name: '', email: '', password: '', phone: '', role: 'CUSTOMER' };
-const EMPTY_EDIT: EditForm = { name: '', phone: '', role: 'CUSTOMER' };
+const EMPTY_EDIT: EditForm = { name: '', email: '', phone: '', role: 'CUSTOMER', isActive: true };
+const EMPTY_RESET_PWD: ResetPwdForm = { newPassword: '', confirmPassword: '' };
 const EMPTY_PWD: PwdForm = { currentPassword: '', newPassword: '', confirmPassword: '' };
 
 const Input: React.FC<{ label: string; value: string; onChange: (v: string) => void; type?: string; required?: boolean; placeholder?: string; error?: string }> = ({ label, value, onChange, type = 'text', required, placeholder, error }) => (
@@ -50,6 +52,15 @@ const AdminUsersPage: React.FC = () => {
   const [pwdError, setPwdError] = useState('');
   const [pwdSuccess, setPwdSuccess] = useState(false);
 
+  // Reset user password state
+  const [resetPwdForm, setResetPwdForm] = useState<ResetPwdForm>(EMPTY_RESET_PWD);
+  const [resetPwdError, setResetPwdError] = useState('');
+  const [resetPwdSuccess, setResetPwdSuccess] = useState(false);
+  const [resetPwdSaving, setResetPwdSaving] = useState(false);
+  const [showNewPwd, setShowNewPwd] = useState(false);
+  const [showConfirmPwd, setShowConfirmPwd] = useState(false);
+  const [confirmResetOpen, setConfirmResetOpen] = useState(false);
+
   const load = useCallback(async (p = page) => {
     setLoading(true); setError(null);
     try {
@@ -79,16 +90,57 @@ const AdminUsersPage: React.FC = () => {
     finally { setSaving(false); }
   };
 
-  const openEdit = (u: AdminUser) => { setEditUser(u); setEditForm({ name: u.name, phone: u.phone ?? '', role: u.role }); };
+  const openEdit = (u: AdminUser) => {
+    setEditUser(u);
+    setEditForm({ name: u.name, email: u.email, phone: u.phone ?? '', role: u.role, isActive: u.isActive });
+    setResetPwdForm(EMPTY_RESET_PWD);
+    setResetPwdError('');
+    setResetPwdSuccess(false);
+    setShowNewPwd(false);
+    setShowConfirmPwd(false);
+  };
 
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault(); if (!editUser) return; setFormError('');
     setSaving(true);
     try {
-      await adminUsersApi.update(editUser.id, { name: editForm.name, phone: editForm.phone || undefined, role: editForm.role });
+      await adminUsersApi.update(editUser.id, {
+        name: editForm.name,
+        email: editForm.email || undefined,
+        phone: editForm.phone || undefined,
+        role: editForm.role,
+        isActive: editForm.isActive,
+      });
       setEditUser(null); await load(page);
     } catch (e) { setFormError((e as Error).message); }
     finally { setSaving(false); }
+  };
+
+  const pwdStrength = (pwd: string): { label: string; color: string; width: string } => {
+    if (pwd.length === 0) return { label: '', color: '', width: '0%' };
+    let score = 0;
+    if (pwd.length >= 8) score++;
+    if (pwd.length >= 12) score++;
+    if (/[A-Z]/.test(pwd)) score++;
+    if (/[0-9]/.test(pwd)) score++;
+    if (/[^A-Za-z0-9]/.test(pwd)) score++;
+    if (score <= 1) return { label: 'Weak', color: 'bg-red-500', width: '25%' };
+    if (score === 2) return { label: 'Fair', color: 'bg-yellow-500', width: '50%' };
+    if (score === 3) return { label: 'Good', color: 'bg-blue-500', width: '75%' };
+    return { label: 'Strong', color: 'bg-green-500', width: '100%' };
+  };
+
+  const handleResetUserPassword = async () => {
+    if (!editUser) return;
+    setResetPwdSaving(true); setResetPwdError('');
+    try {
+      await adminUsersApi.resetUserPassword(editUser.id, { newPassword: resetPwdForm.newPassword });
+      setResetPwdSuccess(true);
+      setResetPwdForm(EMPTY_RESET_PWD);
+      setConfirmResetOpen(false);
+      setTimeout(() => setResetPwdSuccess(false), 3000);
+    } catch (e) { setResetPwdError((e as Error).message); setConfirmResetOpen(false); }
+    finally { setResetPwdSaving(false); }
   };
 
   const handleToggle = async () => {
@@ -266,16 +318,39 @@ const AdminUsersPage: React.FC = () => {
 
       {/* Edit */}
       <AdminModal open={!!editUser} onClose={() => setEditUser(null)} title={`Edit: ${editUser?.name}`}>
+        {/* ── Basic Information ── */}
         <form onSubmit={handleEdit} className="space-y-4">
           {formError && <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-900/20 px-4 py-3 text-sm text-red-700">{formError}</div>}
-          <Input label="Full Name" value={editForm.name} onChange={v => setEditForm(f => ({ ...f, name: v }))} required />
-          <Input label="Phone" value={editForm.phone} onChange={v => setEditForm(f => ({ ...f, phone: v }))} placeholder="+250 7XX XXX XXX" />
-          <div className="space-y-1">
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">Role</label>
-            <select value={editForm.role} onChange={e => setEditForm(f => ({ ...f, role: e.target.value }))}
-              className="w-full rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-3 py-2 text-sm outline-none focus:border-orange-400">
-              {ALL_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
-            </select>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Basic Information</p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Input label="Full Name" value={editForm.name} onChange={v => setEditForm(f => ({ ...f, name: v }))} required />
+            <Input label="Email" type="email" value={editForm.email} onChange={v => setEditForm(f => ({ ...f, email: v }))} required />
+            <Input label="Phone" value={editForm.phone} onChange={v => setEditForm(f => ({ ...f, phone: v }))} placeholder="+250 7XX XXX XXX" />
+            <div className="space-y-1">
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">Role</label>
+              <select value={editForm.role} onChange={e => setEditForm(f => ({ ...f, role: e.target.value }))}
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-3 py-2 text-sm outline-none focus:border-orange-400">
+                {ALL_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+          </div>
+          {/* Active / Suspended toggle */}
+          <div className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3">
+            <div>
+              <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Account Status</p>
+              <p className="text-xs text-slate-400">{editForm.isActive ? 'User can log in and use the platform' : 'User is suspended and cannot log in'}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setEditForm(f => ({ ...f, isActive: !f.isActive }))}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
+                editForm.isActive ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-600'
+              }`}
+            >
+              <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition duration-200 ${
+                editForm.isActive ? 'translate-x-5' : 'translate-x-0'
+              }`} />
+            </button>
           </div>
           <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-slate-700">
             <button type="submit" disabled={saving}
@@ -289,12 +364,102 @@ const AdminUsersPage: React.FC = () => {
             </button>
           </div>
         </form>
+
+        {/* ── Reset Password Section ── */}
+        <div className="mt-6 border-t border-slate-200 dark:border-slate-700 pt-5 space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Reset Password</p>
+          {resetPwdSuccess && (
+            <div className="rounded-xl bg-green-50 dark:bg-green-900/20 px-4 py-3 text-sm text-green-700 dark:text-green-400">
+              Password reset successfully!
+            </div>
+          )}
+          {resetPwdError && (
+            <div className="rounded-xl bg-red-50 dark:bg-red-900/20 px-4 py-3 text-sm text-red-700">{resetPwdError}</div>
+          )}
+          {/* New Password */}
+          <div className="space-y-1">
+            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">New Password *</label>
+            <div className="relative">
+              <input
+                type={showNewPwd ? 'text' : 'password'}
+                value={resetPwdForm.newPassword}
+                onChange={e => setResetPwdForm(f => ({ ...f, newPassword: e.target.value }))}
+                placeholder="Min. 8 characters"
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white px-3 py-2 pr-10 text-sm outline-none focus:border-orange-400"
+              />
+              <button type="button" onClick={() => setShowNewPwd(v => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                {showNewPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            {/* Strength indicator */}
+            {resetPwdForm.newPassword.length > 0 && (() => {
+              const s = pwdStrength(resetPwdForm.newPassword);
+              return (
+                <div className="space-y-1">
+                  <div className="h-1.5 w-full rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                    <div className={`h-full rounded-full transition-all duration-300 ${s.color}`} style={{ width: s.width }} />
+                  </div>
+                  <p className={`text-xs font-medium ${
+                    s.label === 'Weak' ? 'text-red-500' :
+                    s.label === 'Fair' ? 'text-yellow-500' :
+                    s.label === 'Good' ? 'text-blue-500' : 'text-green-500'
+                  }`}>{s.label}</p>
+                </div>
+              );
+            })()}
+          </div>
+          {/* Confirm Password */}
+          <div className="space-y-1">
+            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">Confirm Password *</label>
+            <div className="relative">
+              <input
+                type={showConfirmPwd ? 'text' : 'password'}
+                value={resetPwdForm.confirmPassword}
+                onChange={e => setResetPwdForm(f => ({ ...f, confirmPassword: e.target.value }))}
+                placeholder="Re-enter new password"
+                className={`w-full rounded-xl border ${
+                  resetPwdForm.confirmPassword && resetPwdForm.confirmPassword !== resetPwdForm.newPassword
+                    ? 'border-red-400' : 'border-slate-200 dark:border-slate-700'
+                } bg-white dark:bg-slate-800 dark:text-white px-3 py-2 pr-10 text-sm outline-none focus:border-orange-400`}
+              />
+              <button type="button" onClick={() => setShowConfirmPwd(v => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                {showConfirmPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            {resetPwdForm.confirmPassword && resetPwdForm.confirmPassword !== resetPwdForm.newPassword && (
+              <p className="text-xs text-red-500">Passwords do not match</p>
+            )}
+          </div>
+          <button
+            type="button"
+            disabled={resetPwdSaving || resetPwdForm.newPassword.length < 8 || resetPwdForm.newPassword !== resetPwdForm.confirmPassword}
+            onClick={() => setConfirmResetOpen(true)}
+            className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600 disabled:opacity-40 transition"
+          >
+            {resetPwdSaving && <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
+            <KeyRound className="h-4 w-4" /> Reset Password
+          </button>
+        </div>
       </AdminModal>
+
+      {/* Confirm reset password dialog */}
+      <ConfirmModal
+        open={confirmResetOpen}
+        danger
+        onClose={() => setConfirmResetOpen(false)}
+        onConfirm={handleResetUserPassword}
+        loading={resetPwdSaving}
+        title="Reset User Password"
+        message={`This will immediately replace the password for "${editUser?.name}". They will need to use the new password to log in. Continue?`}
+        confirmLabel="Yes, Reset Password"
+      />
 
       {/* Change Password (own account) */}
       <AdminModal open={pwdOpen} onClose={() => setPwdOpen(false)} title="Change My Password">
         <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/20 px-4 py-3 text-xs text-amber-700 dark:text-amber-300">
-          This changes <strong>your own</strong> admin password via <code>POST /users/me/change-password</code>. To reset another user's password a separate admin-reset endpoint is required (not yet in backend).
+          This changes <strong>your own</strong> admin account password.
         </div>
         {pwdSuccess && <div className="mb-3 rounded-xl bg-green-50 dark:bg-green-900/20 px-4 py-3 text-sm text-green-700 dark:text-green-400">Password changed successfully!</div>}
         {pwdError && <div className="mb-3 rounded-xl bg-red-50 dark:bg-red-900/20 px-4 py-3 text-sm text-red-700">{pwdError}</div>}

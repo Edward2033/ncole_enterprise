@@ -7,13 +7,21 @@ import { Role } from '@prisma/client';
 export const updateProfileSchema = z.object({
   name: z.string().min(2).max(100).optional(),
   phone: z.string().optional(),
+  email: z.string().email().optional(),
+  avatarUrl: z.string().url().optional().or(z.literal('')),
 });
 
 export const adminUpdateUserSchema = z.object({
   name: z.string().min(2).max(100).optional(),
+  email: z.string().email().optional(),
   phone: z.string().optional(),
   role: z.enum(['ADMIN','VENDOR','CUSTOMER','RIDER']).optional(),
   isActive: z.boolean().optional(),
+});
+
+export const adminResetPasswordSchema = z.object({
+  newPassword: z.string().min(8),
+  notifyUser: z.boolean().optional().default(false),
 });
 
 export const createUserSchema = z.object({
@@ -31,6 +39,7 @@ export const changePasswordSchema = z.object({
 
 export type UpdateProfileDto = z.infer<typeof updateProfileSchema>;
 export type AdminUpdateUserDto = z.infer<typeof adminUpdateUserSchema>;
+export type AdminResetPasswordDto = z.infer<typeof adminResetPasswordSchema>;
 export type CreateUserDto = z.infer<typeof createUserSchema>;
 export type ChangePasswordDto = z.infer<typeof changePasswordSchema>;
 
@@ -41,6 +50,7 @@ const safeUserSelect = {
   phone: true,
   role: true,
   isActive: true,
+  avatarUrl: true,
   createdAt: true,
 } as const;
 
@@ -51,6 +61,10 @@ export async function getMe(userId: string) {
 }
 
 export async function updateMe(userId: string, dto: UpdateProfileDto) {
+  if (dto.email) {
+    const existing = await prisma.user.findFirst({ where: { email: dto.email, NOT: { id: userId } } });
+    if (existing) throw AppError.conflict('Email is already in use');
+  }
   return prisma.user.update({ where: { id: userId }, data: dto, select: safeUserSelect });
 }
 
@@ -71,6 +85,12 @@ export async function listUsers(page: number, limit: number) {
 export async function adminUpdateUser(id: string, dto: AdminUpdateUserDto) {
   const user = await prisma.user.findUnique({ where: { id } });
   if (!user) throw AppError.notFound('User');
+
+  // Guard against duplicate email before hitting the DB unique constraint
+  if (dto.email && dto.email !== user.email) {
+    const conflict = await prisma.user.findFirst({ where: { email: dto.email, NOT: { id } } });
+    if (conflict) throw AppError.conflict('Email is already in use by another account');
+  }
 
   // Step 1: update the user record
   const updated = await prisma.user.update({
@@ -148,4 +168,30 @@ export async function changePassword(userId: string, dto: ChangePasswordDto) {
   if (!valid) throw AppError.badRequest('Current password is incorrect');
   const passwordHash = await hashPassword(dto.newPassword);
   await prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+}
+
+export async function adminResetUserPassword(
+  adminId: string,
+  targetId: string,
+  dto: AdminResetPasswordDto,
+) {
+  const target = await prisma.user.findUnique({ where: { id: targetId }, select: { id: true, name: true, email: true } });
+  if (!target) throw AppError.notFound('User');
+  const passwordHash = await hashPassword(dto.newPassword);
+  await prisma.user.update({ where: { id: targetId }, data: { passwordHash } });
+
+  // Audit log
+  const { audit } = await import('@/shared/utils/audit');
+  audit({ userId: adminId, action: 'PASSWORD_RESET_COMPLETED', entity: 'User', entityId: targetId, metadata: { resetBy: adminId } });
+
+  // Optional email notification
+  if (dto.notifyUser) {
+    const { sendMail } = await import('@/shared/utils/email');
+    const { env } = await import('@/config/env');
+    await sendMail({
+      to: target.email,
+      subject: 'Your N_COLE password has been reset',
+      html: `<p>Hi ${target.name},</p><p>An administrator has reset your password. <a href="${env.APP_URL}/reset-password">Click here</a> to set a new password, or log in with the new credentials provided to you.</p>`,
+    });
+  }
 }
