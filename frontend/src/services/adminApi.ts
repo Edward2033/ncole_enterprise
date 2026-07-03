@@ -27,7 +27,7 @@ export interface AdminProduct {
 
 export interface AdminCategory {
   id: string; name: string; slug: string; description?: string;
-  imageUrl?: string; parentId?: string | null; sortOrder: number;
+  parentId?: string | null; sortOrder: number;
   isVisible: boolean; createdAt: string;
   children?: AdminCategory[];
 }
@@ -160,12 +160,14 @@ export const adminProductsApi = {
 export const adminCategoriesApi = {
   /** Admin list — fetches ALL categories including hidden ones (?all=true) */
   list: () => apiFetch<ApiResp<AdminCategory[]>>('/categories?all=true'),
-  create: (body: { name: string; slug: string; description?: string; imageUrl?: string; parentId?: string; sortOrder?: number }) =>
+  create: (body: { name: string; slug: string; description?: string; parentId?: string; sortOrder?: number; isVisible?: boolean }) =>
     apiFetch<ApiResp<AdminCategory>>('/categories', { method: 'POST', body: JSON.stringify(body) }),
-  update: (id: string, body: Partial<{ name: string; slug: string; description: string; imageUrl: string; parentId: string | null; sortOrder: number; isVisible: boolean }>) =>
+  update: (id: string, body: Partial<{ name: string; slug: string; description: string; parentId: string | null; sortOrder: number; isVisible: boolean }>) =>
     apiFetch<ApiResp<AdminCategory>>(`/categories/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
   delete: (id: string) =>
     apiFetch<ApiResp<void>>(`/categories/${id}`, { method: 'DELETE' }),
+  seedDefaults: () =>
+    apiFetch<ApiResp<{ created: number; skipped: number }>>('/categories/seed', { method: 'POST' }),
 };
 
 // ─── Orders ───────────────────────────────────────────────────────────────────
