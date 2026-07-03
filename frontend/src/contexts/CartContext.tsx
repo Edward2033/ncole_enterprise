@@ -45,7 +45,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       return [...prev, { ...item, quantity }];
     });
-    setIsOpen(true);
+    // Do NOT open the cart drawer automatically — user must click the cart icon
   }, []);
 
   const removeFromCart = useCallback((productId: string, variantId?: string) => {

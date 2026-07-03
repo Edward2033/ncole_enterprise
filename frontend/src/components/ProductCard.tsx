@@ -1,12 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Star } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 import { Product } from '@/lib/types';
 import { formatPrice } from '@/lib/format';
 import { useCart } from '@/contexts/CartContext';
+import { useToast } from '@/hooks/use-toast';
 
 const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
   const { addToCart } = useCart();
+  const { toast } = useToast();
   const image = product.images?.[0];
   const price = product.has_variants && product.variants?.length
     ? Math.min(...product.variants.map(v => v.price))
@@ -18,6 +20,7 @@ const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
     e.preventDefault();
     if (product.has_variants && product.variants?.length) return;
     addToCart({ product_id: product.id, name: product.name, sku: product.sku || product.handle, price: product.price, image, vendorId: product.vendorId }, 1);
+    toast({ title: 'Added to cart', description: product.name });
   };
 
   return (
@@ -51,10 +54,6 @@ const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
         <p className="mt-1 line-clamp-2 flex-1 text-xs text-slate-500 sm:text-sm">{product.description}</p>
         <div className="mt-2 flex items-center justify-between sm:mt-3">
           <span className="text-base font-bold text-slate-900 sm:text-lg">{formatPrice(price)}</span>
-          <div className="flex items-center gap-1 text-xs">
-            <Star className="h-3 w-3 fill-amber-400 text-amber-400 sm:h-3.5 sm:w-3.5" />
-            <span className="font-medium text-slate-600">4.8</span>
-          </div>
         </div>
       </div>
     </Link>

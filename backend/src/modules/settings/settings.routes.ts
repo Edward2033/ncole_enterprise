@@ -5,7 +5,7 @@ import { validate } from '@/middleware/validate';
 import {
   platformPatchSchema, heroSlideSchema, heroSlidePatchSchema,
   bannerSchema, bannerPatchSchema, maintenancePatchSchema,
-  siteSettingsPatchSchema,
+  siteSettingsPatchSchema, testimonialSchema, testimonialPatchSchema,
 } from './settings.service';
 import {
   getPlatform, patchPlatform,
@@ -13,6 +13,7 @@ import {
   getBanners, postBanner, patchBanner, deleteBanner_,
   getMaintenance, patchMaintenance,
   getSiteSettingsHandler, putSiteSettingsHandler,
+  getTestimonialsHandler, postTestimonialHandler, patchTestimonialHandler, deleteTestimonialHandler,
 } from './settings.controller';
 
 const router = Router();
@@ -70,5 +71,18 @@ router.patch('/maintenance', authorize('ADMIN'), validate(maintenancePatchSchema
 // ─── Site Settings ────────────────────────────────────────────────────────────
 router.get('/site-settings', authorize('ADMIN'), getSiteSettingsHandler);
 router.put('/site-settings', authorize('ADMIN'), validate(siteSettingsPatchSchema), putSiteSettingsHandler);
+
+// ─── Testimonials (public read, admin write) ──────────────────────────────────
+router.get('/testimonials/public', async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { listTestimonials } = await import('./settings.service');
+    const all = await listTestimonials();
+    res.json({ success: true, data: all.filter(t => t.isPublished) });
+  } catch (e) { next(e); }
+});
+router.get(   '/testimonials',     authorize('ADMIN'), getTestimonialsHandler);
+router.post(  '/testimonials',     authorize('ADMIN'), validate(testimonialSchema), postTestimonialHandler);
+router.patch( '/testimonials/:id', authorize('ADMIN'), validate(testimonialPatchSchema), patchTestimonialHandler);
+router.delete('/testimonials/:id', authorize('ADMIN'), deleteTestimonialHandler);
 
 export default router;

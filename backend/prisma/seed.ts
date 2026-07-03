@@ -13,7 +13,7 @@ async function main() {
     update: {},
     create: {
       email: 'admin@ncole.rw',
-      name: 'N_COLE Admin',
+      name: 'Ncole Admin',
       passwordHash: adminHash,
       role: 'ADMIN',
     },

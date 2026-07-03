@@ -94,7 +94,7 @@ const AdminSiteSettingsPage: React.FC = () => {
         <Section icon={<Mail className="h-4 w-4" />} title="Contact Info">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Site Name">
-              <input className={inputCls} value={form.siteName} onChange={e => set('siteName', e.target.value)} placeholder="N_COLE Interpress" />
+              <input className={inputCls} value={form.siteName} onChange={e => set('siteName', e.target.value)} placeholder="Ncole Interpress" />
             </Field>
             <Field label="Support Email">
               <input className={inputCls} type="email" value={form.supportEmail} onChange={e => set('supportEmail', e.target.value)} placeholder="support@ncoleinterpress.com" />

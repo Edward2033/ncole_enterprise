@@ -29,7 +29,7 @@ const STATIC_SLIDES: HeroSlide[] = [
   },
   {
     id: 'static-2',
-    title: "Grow Your Business on N_COLE Interpress",
+    title: "Grow Your Business on Ncole Interpress",
     subtitle: "Join thousands of vendors already selling on Rwanda's fastest-growing e-commerce platform. Zero setup fees.",
     imageUrl: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1400&q=80&auto=format&fit=crop',
     buttonText: 'Become a Vendor',
@@ -40,7 +40,7 @@ const STATIC_SLIDES: HeroSlide[] = [
   {
     id: 'static-3',
     title: "Your Smart African Marketplace",
-    subtitle: "Chat with N-COLE AI to find exactly what you need. Smart recommendations, real-time order tracking, instant support.",
+    subtitle: "Chat with Ncole AI to find exactly what you need. Smart recommendations, real-time order tracking, instant support.",
     imageUrl: 'https://images.unsplash.com/photo-1591115765373-5207764f72e7?w=1400&q=80&auto=format&fit=crop',
     buttonText: 'Start Shopping',
     buttonLink: '/shop',

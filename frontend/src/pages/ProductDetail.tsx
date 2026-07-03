@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   Minus, Plus, ShoppingCart, Check, Truck, ShieldCheck,
-  Clock, Star, ChevronRight, Eye,
+  Clock, ChevronRight, Eye,
 } from 'lucide-react';
 import { productsService, type NcoleProduct, type NcoleVariant } from '@/services/api';
 import { formatPrice } from '@/lib/format';
@@ -259,14 +259,9 @@ const ProductDetail: React.FC = () => {
 
             <h1 className="mt-2 text-2xl font-bold text-slate-900 sm:text-3xl">{product.name}</h1>
 
-            {/* Rating (static UI — no reviews API yet) */}
+            {/* Rating — no reviews yet, show empty state */}
             <div className="mt-3 flex items-center gap-2">
-              <div className="flex gap-0.5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
-                ))}
-              </div>
-              <span className="text-sm text-slate-500">4.8 · 124 reviews</span>
+              <span className="text-sm text-slate-400">No ratings yet — be the first to review</span>
             </div>
 
             {/* Price */}
@@ -415,25 +410,8 @@ const ProductDetail: React.FC = () => {
 
         {/* ── Reviews ── */}
         <section className="mt-16 border-t border-slate-100 pt-12">
-          <h2 className="mb-8 text-2xl font-bold text-slate-900">Customer Reviews</h2>
-          {/* Static placeholder — no reviews API endpoint exists yet */}
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              { name: 'Amina K.', rating: 5, text: 'Excellent quality product. Arrived faster than expected!' },
-              { name: 'Jean P.', rating: 5, text: 'Very happy with this purchase. Will order again.' },
-              { name: 'Grace M.', rating: 4, text: 'Good value for money. Packaging was great too.' },
-            ].map(r => (
-              <div key={r.name} className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-                <div className="flex gap-0.5">
-                  {Array.from({ length: r.rating }).map((_, i) => (
-                    <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                  ))}
-                </div>
-                <p className="mt-3 text-sm leading-relaxed text-slate-600">"{r.text}"</p>
-                <p className="mt-3 text-xs font-semibold text-slate-500">— {r.name}</p>
-              </div>
-            ))}
-          </div>
+          <h2 className="mb-4 text-2xl font-bold text-slate-900">Customer Reviews</h2>
+          <p className="text-sm text-slate-400">No reviews yet for this product.</p>
         </section>
 
         {/* ── Recently Viewed ── */}

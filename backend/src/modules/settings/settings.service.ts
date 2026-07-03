@@ -53,7 +53,7 @@ export const platformPatchSchema = platformSchema.partial();
 export type PlatformConfig = z.infer<typeof platformSchema>;
 
 const PLATFORM_DEFAULTS: PlatformConfig = {
-  platformName:      'N_COLE Interpress',
+  platformName:      'Ncole Interpress',
   version:           '1.0.0',
   storefrontUrl:     'https://ncoleinterpress.com',
   customerPortalUrl: 'https://app.ncoleinterpress.com',
@@ -207,7 +207,7 @@ export const siteSettingsPatchSchema = siteSettingsSchema.partial();
 export type SiteSettings = z.infer<typeof siteSettingsSchema>;
 
 const SITE_SETTINGS_DEFAULTS: SiteSettings = {
-  siteName:       'N_COLE Interpress',
+  siteName:       'Ncole Interpress',
   supportEmail:   'support@ncoleinterpress.com',
   contactEmail:   'hello@ncoleinterpress.com',
   whatsappNumber: '+250794890144',
@@ -229,6 +229,51 @@ export async function updateSiteSettings(dto: Partial<SiteSettings>): Promise<Si
   const updated = { ...current, ...dto };
   await set('site_settings', updated);
   return updated;
+}
+
+// ─── Testimonials ─────────────────────────────────────────────────────────────
+
+export const testimonialSchema = z.object({
+  name:        z.string().min(1).max(100),
+  role:        z.string().max(100).default(''),
+  rating:      z.number().int().min(1).max(5).default(5),
+  text:        z.string().min(1).max(1000),
+  photoUrl:    z.string().url().optional().or(z.literal('')),
+  isPublished: z.boolean().default(false),
+});
+
+export const testimonialPatchSchema = testimonialSchema.partial();
+
+export interface Testimonial extends z.infer<typeof testimonialSchema> {
+  id: string;
+  createdAt: string;
+}
+
+export async function listTestimonials(): Promise<Testimonial[]> {
+  return get<Testimonial[]>('testimonials', []);
+}
+
+export async function createTestimonial(dto: z.infer<typeof testimonialSchema>): Promise<Testimonial> {
+  const all = await listTestimonials();
+  const item: Testimonial = { ...dto, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+  await set('testimonials', [...all, item]);
+  return item;
+}
+
+export async function updateTestimonial(id: string, dto: Partial<z.infer<typeof testimonialSchema>>): Promise<Testimonial> {
+  const all = await listTestimonials();
+  const idx = all.findIndex(t => t.id === id);
+  if (idx === -1) throw new Error('Testimonial not found');
+  all[idx] = { ...all[idx], ...dto };
+  await set('testimonials', all);
+  return all[idx];
+}
+
+export async function deleteTestimonial(id: string): Promise<void> {
+  const all = await listTestimonials();
+  const filtered = all.filter(t => t.id !== id);
+  if (filtered.length === all.length) throw new Error('Testimonial not found');
+  await set('testimonials', filtered);
 }
 
 // ─── Maintenance Mode ─────────────────────────────────────────────────────────

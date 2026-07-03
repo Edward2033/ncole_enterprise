@@ -1,4 +1,4 @@
-// Single fetch-based API client for the N_COLE Express backend
+// Single fetch-based API client for the Ncole Interpress backend
 import { API_BASE as BASE } from '@/config/api';
 const TOKENS_KEY = 'ncole_tokens';
 
@@ -177,8 +177,16 @@ export const addressesService = {
 
 export const usersService = {
   me: () => apiFetch<ApiResp<NcoleUser>>('/users/me'),
-  updateMe: (body: { name?: string; phone?: string }) =>
+  updateMe: (body: { name?: string; phone?: string; avatarUrl?: string }) =>
     apiFetch<ApiResp<NcoleUser>>('/users/me', { method: 'PATCH', body: JSON.stringify(body) }),
+  uploadAvatar: async (file: File): Promise<string> => {
+    const fd = new FormData();
+    fd.append('image', file);
+    const res = await fetch(`${BASE}/products/upload-application-photo`, { method: 'POST', body: fd });
+    if (!res.ok) throw new Error('Avatar upload failed');
+    const json = await res.json();
+    return json.data.url as string;
+  },
 };
 
 export const notificationsService = {
@@ -261,7 +269,7 @@ export interface OtpChallenge { requiresOtp: true; userId: string; }
 
 export interface NcoleUser {
   id: string; email: string; name: string; phone?: string;
-  role: string; isActive: boolean; createdAt: string;
+  role: string; isActive: boolean; createdAt: string; avatarUrl?: string;
 }
 export interface NcoleProduct {
   id: string; name: string; slug: string; description?: string;

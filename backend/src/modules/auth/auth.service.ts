@@ -140,7 +140,7 @@ export async function forgotPassword(dto: ForgotPasswordDto): Promise<void> {
   const resetUrl = `${env.APP_URL}/reset-password?token=${token}`;
   await sendMail({
     to: user.email,
-    subject: 'Reset your N_COLE Interpress password',
+    subject: 'Reset your Ncole Interpress password',
     html: passwordResetEmailHtml(user.name, resetUrl),
   });
 

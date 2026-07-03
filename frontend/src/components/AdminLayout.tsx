@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   LayoutDashboard, Users, Store, Package, ShoppingBag,
   FolderOpen, BarChart2, Settings, CreditCard, Bell, Bike,
-  LogOut, Menu, X, Shield, ClipboardList, Bot, FileText, Globe,
+  LogOut, Menu, X, Shield, ClipboardList, Bot, FileText, Globe, Star,
 } from 'lucide-react';
 import FloatingActionButtons from '@/components/FloatingActionButtons';
 
@@ -20,6 +20,7 @@ const NAV = [
   { to: '/admin/riders',        icon: Bike,            label: 'Riders' },
   { to: '/admin/notifications', icon: Bell,            label: 'Notifications' },
   { to: '/admin/analytics',     icon: BarChart2,       label: 'Analytics' },
+  { to: '/admin/testimonials',  icon: Star,            label: 'Testimonials' },
   { to: '/admin/activity-log',  icon: ClipboardList,   label: 'Activity Log' },
   { to: '/admin/ai-settings',   icon: Bot,             label: 'AI Settings' },
   { to: '/admin/site-settings', icon: Globe,           label: 'Site Settings' },
@@ -79,7 +80,7 @@ const AdminLayout: React.FC = () => {
               <Shield className="h-4 w-4" />
             </div>
             <div>
-              <p className="font-bold text-slate-900 dark:text-white text-sm">N_COLE Admin</p>
+              <p className="font-bold text-slate-900 dark:text-white text-sm">Ncole Admin</p>
               <p className="text-[11px] text-slate-500">Administrator Portal</p>
             </div>
           </div>
@@ -92,15 +93,19 @@ const AdminLayout: React.FC = () => {
 
         {/* User footer */}
         <div className="border-t border-slate-200 dark:border-slate-700 p-3">
-          <div className="flex items-center gap-2 mb-2 px-2">
-            <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-orange-100 text-orange-700 text-xs font-bold">
-              {initials}
-            </div>
+          <Link to="/admin/profile" className="flex items-center gap-2 mb-2 px-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition py-1">
+            {user?.avatarUrl ? (
+              <img src={user.avatarUrl} alt={user.name} className="h-7 w-7 flex-shrink-0 rounded-full object-cover" />
+            ) : (
+              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-orange-100 text-orange-700 text-xs font-bold">
+                {initials}
+              </div>
+            )}
             <div className="min-w-0">
               <p className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">{user?.name}</p>
               <p className="text-[11px] text-slate-400 truncate">{user?.email}</p>
             </div>
-          </div>
+          </Link>
           <button
             onClick={handleSignOut}
             className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition"
@@ -116,7 +121,7 @@ const AdminLayout: React.FC = () => {
           <div className="absolute inset-0 bg-black/50" onClick={() => setDrawerOpen(false)} />
           <div className="absolute left-0 top-0 flex h-full w-64 flex-col bg-white dark:bg-slate-900 shadow-xl">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 px-4 py-3">
-              <span className="font-bold text-sm dark:text-white">N_COLE Admin</span>
+              <span className="font-bold text-sm dark:text-white">Ncole Admin</span>
               <button onClick={() => setDrawerOpen(false)} className="rounded-lg p-1 hover:bg-slate-100 dark:hover:bg-slate-800">
                 <X className="h-5 w-5" />
               </button>
@@ -144,12 +149,18 @@ const AdminLayout: React.FC = () => {
             <Menu className="h-5 w-5" />
           </button>
           <div className="ml-auto flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100 text-orange-700 text-xs font-bold">
-              {initials}
-            </div>
-            <span className="hidden text-sm font-medium text-slate-700 dark:text-slate-300 sm:block">
-              {user?.name}
-            </span>
+            <Link to="/admin/profile" className="flex items-center gap-2.5 rounded-xl px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+              {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt={user.name} className="h-8 w-8 rounded-full object-cover" />
+              ) : (
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100 text-orange-700 text-xs font-bold">
+                  {initials}
+                </div>
+              )}
+              <span className="hidden text-sm font-medium text-slate-700 dark:text-slate-300 sm:block">
+                {user?.name}
+              </span>
+            </Link>
           </div>
         </header>
 
@@ -162,7 +173,7 @@ const AdminLayout: React.FC = () => {
       <FloatingActionButtons
         portal="ADMIN"
         accentClass="bg-orange-500"
-        greeting="Hi! I'm N-COLE Admin AI. How can I help with platform analytics today?"
+        greeting="Hi! I'm Ncole Admin AI. How can I help with platform analytics today?"
         showWhatsApp={false}
       />
     </div>

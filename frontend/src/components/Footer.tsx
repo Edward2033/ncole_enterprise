@@ -15,7 +15,7 @@ const Footer: React.FC = () => {
     if (email) { setDone(true); setEmail(''); }
   };
 
-  const siteName     = site.siteName    || 'N_COLE Interpress';
+  const siteName     = site.siteName    || 'Ncole Interpress';
   const footerText   = site.footerText  || "Rwanda's premier multi-vendor e-commerce marketplace. Powered by AI. Built for Africa.";
   const contactEmail = site.contactEmail || null;
   const phone        = site.phoneNumber  || null;

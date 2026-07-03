@@ -411,3 +411,35 @@ export const adminSiteSettingsApi = {
   update: (body: Partial<SiteSettings>) =>
     apiFetch<ApiResp<SiteSettings>>('/settings/site-settings', { method: 'PUT', body: JSON.stringify(body) }),
 };
+
+// ─── Testimonials ─────────────────────────────────────────────────────────────
+
+export interface AdminTestimonial {
+  id: string;
+  name: string;
+  role: string;
+  rating: number;
+  text: string;
+  photoUrl?: string;
+  isPublished: boolean;
+  createdAt: string;
+}
+
+export const adminTestimonialsApi = {
+  list: () =>
+    apiFetch<ApiResp<AdminTestimonial[]>>('/settings/testimonials'),
+  create: (body: Omit<AdminTestimonial, 'id' | 'createdAt'>) =>
+    apiFetch<ApiResp<AdminTestimonial>>('/settings/testimonials', { method: 'POST', body: JSON.stringify(body) }),
+  update: (id: string, body: Partial<Omit<AdminTestimonial, 'id' | 'createdAt'>>) =>
+    apiFetch<ApiResp<AdminTestimonial>>(`/settings/testimonials/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  remove: (id: string) =>
+    apiFetch<ApiResp<null>>(`/settings/testimonials/${id}`, { method: 'DELETE' }),
+  uploadPhoto: async (file: File): Promise<string> => {
+    const fd = new FormData();
+    fd.append('image', file);
+    const res = await fetch(`${API_BASE}/products/upload-application-photo`, { method: 'POST', body: fd });
+    if (!res.ok) throw new Error('Photo upload failed');
+    const json = await res.json();
+    return json.data.url as string;
+  },
+};

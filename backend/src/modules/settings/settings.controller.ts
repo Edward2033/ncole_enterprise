@@ -6,6 +6,7 @@ import {
   listBanners, createBanner, updateBanner, deleteBanner,
   getMaintenanceConfig, updateMaintenanceConfig,
   getSiteSettings, updateSiteSettings,
+  listTestimonials, createTestimonial, updateTestimonial, deleteTestimonial,
 } from './settings.service';
 
 // ─── Platform ─────────────────────────────────────────────────────────────────
@@ -76,4 +77,22 @@ export async function getMaintenance(_req: Request, res: Response, next: NextFun
 
 export async function patchMaintenance(req: Request, res: Response, next: NextFunction): Promise<void> {
   try { sendSuccess(res, await updateMaintenanceConfig(req.body)); } catch (e) { next(e); }
+}
+
+// ─── Testimonials ─────────────────────────────────────────────────────────────
+
+export async function getTestimonialsHandler(_req: Request, res: Response, next: NextFunction): Promise<void> {
+  try { sendSuccess(res, await listTestimonials()); } catch (e) { next(e); }
+}
+
+export async function postTestimonialHandler(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try { sendSuccess(res, await createTestimonial(req.body), 201); } catch (e) { next(e); }
+}
+
+export async function patchTestimonialHandler(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try { sendSuccess(res, await updateTestimonial(req.params['id']!, req.body)); } catch (e) { next(e); }
+}
+
+export async function deleteTestimonialHandler(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try { await deleteTestimonial(req.params['id']!); sendSuccess(res, null); } catch (e) { next(e); }
 }

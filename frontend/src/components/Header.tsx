@@ -51,7 +51,7 @@ const Header: React.FC = () => {
             <ShoppingBag className="h-5 w-5" />
           </span>
           <div className="leading-tight">
-            <span className="block font-bold text-slate-900 text-base">N_COLE</span>
+            <span className="block font-bold text-slate-900 text-base">Ncole</span>
             <span className="block text-[9px] font-semibold uppercase tracking-[0.25em] text-orange-500">Interpress</span>
           </div>
         </Link>

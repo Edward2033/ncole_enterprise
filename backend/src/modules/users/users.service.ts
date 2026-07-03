@@ -190,7 +190,7 @@ export async function adminResetUserPassword(
     const { env } = await import('@/config/env');
     await sendMail({
       to: target.email,
-      subject: 'Your N_COLE password has been reset',
+      subject: 'Your Ncole Interpress password has been reset',
       html: `<p>Hi ${target.name},</p><p>An administrator has reset your password. <a href="${env.APP_URL}/reset-password">Click here</a> to set a new password, or log in with the new credentials provided to you.</p>`,
     });
   }

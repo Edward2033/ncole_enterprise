@@ -1,22 +1,40 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   User, Settings, Edit2, Save, X, Check,
   Phone, Mail, Star, Shield, Globe, LogOut,
-  MapPin, ShoppingBag, Bell, CreditCard, ChevronRight,
+  MapPin, ShoppingBag, Bell, CreditCard, ChevronRight, Camera,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usersService } from '@/services/api';
 
 // ── Profile info section ──────────────────────────────────────────────────────
 const ProfileInfo: React.FC = () => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [editing, setEditing] = useState(false);
   const [name,    setName]    = useState(user?.name ?? '');
   const [phone,   setPhone]   = useState(user?.phone ?? '');
   const [saving,  setSaving]  = useState(false);
   const [saved,   setSaved]   = useState(false);
   const [error,   setError]   = useState('');
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true); setError('');
+    try {
+      const url = await usersService.uploadAvatar(file);
+      await usersService.updateMe({ avatarUrl: url });
+      await refreshUser();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,6 +42,7 @@ const ProfileInfo: React.FC = () => {
     setSaving(true); setError('');
     try {
       await usersService.updateMe({ name: name.trim(), phone: phone.trim() || undefined });
+      await refreshUser();
       setSaved(true); setEditing(false);
       setTimeout(() => setSaved(false), 2500);
     } catch (err) {
@@ -38,12 +57,25 @@ const ProfileInfo: React.FC = () => {
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="relative">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-amber-400 text-2xl font-bold text-white shadow-md shadow-orange-200 dark:shadow-orange-900/30">
-                {user?.name?.[0]?.toUpperCase() ?? 'U'}
-              </div>
-              <div className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-800">
-                <Check className="h-3 w-3 text-white" />
-              </div>
+              {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt={user.name} className="h-16 w-16 rounded-full object-cover shadow-md" />
+              ) : (
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-amber-400 text-2xl font-bold text-white shadow-md shadow-orange-200 dark:shadow-orange-900/30">
+                  {user?.name?.[0]?.toUpperCase() ?? 'U'}
+                </div>
+              )}
+              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
+                title="Change avatar"
+                className="absolute -bottom-0.5 -right-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-orange-500 ring-2 ring-white dark:ring-slate-800 hover:bg-orange-600 transition disabled:opacity-50"
+              >
+                {uploading
+                  ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  : <Camera className="h-3 w-3 text-white" />}
+              </button>
             </div>
             <div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">{user?.name}</h2>
@@ -179,7 +211,7 @@ const AccountSettings: React.FC = () => {
             <LogOut className="h-4 w-4 text-red-500" />
             <p className="font-semibold text-red-600">Sign Out</p>
           </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">Sign out of your N_COLE Interpress account</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">Sign out of your Ncole Interpress account</p>
           <button onClick={signOut}
             className="inline-flex items-center gap-2 rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors active:scale-95">
             <LogOut className="h-4 w-4" /> Sign Out

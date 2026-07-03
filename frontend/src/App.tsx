@@ -86,6 +86,8 @@ const AdminActivityLogPage   = lazy(() => import('@/pages/admin/AdminActivityLog
 const AdminAiSettingsPage    = lazy(() => import('@/pages/admin/AdminAiSettingsPage'));
 const AdminApplicationsPage  = lazy(() => import('@/pages/admin/AdminApplicationsPage'));
 const AdminSiteSettingsPage  = lazy(() => import('@/pages/admin/AdminSiteSettingsPage'));
+const AdminTestimonialsPage  = lazy(() => import('@/pages/admin/AdminTestimonialsPage'));
+const AdminProfilePage       = lazy(() => import('@/pages/admin/AdminProfilePage'));
 
 // ── Page loading fallback ─────────────────────────────────────────────────────
 const PageLoader = () => (
@@ -151,6 +153,8 @@ const App = () => (
                     <Route path="ai-settings"    element={<AdminAiSettingsPage />} />
                     <Route path="applications"   element={<AdminApplicationsPage />} />
                     <Route path="site-settings"  element={<AdminSiteSettingsPage />} />
+                    <Route path="testimonials"    element={<AdminTestimonialsPage />} />
+                    <Route path="profile"         element={<AdminProfilePage />} />
                     <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
                   </Route>
 
