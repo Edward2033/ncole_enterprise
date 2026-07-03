@@ -8,6 +8,7 @@ import Hero from '@/components/Hero';
 import ProductGrid from '@/components/ProductGrid';
 import { useProducts, useCollections } from '@/hooks/useProducts';
 import { statsService, apiFetch } from '@/services/api';
+import type { Banner } from '@/services/adminApi';
 
 // ─── Why Choose Us data ───────────────────────────────────────────────────────
 const WHY = [
@@ -49,11 +50,15 @@ const Home: React.FC = () => {
   const collections = useCollections();
   const [stats, setStats] = useState({ vendors: 0, products: 0, customers: 0, orders: 0 });
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [banners, setBanners] = useState<Banner[]>([]);
 
   useEffect(() => {
     statsService.get().then(r => setStats(r.data)).catch(() => null);
     apiFetch<{ success: boolean; data: Testimonial[] }>('/settings/testimonials/public')
       .then(r => setTestimonials((r.data ?? []).filter(t => t.isPublished)))
+      .catch(() => null);
+    apiFetch<{ success: boolean; data: Banner[] }>('/settings/banners/public')
+      .then(r => setBanners(r.data ?? []))
       .catch(() => null);
   }, []);
 
@@ -63,6 +68,33 @@ const Home: React.FC = () => {
     <div className="overflow-x-hidden">
       {/* ── Hero Slideshow ── */}
       <Hero />
+
+      {/* ── Active Banners ── */}
+      {banners.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 pt-6 lg:px-8">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {banners.map(b => (
+              <div key={b.id} className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 shadow-md">
+                {b.imageUrl && (
+                  <img src={b.imageUrl} alt={b.title} className="absolute inset-0 h-full w-full object-cover opacity-30" />
+                )}
+                <div className="relative p-5">
+                  <h3 className="text-lg font-bold text-white">{b.title}</h3>
+                  {b.description && <p className="mt-1 text-sm text-orange-100 line-clamp-2">{b.description}</p>}
+                  {b.buttonText && b.linkUrl && (
+                    <Link
+                      to={b.linkUrl}
+                      className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-xs font-semibold text-orange-600 hover:bg-orange-50 transition"
+                    >
+                      {b.buttonText} <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ── Trust bar ── */}
       <section className="border-b border-slate-100 bg-white">

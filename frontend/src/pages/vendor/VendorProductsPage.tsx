@@ -159,7 +159,7 @@ const VendorProductsPage: React.FC = () => {
           <table className="w-full text-sm">
             <thead className="bg-slate-50 dark:bg-slate-800/60">
               <tr>
-                {['Product', 'Price', 'Stock', 'Status', 'Category', 'Actions'].map(h => (
+                {['', 'Product', 'Price', 'Stock', 'Status', 'Category', 'Actions'].map(h => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -172,6 +172,15 @@ const VendorProductsPage: React.FC = () => {
                 </td></tr>
               ) : visible.map(p => (
                 <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                  <td className="px-3 py-2 w-12">
+                    {p.images?.[0] ? (
+                      <img src={p.images[0]} alt={p.name} className="h-10 w-10 rounded-lg object-cover border border-slate-100" />
+                    ) : (
+                      <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+                        <Package className="h-4 w-4 text-slate-300" />
+                      </div>
+                    )}
+                  </td>
                   <td className="px-4 py-3">
                     <p className="font-medium dark:text-white">{p.name}</p>
                     <p className="text-xs text-slate-400">{p.sku ?? p.slug}</p>

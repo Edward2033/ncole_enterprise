@@ -354,6 +354,19 @@ export interface MaintenanceConfig {
   allowRiders: boolean;
 }
 
+export interface HeaderSettings {
+  siteName?: string;
+  headerTitle?: string;
+  headerSubtitle?: string;
+  logoUrl?: string;
+  headerLogoUrl?: string;
+  faviconUrl?: string;
+  headerBgColor?: string;
+  headerTextColor?: string;
+  headerBgImage?: string;
+  navLinks?: Array<{ label: string; url: string }>;
+}
+
 export const adminSettingsApi = {
   // Platform
   getPlatform: () =>
@@ -376,12 +389,22 @@ export const adminSettingsApi = {
   // Banners
   getBanners: () =>
     apiFetch<ApiResp<Banner[]>>('/settings/banners'),
+  getBannersPublic: () =>
+    apiFetch<ApiResp<Banner[]>>('/settings/banners/public'),
   createBanner: (body: Omit<Banner, 'id' | 'createdAt'>) =>
     apiFetch<ApiResp<Banner>>('/settings/banners', { method: 'POST', body: JSON.stringify(body) }),
   updateBanner: (id: string, body: Partial<Omit<Banner, 'id' | 'createdAt'>>) =>
     apiFetch<ApiResp<Banner>>(`/settings/banners/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
   deleteBanner: (id: string) =>
     apiFetch<ApiResp<null>>(`/settings/banners/${id}`, { method: 'DELETE' }),
+
+  // Header Settings
+  getHeaderSettings: () =>
+    apiFetch<ApiResp<HeaderSettings>>('/settings/header-settings'),
+  updateHeaderSettings: (body: Partial<HeaderSettings>) =>
+    apiFetch<ApiResp<HeaderSettings>>('/settings/header-settings', { method: 'PATCH', body: JSON.stringify(body) }),
+  getHeaderSettingsPublic: () =>
+    apiFetch<ApiResp<HeaderSettings>>('/settings/header/public'),
 
   // Maintenance
   getMaintenance: () =>

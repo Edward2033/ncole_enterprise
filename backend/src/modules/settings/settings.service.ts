@@ -2,8 +2,6 @@ import { prisma } from '@/config/database';
 import { z } from 'zod';
 
 // ─── Bootstrap ────────────────────────────────────────────────────────────────
-// Uses a lightweight key-value table so no Prisma migration is needed.
-
 let bootstrapped = false;
 
 async function bootstrap() {
@@ -49,7 +47,6 @@ export const platformSchema = z.object({
 });
 
 export const platformPatchSchema = platformSchema.partial();
-
 export type PlatformConfig = z.infer<typeof platformSchema>;
 
 const PLATFORM_DEFAULTS: PlatformConfig = {
@@ -77,7 +74,6 @@ export async function updatePlatformConfig(dto: Partial<PlatformConfig>): Promis
 export const heroSlideSchema = z.object({
   title:       z.string().min(1).max(200),
   subtitle:    z.string().max(500).optional(),
-  // Accept any non-empty string — z.string().url() rejects relative paths and localhost URLs
   imageUrl:    z.string().min(1),
   buttonText:  z.string().max(100).optional(),
   buttonLink:  z.string().max(500).optional(),
@@ -99,11 +95,7 @@ export async function listHeroSlides(): Promise<HeroSlide[]> {
 
 export async function createHeroSlide(dto: z.infer<typeof heroSlideSchema>): Promise<HeroSlide> {
   const slides = await listHeroSlides();
-  const slide: HeroSlide = {
-    ...dto,
-    id:        crypto.randomUUID(),
-    createdAt: new Date().toISOString(),
-  };
+  const slide: HeroSlide = { ...dto, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
   await set('hero_slides', [...slides, slide]);
   return slide;
 }
@@ -140,7 +132,6 @@ export async function reorderHeroSlides(ids: string[]): Promise<HeroSlide[]> {
 export const bannerSchema = z.object({
   title:       z.string().min(1).max(200),
   description: z.string().max(500).optional(),
-  // Accept any non-empty string for imageUrl — z.string().url() rejects relative paths and localhost URLs
   imageUrl:    z.string().min(1),
   buttonText:  z.string().max(100).optional(),
   linkUrl:     z.string().max(500).optional(),
@@ -157,16 +148,24 @@ export interface Banner extends z.infer<typeof bannerSchema> {
 }
 
 export async function listBanners(): Promise<Banner[]> {
-  return get<Banner[]>('banners', []);
+  const banners = await get<Banner[]>('banners', []);
+  return Array.isArray(banners) ? banners : [];
+}
+
+export async function listActiveBanners(): Promise<Banner[]> {
+  const banners = await listBanners();
+  const now = new Date();
+  return banners.filter(b => {
+    if (!b.isActive) return false;
+    if (b.startDate && new Date(b.startDate) > now) return false;
+    if (b.endDate   && new Date(b.endDate)   < now) return false;
+    return true;
+  });
 }
 
 export async function createBanner(dto: z.infer<typeof bannerSchema>): Promise<Banner> {
   const banners = await listBanners();
-  const banner: Banner = {
-    ...dto,
-    id:        crypto.randomUUID(),
-    createdAt: new Date().toISOString(),
-  };
+  const banner: Banner = { ...dto, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
   await set('banners', [...banners, banner]);
   return banner;
 }
@@ -187,7 +186,56 @@ export async function deleteBanner(id: string): Promise<void> {
   await set('banners', filtered);
 }
 
-// ─── Site Settings ───────────────────────────────────────────────────────────
+// ─── Header Settings ──────────────────────────────────────────────────────────
+
+export const headerSettingsSchema = z.object({
+  siteName:          z.string().max(100).optional().or(z.literal('')),
+  headerTitle:       z.string().max(200).optional().or(z.literal('')),
+  headerSubtitle:    z.string().max(300).optional().or(z.literal('')),
+  logoUrl:           z.string().optional().or(z.literal('')),
+  headerLogoUrl:     z.string().optional().or(z.literal('')),
+  faviconUrl:        z.string().optional().or(z.literal('')),
+  headerBgColor:     z.string().max(50).optional().or(z.literal('')),
+  headerTextColor:   z.string().max(50).optional().or(z.literal('')),
+  headerBgImage:     z.string().optional().or(z.literal('')),
+  navLinks: z.array(z.object({
+    label: z.string().max(50),
+    url:   z.string().max(200),
+  })).optional(),
+});
+
+export const headerSettingsPatchSchema = headerSettingsSchema.partial();
+export type HeaderSettings = z.infer<typeof headerSettingsSchema>;
+
+const HEADER_SETTINGS_DEFAULTS: HeaderSettings = {
+  siteName:        'Ncole Interpress',
+  headerTitle:     'Ncole Interpress',
+  headerSubtitle:  "Rwanda's Premier Multi-Vendor Marketplace",
+  logoUrl:         '',
+  headerLogoUrl:   '',
+  faviconUrl:      '',
+  headerBgColor:   '#ffffff',
+  headerTextColor: '#0f172a',
+  headerBgImage:   '',
+  navLinks: [
+    { label: 'Home',  url: '/' },
+    { label: 'Shop',  url: '/shop' },
+    { label: 'Apply', url: '/apply' },
+  ],
+};
+
+export async function getHeaderSettings(): Promise<HeaderSettings> {
+  return get('header_settings', HEADER_SETTINGS_DEFAULTS);
+}
+
+export async function updateHeaderSettings(dto: Partial<HeaderSettings>): Promise<HeaderSettings> {
+  const current = await getHeaderSettings();
+  const updated = { ...current, ...dto };
+  await set('header_settings', updated);
+  return updated;
+}
+
+// ─── Site Settings ────────────────────────────────────────────────────────────
 
 export const siteSettingsSchema = z.object({
   siteName:       z.string().min(1).max(100),
@@ -279,15 +327,14 @@ export async function deleteTestimonial(id: string): Promise<void> {
 // ─── Maintenance Mode ─────────────────────────────────────────────────────────
 
 export const maintenanceSchema = z.object({
-  enabled:       z.boolean(),
-  message:       z.string().max(500).default('We are performing scheduled maintenance. Please check back shortly.'),
-  allowAdmins:   z.boolean().default(true),
-  allowVendors:  z.boolean().default(false),
-  allowRiders:   z.boolean().default(false),
+  enabled:      z.boolean(),
+  message:      z.string().max(500).default('We are performing scheduled maintenance. Please check back shortly.'),
+  allowAdmins:  z.boolean().default(true),
+  allowVendors: z.boolean().default(false),
+  allowRiders:  z.boolean().default(false),
 });
 
 export const maintenancePatchSchema = maintenanceSchema.partial();
-
 export type MaintenanceConfig = z.infer<typeof maintenanceSchema>;
 
 const MAINTENANCE_DEFAULTS: MaintenanceConfig = {

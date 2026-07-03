@@ -191,8 +191,15 @@ const VendorDashboardPage: React.FC = () => {
             <div className="space-y-0 divide-y divide-slate-100 dark:divide-slate-700">
               {products.slice(0, 5).map((p, i) => (
                 <div key={p.id}
-                  className="flex items-center justify-between py-3 animate-in fade-in"
+                  className="flex items-center gap-3 py-3 animate-in fade-in"
                   style={{ animationDelay: `${i * 40}ms`, animationFillMode: 'both' }}>
+                  {p.images?.[0] ? (
+                    <img src={p.images[0]} alt={p.name} className="h-10 w-10 rounded-lg object-cover flex-shrink-0 border border-slate-100" />
+                  ) : (
+                    <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center flex-shrink-0">
+                      <Package className="h-4 w-4 text-slate-300" />
+                    </div>
+                  )}
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium dark:text-white truncate">{p.name}</p>
                     <p className="text-xs text-slate-400">{p.sku ?? p.slug}</p>
