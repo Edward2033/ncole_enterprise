@@ -46,13 +46,15 @@ app.use(
   cors({
     credentials: true,
     origin: (requestOrigin, callback) => {
-      // Allow same-origin/non-browser requests (no Origin header)
       if (!requestOrigin) return callback(null, true);
 
-      // Support env strings that might contain comma-separated origins.
       const allowed = env.CORS_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean);
 
-      if (allowed.includes(requestOrigin)) {
+      // Exact match
+      if (allowed.includes(requestOrigin)) return callback(null, requestOrigin);
+
+      // Allow any Vercel preview deployment for this project
+      if (/^https:\/\/ncole-enterprise[a-z0-9-]*\.vercel\.app$/.test(requestOrigin)) {
         return callback(null, requestOrigin);
       }
 
