@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Truck, DollarSign, User, Bell, LogOut } from 'lucide-react';
+import { LayoutDashboard, Truck, DollarSign, User, Bell, LogOut, Sun, Moon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import FloatingActionButtons from '@/components/FloatingActionButtons';
+
+const THEME_KEY = 'ncole_theme';
 
 const NAV = [
   { to: '/rider/dashboard',     icon: LayoutDashboard, label: 'Dashboard'  },
@@ -15,6 +17,15 @@ const NAV = [
 const RiderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const [dark, setDark] = useState(() => {
+    const stored = localStorage.getItem(THEME_KEY);
+    return stored ? stored === 'dark' : document.documentElement.classList.contains('dark');
+  });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', dark);
+    localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light');
+  }, [dark]);
 
   const handleLogout = () => { signOut(); navigate('/login'); };
   const initials = user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() ?? 'R';
@@ -37,6 +48,13 @@ const RiderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setDark(d => !d)}
+            className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            aria-label="Toggle theme"
+          >
+            {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </button>
           <NavLink to="/rider/notifications" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
             <Bell className="h-5 w-5" />
           </NavLink>

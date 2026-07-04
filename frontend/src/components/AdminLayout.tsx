@@ -5,8 +5,11 @@ import {
   LayoutDashboard, Users, Store, Package, ShoppingBag,
   FolderOpen, BarChart2, Settings, CreditCard, Bell, Bike,
   LogOut, Menu, X, Shield, ClipboardList, Bot, FileText, Globe, Star,
+  Sun, Moon,
 } from 'lucide-react';
 import FloatingActionButtons from '@/components/FloatingActionButtons';
+
+const THEME_KEY = 'ncole_theme';
 
 const NAV = [
   { to: '/admin/dashboard',    icon: LayoutDashboard, label: 'Dashboard',     end: true },
@@ -38,12 +41,22 @@ const AdminLayout: React.FC = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [dark, setDark] = useState(() => {
+    const stored = localStorage.getItem(THEME_KEY);
+    return stored ? stored === 'dark' : document.documentElement.classList.contains('dark');
+  });
 
   // Lock body scroll when mobile drawer is open
   useEffect(() => {
     document.body.style.overflow = drawerOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [drawerOpen]);
+
+  // Theme sync
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', dark);
+    localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light');
+  }, [dark]);
 
   const handleSignOut = () => {
     signOut();
@@ -93,6 +106,13 @@ const AdminLayout: React.FC = () => {
 
         {/* User footer */}
         <div className="border-t border-slate-200 dark:border-slate-700 p-3">
+          <button
+            onClick={() => setDark(d => !d)}
+            className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition mb-1"
+          >
+            {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            {dark ? 'Light Mode' : 'Dark Mode'}
+          </button>
           <Link to="/admin/profile" className="flex items-center gap-2 mb-2 px-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition py-1">
             {user?.avatarUrl ? (
               <img src={user.avatarUrl} alt={user.name} className="h-7 w-7 flex-shrink-0 rounded-full object-cover" />
@@ -129,7 +149,14 @@ const AdminLayout: React.FC = () => {
             <div className="flex-1 overflow-y-auto p-3">
               <NavItems onClick={() => setDrawerOpen(false)} />
             </div>
-            <div className="border-t border-slate-200 dark:border-slate-700 p-3">
+            <div className="border-t border-slate-200 dark:border-slate-700 p-3 space-y-1">
+              <button
+                onClick={() => setDark(d => !d)}
+                className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              >
+                {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                {dark ? 'Light Mode' : 'Dark Mode'}
+              </button>
               <button onClick={handleSignOut} className="flex items-center gap-2 text-sm text-red-500">
                 <LogOut className="h-4 w-4" /> Sign Out
               </button>
@@ -149,6 +176,13 @@ const AdminLayout: React.FC = () => {
             <Menu className="h-5 w-5" />
           </button>
           <div className="ml-auto flex items-center gap-2.5">
+            <button
+              onClick={() => setDark(d => !d)}
+              className="hidden lg:flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              aria-label="Toggle theme"
+            >
+              {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
             <Link to="/admin/profile" className="flex items-center gap-2.5 rounded-xl px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
               {user?.avatarUrl ? (
                 <img src={user.avatarUrl} alt={user.name} className="h-8 w-8 rounded-full object-cover" />
