@@ -4,11 +4,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Plus, Edit2, Trash2, X, Package, Search, AlertTriangle, Upload, ImagePlus, Loader2 } from 'lucide-react';
 import {
-  vendorProductsService, vendorProfileService, categoriesService,
-  getTokens,
+  vendorProductsService, vendorProfileService, categoriesService, apiFetch,
   type NcoleVendorProduct, type NcoleCategory,
 } from '@/services/api';
-import { API_BASE } from '@/config/api';
 import { PButton, PInput, PTextarea, PSelect, PCard, PBadge, Spinner } from '@/components/ui/portal-ui';
 import { PRODUCT_STATUS_COLOR, formatRWF, type ProductStatus } from '@/lib/utils';
 
@@ -41,18 +39,11 @@ const ImageUploader: React.FC<{
     setUploading(true); setUploadError('');
     try {
       const uploaded: string[] = [];
-      const { accessToken } = getTokens();
       for (const file of Array.from(files)) {
         const fd = new FormData();
         fd.append('image', file);
-        const res = await fetch(`${API_BASE}/products/upload-image`, {
-          method: 'POST',
-          headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
-          body: fd,
-        });
-        if (!res.ok) throw new Error('Upload failed');
-        const json = await res.json();
-        uploaded.push(json.data.url as string);
+        const json = await apiFetch<{ data: { url: string } }>('/products/upload-image', { method: 'POST', body: fd });
+        uploaded.push(json.data.url);
       }
       onChange([...images, ...uploaded]);
     } catch (e) {
