@@ -98,9 +98,13 @@ const CustomerShell: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         </div>
         <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
           <div className="rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 p-4 dark:from-orange-900/20 dark:to-amber-900/10">
-            <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-amber-400 text-white text-sm font-bold shadow-sm">
-              {user?.name?.[0]?.toUpperCase() ?? 'U'}
-            </div>
+            {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt={user.name} className="mb-2 h-10 w-10 rounded-full object-cover shadow-sm" />
+              ) : (
+                <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-amber-400 text-white text-sm font-bold shadow-sm">
+                  {user?.name?.[0]?.toUpperCase() ?? 'U'}
+                </div>
+              )}
             <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{user?.name ?? '—'}</p>
             <p className="text-xs text-slate-500 truncate">{user?.email}</p>
             <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-semibold text-orange-700 dark:bg-orange-900/40 dark:text-orange-300">
@@ -135,9 +139,13 @@ const CustomerShell: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             </div>
             <div className="border-b border-slate-100 dark:border-slate-800 px-4 py-3">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-amber-400 text-white text-sm font-bold">
-                  {user?.name?.[0]?.toUpperCase() ?? 'U'}
-                </div>
+                {user?.avatarUrl ? (
+                  <img src={user.avatarUrl} alt={user.name} className="h-9 w-9 rounded-full object-cover" />
+                ) : (
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-amber-400 text-white text-sm font-bold">
+                    {user?.name?.[0]?.toUpperCase() ?? 'U'}
+                  </div>
+                )}
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{user?.name}</p>
                   <p className="text-xs text-slate-500 truncate">{user?.email}</p>
@@ -176,9 +184,13 @@ const CustomerShell: React.FC<{ children: React.ReactNode }> = ({ children }) =>
               <Bell className="h-5 w-5" />
             </NavLink>
             <NavLink to="/account/profile" className="flex items-center gap-2 rounded-xl px-2 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-amber-400 text-white text-xs font-bold shadow-sm">
-                {user?.name?.[0]?.toUpperCase() ?? 'U'}
-              </div>
+              {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt={user.name} className="h-7 w-7 rounded-full object-cover shadow-sm" />
+              ) : (
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-amber-400 text-white text-xs font-bold shadow-sm">
+                  {user?.name?.[0]?.toUpperCase() ?? 'U'}
+                </div>
+              )}
               <span className="hidden text-sm font-medium text-slate-700 dark:text-slate-300 sm:block max-w-[120px] truncate">{user?.name}</span>
             </NavLink>
           </div>

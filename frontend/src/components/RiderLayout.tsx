@@ -17,14 +17,24 @@ const RiderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => { signOut(); navigate('/login'); };
+  const initials = user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() ?? 'R';
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 dark:bg-slate-950">
       {/* Top Header */}
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
-        <div>
-          <p className="font-bold text-slate-900 dark:text-white">N_COLE Rider</p>
-          <p className="text-xs text-slate-500">{user?.name}</p>
+        <div className="flex items-center gap-3">
+          {user?.avatarUrl ? (
+            <img src={user.avatarUrl} alt={user.name} className="h-8 w-8 rounded-full object-cover" />
+          ) : (
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100 text-orange-700 text-xs font-bold">
+              {initials}
+            </div>
+          )}
+          <div>
+            <p className="font-bold text-slate-900 dark:text-white">N_COLE Rider</p>
+            <p className="text-xs text-slate-500">{user?.name}</p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <NavLink to="/rider/notifications" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">

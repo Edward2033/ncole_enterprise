@@ -74,9 +74,13 @@ const VendorLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) =>
       {/* User card */}
       <div className="mx-3 mt-4 rounded-2xl bg-gradient-to-br from-violet-50 to-indigo-50 dark:from-violet-900/20 dark:to-indigo-900/20 p-4 border border-violet-100 dark:border-violet-800/40">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 text-white text-sm font-bold shadow-sm">
-            {initials}
-          </div>
+          {user?.avatarUrl ? (
+            <img src={user.avatarUrl} alt={user.name} className="h-10 w-10 flex-shrink-0 rounded-full object-cover shadow-sm" />
+          ) : (
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 text-white text-sm font-bold shadow-sm">
+              {initials}
+            </div>
+          )}
           <div className="min-w-0">
             <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user?.name ?? '—'}</p>
             <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user?.email}</p>
@@ -169,9 +173,13 @@ const VendorLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) =>
             >
               {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 text-white text-xs font-bold shadow-sm">
-              {initials}
-            </div>
+            {user?.avatarUrl ? (
+              <img src={user.avatarUrl} alt={user.name} className="h-9 w-9 rounded-full object-cover shadow-sm" />
+            ) : (
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 text-white text-xs font-bold shadow-sm">
+                {initials}
+              </div>
+            )}
           </div>
         </header>
 

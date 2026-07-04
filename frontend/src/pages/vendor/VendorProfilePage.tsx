@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Edit2, Save, X, Store, CheckCircle, XCircle } from 'lucide-react';
+import { Camera, Edit2, Save, X, Store, CheckCircle, XCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { vendorProfileService, type NcoleVendorProfile } from '@/services/api';
+import { usersService, vendorProfileService, type NcoleVendorProfile } from '@/services/api';
 import { PCard, PButton, PInput, PTextarea, Spinner } from '@/components/ui/portal-ui';
 import { formatDate } from '@/lib/utils';
 
@@ -17,12 +17,26 @@ const schema = z.object({
 type Form = z.infer<typeof schema>;
 
 const VendorProfilePage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [profile, setProfile] = useState<NcoleVendorProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await usersService.uploadAvatar(file);
+      await usersService.updateMe({ avatarUrl: url });
+      await refreshUser();
+    } catch { /* silent */ }
+    finally { setUploading(false); if (fileRef.current) fileRef.current.value = ''; }
+  };
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<Form>({ resolver: zodResolver(schema) });
 
@@ -57,13 +71,22 @@ const VendorProfilePage: React.FC = () => {
 
       <PCard>
         <div className="mb-6 flex items-center gap-4">
-          {profile?.logoUrl ? (
-            <img src={profile.logoUrl} alt="Store logo" className="h-16 w-16 rounded-2xl object-cover border border-slate-200 dark:border-slate-700" />
-          ) : (
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-100 dark:bg-violet-900/30 text-2xl font-bold text-violet-700 dark:text-violet-300">
-              <Store className="h-8 w-8" />
-            </div>
-          )}
+          <div className="relative flex-shrink-0">
+            {user?.avatarUrl ? (
+              <img src={user.avatarUrl} alt={user.name} className="h-16 w-16 rounded-2xl object-cover border border-slate-200 dark:border-slate-700" />
+            ) : (
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-100 dark:bg-violet-900/30 text-2xl font-bold text-violet-700 dark:text-violet-300">
+                <Store className="h-8 w-8" />
+              </div>
+            )}
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+            <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
+              className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-violet-600 ring-2 ring-white dark:ring-slate-800 hover:bg-violet-700 transition disabled:opacity-50">
+              {uploading
+                ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                : <Camera className="h-3 w-3 text-white" />}
+            </button>
+          </div>
           <div className="flex-1 min-w-0">
             <p className="text-lg font-bold dark:text-white truncate">{profile?.businessName ?? user?.name}</p>
             <p className="text-sm text-slate-500">{user?.email}</p>
