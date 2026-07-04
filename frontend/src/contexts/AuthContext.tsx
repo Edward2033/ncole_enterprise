@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { authService, saveTokens, clearTokens, getTokens, type NcoleUser } from '@/services/api';
+import { authService, saveTokens, clearTokens, getTokens, doRefresh, type NcoleUser } from '@/services/api';
 
 // Guest cart merge — reads localStorage cart and merges into backend after login
 const GUEST_CART_KEY = 'ecom_cart';
@@ -56,18 +56,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     let cancelled = false;
 
-    authService
-      .me()
-      .then((res) => {
+    (async () => {
+      try {
+        const res = await authService.me();
         if (!cancelled) setUser(res.data);
-      })
-      .catch(() => {
-        clearTokens();
-        if (!cancelled) setUser(null);
-      })
-      .finally(() => {
+      } catch {
+        // Access token may be expired — try refresh before giving up
+        const newToken = await doRefresh();
+        if (newToken && !cancelled) {
+          try {
+            const res = await authService.me();
+            if (!cancelled) setUser(res.data);
+          } catch {
+            clearTokens();
+            if (!cancelled) setUser(null);
+          }
+        } else {
+          clearTokens();
+          if (!cancelled) setUser(null);
+        }
+      } finally {
         if (!cancelled) setLoading(false);
-      });
+      }
+    })();
 
     return () => {
       cancelled = true;
