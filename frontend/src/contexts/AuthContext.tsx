@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { authService, saveTokens, clearTokens, getTokens, doRefresh, type NcoleUser } from '@/services/api';
+import { authService, saveTokens, clearTokens, getTokens, type NcoleUser } from '@/services/api';
 
 // Guest cart merge — reads localStorage cart and merges into backend after login
 const GUEST_CART_KEY = 'ecom_cart';
@@ -58,31 +58,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     (async () => {
       try {
+        // apiFetch inside authService.me() already handles 401 → refresh → retry
         const res = await authService.me();
         if (!cancelled) setUser(res.data);
       } catch {
-        // Access token may be expired — try refresh before giving up
-        const newToken = await doRefresh();
-        if (newToken && !cancelled) {
-          try {
-            const res = await authService.me();
-            if (!cancelled) setUser(res.data);
-          } catch {
-            clearTokens();
-            if (!cancelled) setUser(null);
-          }
-        } else {
-          clearTokens();
-          if (!cancelled) setUser(null);
-        }
+        // Refresh token also expired or missing — clear and show login
+        clearTokens();
+        if (!cancelled) setUser(null);
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, []);
 
   // Force sign-out when apiFetch detects an unrecoverable session expiry
