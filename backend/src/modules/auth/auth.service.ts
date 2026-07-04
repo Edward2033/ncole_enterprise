@@ -54,6 +54,7 @@ export async function loginUser(dto: LoginDto) {
   audit({ userId: user.id, action: 'LOGIN', entity: 'User', entityId: user.id });
 
   // VENDOR and RIDER require OTP verification before tokens are issued
+  // CUSTOMER and ADMIN log in directly — no OTP required
   if (user.role === 'VENDOR' || user.role === 'RIDER') {
     await sendOtp(user.id, user.email, user.name);
     return { requiresOtp: true, userId: user.id };
