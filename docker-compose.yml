@@ -40,10 +40,10 @@ services:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: 4000
       API_PREFIX: /api/v1
-      DATABASE_URL: postgresql://${POSTGRES_USER:-ncole}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ncole_interpress}
-      DIRECT_URL: postgresql://${POSTGRES_USER:-ncole}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ncole_interpress}
-      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET:?required}
-      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET:?required}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-ncole}:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/${POSTGRES_DB:-ncole_interpress}
+      DIRECT_URL: postgresql://${POSTGRES_USER:-ncole}:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/${POSTGRES_DB:-ncole_interpress}
+      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET:-dev_access_secret_32chars_minimum_xx}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET:-dev_refresh_secret_32chars_minimum_x}
       ACCESS_TOKEN_EXPIRES_IN: ${ACCESS_TOKEN_EXPIRES_IN:-15m}
       REFRESH_TOKEN_EXPIRES_IN: ${REFRESH_TOKEN_EXPIRES_IN:-7d}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
