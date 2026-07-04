@@ -184,7 +184,7 @@ N_cole/
 │           │   └── express.d.ts    # req.user type augmentation
 │           └── utils/
 │               ├── audit.ts        # Fire-and-forget activity logging
-│               ├── email.ts        # Nodemailer / SMTP helper
+│               ├── email.ts        # Resend SDK email helper
 │               ├── hash.ts         # bcrypt helpers
 │               ├── jwt.ts          # sign / verify JWT
 │               └── response.ts     # sendSuccess / sendError helpers
@@ -338,7 +338,9 @@ Copy `backend/.env.example` to `backend/.env` and configure:
 | `CLOUDINARY_*` | Cloudinary credentials for image uploads | Optional |
 | `MOMO_*` | MTN MoMo payment credentials | Optional |
 | `AIRTEL_*` | Airtel Money credentials | Optional |
-| `SMTP_*` | SMTP credentials for password reset emails | Optional |
+| `RESEND_API_KEY` | Resend API key for transactional emails | Optional |
+| `EMAIL_FROM` | Sender address (use `onboarding@resend.dev` for testing) | Yes |
+| `EMAIL_REPLY_TO` | Reply-to address | Optional |
 
 Frontend `.env`:
 ```

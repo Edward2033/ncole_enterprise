@@ -35,12 +35,7 @@ let _genai: GoogleGenerativeAI | null = null;
 
 function getClient(): GoogleGenerativeAI {
   if (!env.GEMINI_API_KEY) {
-    const err = new AppError('AI assistant is not available. The GEMINI_API_KEY is not configured.', 503);
-    throw err;
-  }
-  if (!env.GEMINI_API_KEY.startsWith('AIza')) {
-    logger.error('[AI] GEMINI_API_KEY appears invalid — Gemini keys must start with "AIza"', { keyPrefix: env.GEMINI_API_KEY.slice(0, 6) });
-    throw new AppError('AI assistant is not available. The GEMINI_API_KEY is invalid.', 503);
+    throw new AppError('AI assistant is not available. The GEMINI_API_KEY is not configured.', 503);
   }
   if (!_genai) _genai = new GoogleGenerativeAI(env.GEMINI_API_KEY);
   return _genai;

@@ -155,6 +155,7 @@ N_COLE Interpress directly addresses each of these challenges.
 | Reverse Proxy | Nginx | High-performance, production-proven |
 | Logging | Winston | Structured logging, multiple transports |
 | Image Storage | Cloudinary | Managed CDN, transformation APIs |
+| Email | Resend SDK | Transactional emails (approval, OTP, password reset) |
 | Payments | MTN MoMo, Airtel Money, Cash on Delivery | Localised for Rwanda |
 
 ---
@@ -236,20 +237,46 @@ PAY-{YEAR}-{SEQUENCE}  →  PAY-2026-000001
 
 ## 8. Screenshots of the Application
 
-*[Insert application screenshots here]*
+The following screenshots demonstrate the key functional areas of the N_COLE Interpress platform.
 
-Suggested screenshots:
-1. Public storefront homepage with hero and product grid
-2. Shop page with search, category filter, and price filter active
-3. Product detail page with variants and Add to Cart
-4. Shopping cart with quantity controls and order summary
-5. Checkout page with address and payment method selection
-6. Order confirmation page with order number
-7. AI chat assistant in action (public + customer portal)
-8. Vendor dashboard with analytics
-9. Admin panel — payment verification
-10. Docker containers running (`docker ps` or `docker-compose ps`)
-11. GitHub Actions CI pipeline — green checkmark
+### 8.1 Public Storefront — Homepage
+The homepage features a hero slideshow, trust bar (free delivery, verified vendors, same-day dispatch, AI-powered), a category grid, featured products section, AI assistant banner, trending products, and a live stats counter showing active vendors, products, customers, and completed orders. The header includes a sticky navigation bar with search, cart icon with item count badge, and user account dropdown.
+
+### 8.2 Shop Page — Search, Filter & Sort
+The shop page (`/shop`) displays all active products in a responsive grid (2 columns mobile, 3 columns desktop). The left sidebar provides: a keyword search input, a category list with product counts, and price range presets (Under RWF 5,000 through Over RWF 100,000). A toolbar above the grid allows switching between grid and list view, and sorting by default, price ascending, price descending, or name A–Z. Active filters are indicated with an orange badge. Pagination controls appear at the bottom when results exceed 16 products.
+
+### 8.3 Product Detail Page
+The product detail page shows a full image gallery with thumbnail strip, vendor name and category breadcrumb, product title, interactive star rating widget, price with in-stock/out-of-stock badge, variant selector buttons (disabled and struck-through when out of stock), quantity increment/decrement controls, and an Add to Cart button that transitions to a green "Added to Cart!" confirmation state. Below the main section, tabbed panels show Description, Specifications, and Reviews. Related products and recently viewed products grids appear at the bottom.
+
+### 8.4 Shopping Cart
+The cart drawer slides in from the right when the cart icon is clicked. It lists each item with its image, name, variant, unit price, and a quantity stepper. The subtotal updates automatically. A "Checkout" button navigates to the checkout page. The cart page (`/cart`) provides the same controls in a full-page layout with an order summary panel.
+
+### 8.5 Checkout Page
+The checkout page is divided into two columns: the left column contains a delivery address selector (cards for saved addresses with a default badge) and an "Add New" form with full validation (name, phone, street, district, city, province), plus a payment method selector (MTN Mobile Money, Airtel Money, Cash on Delivery) and an optional order notes textarea. The right column shows the order summary with item images, names, quantities, and prices, plus subtotal, free delivery, and total. The "Place Order" button is disabled until an address is selected.
+
+### 8.6 Order Confirmation Page
+After a successful order, the confirmation page displays a green checkmark, the order number (e.g. `ORD-2026-000001`), a full order summary with item breakdown, and — when payment is pending — an amber notice with the payment method and a "Pay Now" button linking directly to the billing page.
+
+### 8.7 AI Chat Assistant
+The floating AI chat widget appears on every page as a circular button in the bottom-right corner. Clicking it opens a chat panel with the Ncole Assistant. On the public storefront it answers product discovery and general shopping questions. In the customer portal it has access to the user's last 5 orders and last 3 invoices. In the vendor portal it provides sales insights and inventory analysis. In the admin portal it delivers a full platform analytics snapshot. The assistant handles Gemini API rate limits gracefully, displaying a user-friendly retry message instead of an error.
+
+### 8.8 Vendor Dashboard
+The vendor dashboard shows a summary of total revenue, total orders, active products, and low-stock alerts. The analytics page renders revenue-over-time and top-products bar charts using Recharts. The products page provides a table with inline edit and delete actions, and a modal form for creating new products with image upload via Cloudinary.
+
+### 8.9 Admin Panel — Payment Verification
+The admin billing page lists all submitted payments with their reference numbers, amounts, gateways (MTN MoMo / Airtel Money), and statuses. Admins can verify or reject payments using action buttons. Verified payments automatically update the linked invoice and order payment status. The admin dashboard also shows platform-wide stats: total revenue, orders, users, and vendors.
+
+### 8.10 Docker Containers Running
+Running `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build` starts four containers:
+- `ncole-postgres` — PostgreSQL 16 database
+- `ncole-backend` — Node.js Express API on port 4000
+- `ncole-frontend` — Nginx serving the React SPA on port 5173
+- `ncole-nginx` — Reverse proxy on port 8080
+
+All containers include health checks. The backend health check polls `http://localhost:4000/health` and returns `{ "status": "ok" }`.
+
+### 8.11 GitHub Actions CI Pipeline
+The CI pipeline at `https://github.com/Edward2033/ncole_enterprise/actions` shows green checkmarks for all jobs: Backend (type-check, Prisma validate, build, smoke test), Frontend (type-check, build), Docker Build Validation, and Security Audit. The CD pipeline triggers on push to `main` and deploys to Render and Vercel automatically.
 
 ---
 

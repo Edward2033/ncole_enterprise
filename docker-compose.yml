@@ -41,21 +41,20 @@ services:
       PORT: 4000
       API_PREFIX: /api/v1
       DATABASE_URL: postgresql://${POSTGRES_USER:-ncole}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ncole_interpress}
+      DIRECT_URL: postgresql://${POSTGRES_USER:-ncole}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ncole_interpress}
       ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET:?required}
       REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET:?required}
       ACCESS_TOKEN_EXPIRES_IN: ${ACCESS_TOKEN_EXPIRES_IN:-15m}
       REFRESH_TOKEN_EXPIRES_IN: ${REFRESH_TOKEN_EXPIRES_IN:-7d}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.0-flash}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
-      SMTP_HOST: ${SMTP_HOST:-}
-      SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_USER: ${SMTP_USER:-}
-      SMTP_PASS: ${SMTP_PASS:-}
-      SMTP_FROM: ${SMTP_FROM:-}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      EMAIL_FROM: ${EMAIL_FROM:-onboarding@resend.dev}
+      EMAIL_REPLY_TO: ${EMAIL_REPLY_TO:-support@youngdevsofficial.com}
       APP_URL: ${APP_URL:-http://localhost}
     volumes:
       - backend-logs:/app/logs

@@ -24,7 +24,7 @@ const envSchema = z.object({
   AIRTEL_CLIENT_SECRET: z.string().optional(),
   AIRTEL_ENVIRONMENT: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
-  GEMINI_MODEL: z.string().default('gemini-2.0-flash'),
+  GEMINI_MODEL: z.string().default('gemini-2.5-flash'),
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().min(1, 'EMAIL_FROM must be set — use onboarding@resend.dev for testing or your verified domain in production'),
   EMAIL_REPLY_TO: z.string().default('support@youngdevsofficial.com'),

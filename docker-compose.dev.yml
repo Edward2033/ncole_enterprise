@@ -11,20 +11,20 @@ services:
 
   backend:
     build:
-      target: builder
+      target: runner
     environment:
       NODE_ENV: development
       DATABASE_URL: postgresql://ncole:devpassword@postgres:5432/ncole_interpress
+      DIRECT_URL: postgresql://ncole:devpassword@postgres:5432/ncole_interpress
       ACCESS_TOKEN_SECRET: dev_access_secret_32chars_minimum_xx
       REFRESH_TOKEN_SECRET: dev_refresh_secret_32chars_minimum_x
       CORS_ORIGIN: "http://localhost,http://localhost:5173"
       APP_URL: "http://localhost:5173"
+      EMAIL_FROM: onboarding@resend.dev
     ports:
       - "4000:4000"
     volumes:
-      - ./backend/src:/app/src:ro
       - backend-logs:/app/logs
-    command: ["node", "dist/server.js"]
 
   frontend:
     build:
