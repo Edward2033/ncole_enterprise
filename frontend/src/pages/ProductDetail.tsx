@@ -187,15 +187,23 @@ const ProductDetail: React.FC = () => {
 
   useEffect(() => {
     if (!handle) return;
-    setLoading(true); setActiveImage(0); setQuantity(1);
+    setLoading(true);
+    setProduct(null);
+    setActiveImage(0);
+    setQuantity(1);
+    setSelectedVariant(null);
     const load = (p: NcoleProduct) => {
       setProduct(p);
       setSelectedVariant(p.variants?.[0] ?? null);
       pushRecentlyViewed(p.id);
     };
-    productsService.get(handle)
-      .then(r => load(r.data))
-      .catch(() => productsService.bySlug(handle).then(r => { if (r.data[0]) load(r.data[0]); }).catch(() => null))
+    productsService.bySlug(handle)
+      .then(r => { if (r.data[0]) load(r.data[0]); })
+      .catch(() =>
+        productsService.get(handle)
+          .then(r => load(r.data))
+          .catch(() => null)
+      )
       .finally(() => setLoading(false));
   }, [handle]);
 

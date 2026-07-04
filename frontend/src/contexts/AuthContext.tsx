@@ -62,8 +62,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!cancelled) setUser(res.data);
       })
       .catch(() => {
-        // /users/me failed even after the automatic refresh-retry inside apiFetch.
-        // Both tokens are invalid — clear storage so ProtectedRoute redirects to /login.
         clearTokens();
         if (!cancelled) setUser(null);
       })
@@ -74,6 +72,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  // Force sign-out when apiFetch detects an unrecoverable session expiry
+  useEffect(() => {
+    const handler = () => {
+      clearTokens();
+      setUser(null);
+    };
+    window.addEventListener('ncole:session-expired', handler);
+    return () => window.removeEventListener('ncole:session-expired', handler);
   }, []);
 
 

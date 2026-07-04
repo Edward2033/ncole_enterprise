@@ -92,11 +92,12 @@ export async function apiFetch<T = unknown>(path: string, init: RequestInit = {}
         if (newToken) {
           queue.forEach(({ resolve }) => resolve(newToken!));
           queue = [];
-          res = await doRequest(); // buildHeaders() will pick up the saved new token
+          res = await doRequest();
         } else {
           const sessionErr = new Error('Session expired. Please sign in again.');
           queue.forEach(({ reject }) => reject(sessionErr));
           queue = [];
+          window.dispatchEvent(new CustomEvent('ncole:session-expired'));
           throw sessionErr;
         }
       }

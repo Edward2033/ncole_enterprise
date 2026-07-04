@@ -93,6 +93,7 @@ const AdminUsersPage: React.FC = () => {
   const openEdit = (u: AdminUser) => {
     setEditUser(u);
     setEditForm({ name: u.name, email: u.email, phone: u.phone ?? '', role: u.role, isActive: u.isActive });
+    setFormError('');
     setResetPwdForm(EMPTY_RESET_PWD);
     setResetPwdError('');
     setResetPwdSuccess(false);
