@@ -17,6 +17,12 @@ const Checkout: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
+  // Redirect to login if not authenticated, preserving checkout as return destination
+  useEffect(() => {
+    if (!isAuthenticated && user === null) {
+      navigate('/auth', { state: { from: '/checkout' }, replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
   const [addresses, setAddresses] = useState<NcoleAddress[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState('MTN_MOMO');

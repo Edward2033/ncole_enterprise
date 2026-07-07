@@ -8,22 +8,24 @@ async function mergeGuestCart() {
   try {
     const raw = localStorage.getItem(GUEST_CART_KEY);
     if (!raw) return;
-    const items: Array<{ product_id: string; variant_id?: string; quantity: number; price: number; name: string; vendorId?: string }> = JSON.parse(raw);
+    const items: Array<{ product_id: string; variant_id?: string; quantity: number }> = JSON.parse(raw);
     if (!items.length) return;
-    // Import apiFetch lazily to avoid circular deps
     const { apiFetch } = await import('@/services/api');
-    for (const item of items) {
-      try {
-        await apiFetch('/cart/items', {
-          method: 'POST',
-          body: JSON.stringify({
-            productId: item.product_id,
-            variantId: item.variant_id ?? null,
-            quantity:  item.quantity,
-          }),
-        });
-      } catch { /* skip items that fail — don't block login */ }
-    }
+    await Promise.allSettled(
+      items
+        .filter(item => item.product_id && item.quantity > 0)
+        .map(item =>
+          apiFetch('/cart/items', {
+            method: 'POST',
+            body: JSON.stringify({
+              productId: item.product_id,
+              variantId: item.variant_id ?? null,
+              quantity:  item.quantity,
+            }),
+          })
+        )
+    );
+    localStorage.removeItem(GUEST_CART_KEY);
   } catch { /* never block login on merge failure */ }
 }
 

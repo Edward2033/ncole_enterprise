@@ -81,7 +81,7 @@ const CartPage: React.FC = () => {
         <AuthPromptModal
           onLogin={() => {
             setShowAuthPrompt(false);
-            navigate('/login', { state: { from: '/checkout' } });
+            navigate('/auth', { state: { from: '/checkout' } });
           }}
           onClose={() => setShowAuthPrompt(false)}
         />

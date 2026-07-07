@@ -92,11 +92,13 @@ const AuthPage: React.FC = () => {
   const [otpCode, setOtpCode]   = useState('');
 
   const getRedirectPath = (role: string): string => {
-    if (role === 'ADMIN')    return '/admin/dashboard';
-    if (role === 'VENDOR')   return '/vendor/dashboard';
-    if (role === 'RIDER')    return '/rider/dashboard';
-    if (role === 'CUSTOMER') return '/customer/dashboard';
-    return from && from !== '/login' && from !== '/register' ? from : '/customer/dashboard';
+    if (role === 'ADMIN')  return '/admin/dashboard';
+    if (role === 'VENDOR') return '/vendor/dashboard';
+    if (role === 'RIDER')  return '/rider/dashboard';
+    // For customers: go back to where they came from (e.g. /checkout)
+    // unless they came from login/register pages themselves
+    if (from && from !== '/login' && from !== '/register' && from !== '/auth') return from;
+    return '/customer/dashboard';
   };
 
   const submit = async (e: React.FormEvent) => {
