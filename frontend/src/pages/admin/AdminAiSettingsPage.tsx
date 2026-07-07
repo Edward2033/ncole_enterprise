@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Bot, RefreshCw, CheckCircle, XCircle, AlertCircle, Cpu, Zap, MessageSquare } from 'lucide-react';
+import { Bot, RefreshCw, CheckCircle, XCircle, AlertCircle, Cpu, Zap, MessageSquare, User } from 'lucide-react';
 import { apiFetch } from '@/services/api';
 import { adminActivityLogApi } from '@/services/adminApi';
 import { fmtDateTime } from '@/lib/adminFormat';
@@ -9,6 +9,15 @@ interface AiHealthStatus {
   model: string;
   recentInteractions: number;
 }
+
+interface RecentLog {
+  id: string;
+  createdAt: string;
+  metadata?: Record<string, unknown> | null;
+  user?: { name: string; email: string } | null;
+}
+
+interface TestResult { success: boolean; reply?: string; error?: string; }
 
 const InfoRow: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
   <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 py-3 last:border-0">
@@ -28,7 +37,13 @@ const StatusBadge: React.FC<{ ok: boolean; label: string }> = ({ ok, label }) =>
   </span>
 );
 
-interface TestResult { success: boolean; reply?: string; error?: string; }
+const PORTAL_COLORS: Record<string, string> = {
+  PUBLIC:   'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+  CUSTOMER: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+  VENDOR:   'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+  RIDER:    'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+  ADMIN:    'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400',
+};
 
 const AdminAiSettingsPage: React.FC = () => {
   const [status, setStatus]         = useState<AiHealthStatus | null>(null);
@@ -39,25 +54,23 @@ const AdminAiSettingsPage: React.FC = () => {
   const [testing, setTesting]       = useState(false);
   const [testResult, setTestResult] = useState<TestResult | null>(null);
 
-  const [recentLogs, setRecentLogs] = useState<{ id: string; createdAt: string; metadata?: Record<string, unknown> | null }[]>([]);
+  const [recentLogs, setRecentLogs] = useState<RecentLog[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
 
   const loadStatus = useCallback(async () => {
     setLoading(true); setError(null);
     try {
-      const res = await apiFetch<{ success: boolean; data: { reply: string } }>('/ai/chat', {
+      await apiFetch<{ success: boolean; data: { reply: string } }>('/ai/chat', {
         method: 'POST',
         body: JSON.stringify({ message: 'ping', portal: 'PUBLIC', history: [] }),
       });
       setStatus({
         configured: true,
-        model: import.meta.env.VITE_GEMINI_MODEL ?? 'gemini-2.0-flash',
+        model: import.meta.env.VITE_GEMINI_MODEL ?? 'gemini-2.5-flash',
         recentInteractions: 0,
       });
-      void res;
     } catch (e) {
       const msg = (e as Error).message ?? '';
-      // 503 = AI not configured (no API key). Any other error = config error.
       const isNotConfigured =
         msg.toLowerCase().includes('not configured') ||
         msg.toLowerCase().includes('api key') ||
@@ -65,31 +78,40 @@ const AdminAiSettingsPage: React.FC = () => {
         msg.toLowerCase().includes('not available');
       setStatus({
         configured: !isNotConfigured,
-        model: import.meta.env.VITE_GEMINI_MODEL ?? 'gemini-2.0-flash',
+        model: import.meta.env.VITE_GEMINI_MODEL ?? 'gemini-2.5-flash',
         recentInteractions: 0,
       });
-      // Only surface actual errors, not expected "not configured" state
       if (!isNotConfigured) setError(msg);
     } finally {
       setLoading(false);
     }
   }, []);
 
+  // loadLogs has NO dependency on status — avoids infinite re-render loop
   const loadLogs = useCallback(async () => {
     setLogsLoading(true);
     try {
-      const res = await adminActivityLogApi.list(1, 10, 'AI_INTERACTION');
-      setRecentLogs(res.data.map(l => ({ id: l.id, createdAt: l.createdAt, metadata: l.metadata })));
-      if (status) setStatus(s => s ? { ...s, recentInteractions: res.meta.total } : s);
+      const res = await adminActivityLogApi.list(1, 20, 'AI_INTERACTION');
+      setRecentLogs(
+        res.data.map(l => ({
+          id: l.id,
+          createdAt: l.createdAt,
+          metadata: l.metadata,
+          user: l.user ?? null,
+        }))
+      );
+      // Update total count without triggering a re-render loop
+      setStatus(s => s ? { ...s, recentInteractions: res.meta.total } : s);
     } catch {
       // non-critical — silently ignore
     } finally {
       setLogsLoading(false);
     }
-  }, [status]);
+  }, []); // intentionally empty deps
 
   useEffect(() => { loadStatus(); }, [loadStatus]);
-  useEffect(() => { if (!loading) loadLogs(); }, [loading, loadLogs]);
+  // Run loadLogs once after the status check completes
+  useEffect(() => { if (!loading) loadLogs(); }, [loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleTest = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,7 +120,7 @@ const AdminAiSettingsPage: React.FC = () => {
     try {
       const res = await apiFetch<{ success: boolean; data: { reply: string } }>('/ai/chat', {
         method: 'POST',
-        body: JSON.stringify({ message: testMsg.trim(), portal: 'PUBLIC', history: [] }),
+        body: JSON.stringify({ message: testMsg.trim(), portal: 'ADMIN', history: [] }),
       });
       setTestResult({ success: true, reply: res.data.reply });
     } catch (e) {
@@ -108,7 +130,11 @@ const AdminAiSettingsPage: React.FC = () => {
     }
   };
 
-  const handleRefresh = () => { setTestResult(null); loadStatus(); };
+  const handleRefresh = () => {
+    setTestResult(null);
+    setRecentLogs([]);
+    loadStatus();
+  };
 
   return (
     <div className="space-y-6">
@@ -143,7 +169,7 @@ const AdminAiSettingsPage: React.FC = () => {
       )}
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* ── Status card ── */}
+        {/* Status card */}
         <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
           <div className="flex items-center gap-2 mb-5 pb-4 border-b border-slate-100 dark:border-slate-700">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 dark:bg-violet-900/30 text-violet-600">
@@ -171,7 +197,7 @@ const AdminAiSettingsPage: React.FC = () => {
                 value={<span className="font-mono text-xs bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded-lg">{status?.model ?? '—'}</span>}
               />
               <InfoRow
-                label="AI Interactions (total)"
+                label="Total AI Interactions"
                 value={logsLoading ? '…' : (status?.recentInteractions ?? 0).toLocaleString()}
               />
               <InfoRow
@@ -190,7 +216,7 @@ const AdminAiSettingsPage: React.FC = () => {
           )}
         </div>
 
-        {/* ── Portal capabilities ── */}
+        {/* Portal capabilities */}
         <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
           <div className="flex items-center gap-2 mb-5 pb-4 border-b border-slate-100 dark:border-slate-700">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 dark:bg-violet-900/30 text-violet-600">
@@ -220,13 +246,13 @@ const AdminAiSettingsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── Live test ── */}
+      {/* Live test */}
       <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
         <div className="flex items-center gap-2 mb-5 pb-4 border-b border-slate-100 dark:border-slate-700">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 dark:bg-violet-900/30 text-violet-600">
             <MessageSquare className="h-4 w-4" />
           </div>
-          <h2 className="font-semibold text-slate-900 dark:text-white">Live Test — Public Portal</h2>
+          <h2 className="font-semibold text-slate-900 dark:text-white">Live Test — Admin Portal</h2>
         </div>
         <form onSubmit={handleTest} className="space-y-4">
           <div className="space-y-1">
@@ -275,36 +301,68 @@ const AdminAiSettingsPage: React.FC = () => {
         </form>
       </div>
 
-      {/* ── Recent AI interactions ── */}
+      {/* Recent AI interactions */}
       <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-slate-900 dark:text-white">Recent AI Interactions</h2>
-          <span className="text-xs text-slate-400">Last 10 entries from activity log</span>
+        <div className="flex items-center justify-between mb-5 pb-4 border-b border-slate-100 dark:border-slate-700">
+          <div className="flex items-center gap-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 dark:bg-violet-900/30 text-violet-600">
+              <Bot className="h-4 w-4" />
+            </div>
+            <h2 className="font-semibold text-slate-900 dark:text-white">Recent AI Conversations</h2>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-400">Last 20 interactions</span>
+            <button
+              onClick={loadLogs}
+              disabled={logsLoading}
+              className="flex items-center gap-1 rounded-lg border border-slate-200 dark:border-slate-700 px-2 py-1 text-xs text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700 transition disabled:opacity-50"
+            >
+              <RefreshCw className={`h-3 w-3 ${logsLoading ? 'animate-spin' : ''}`} /> Reload
+            </button>
+          </div>
         </div>
+
         {logsLoading ? (
           <div className="space-y-2">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-10 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-700" />
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-12 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-700" />
             ))}
           </div>
         ) : recentLogs.length === 0 ? (
-          <p className="py-8 text-center text-sm text-slate-400">No AI interactions recorded yet</p>
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <Bot className="h-10 w-10 text-slate-200 dark:text-slate-700 mb-3" />
+            <p className="text-sm font-medium text-slate-400">No AI conversations recorded yet</p>
+            <p className="text-xs text-slate-400 mt-1">Interactions will appear here once users start chatting with the AI assistant</p>
+          </div>
         ) : (
           <div className="space-y-2">
-            {recentLogs.map(l => (
-              <div key={l.id} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 px-3 py-2.5">
-                <div className="flex items-center gap-2">
+            {recentLogs.map(l => {
+              const portal = String(l.metadata?.['portal'] ?? 'PUBLIC');
+              const msgLen = l.metadata?.['messageLength'] != null ? Number(l.metadata['messageLength']) : null;
+              const portalColor = PORTAL_COLORS[portal] ?? PORTAL_COLORS['PUBLIC'];
+              return (
+                <div key={l.id} className="flex items-center gap-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 px-4 py-3">
                   <Bot className="h-4 w-4 text-violet-500 flex-shrink-0" />
-                  <span className="text-xs text-slate-700 dark:text-slate-300">
-                    Portal: <span className="font-medium">{String(l.metadata?.['portal'] ?? 'PUBLIC')}</span>
-                    {l.metadata?.['messageLength'] != null && (
-                      <span className="text-slate-400 ml-2">· {String(l.metadata['messageLength'])} chars</span>
-                    )}
-                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${portalColor}`}>
+                        {portal}
+                      </span>
+                      {l.user && (
+                        <span className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+                          <User className="h-3 w-3" />
+                          {l.user.name}
+                        </span>
+                      )}
+                      {msgLen !== null && (
+                        <span className="text-xs text-slate-400">{msgLen} chars</span>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-xs text-slate-400 whitespace-nowrap flex-shrink-0">{fmtDateTime(l.createdAt)}</span>
                 </div>
-                <span className="text-xs text-slate-400 whitespace-nowrap">{fmtDateTime(l.createdAt)}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
