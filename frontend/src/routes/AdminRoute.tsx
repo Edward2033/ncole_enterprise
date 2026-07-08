@@ -25,7 +25,7 @@ const AdminRoute: React.FC<Props> = ({ children }) => {
     );
   }
 
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to="/auth" replace />;
   if (user?.role !== 'ADMIN') return <Navigate to="/unauthorized" replace />;
 
   return <>{children}</>;

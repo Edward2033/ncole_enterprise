@@ -18,7 +18,7 @@ const VendorRoute: React.FC<Props> = ({ children }) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
+    return <Navigate to="/auth" state={{ from: location.pathname }} replace />;
   }
 
   if (user && user.role !== 'VENDOR' && user.role !== 'ADMIN') {

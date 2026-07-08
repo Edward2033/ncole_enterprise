@@ -94,9 +94,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error: null, requiresOtp: true, userId: data.userId };
       }
       saveTokens(data.accessToken, data.refreshToken);
-      await mergeGuestCart();
       const me = await authService.me();
       setUser(me.data);
+      // Only merge guest cart for customers — vendors/riders/admins have no cart
+      if (me.data.role === 'CUSTOMER') await mergeGuestCart();
       return { error: null, role: me.data.role };
     } catch (e) {
       return { error: (e as Error).message };
@@ -107,9 +108,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const res = await authService.verifyOtp(userId, code);
       saveTokens(res.data.accessToken, res.data.refreshToken);
-      await mergeGuestCart();
       const me = await authService.me();
       setUser(me.data);
+      if (me.data.role === 'CUSTOMER') await mergeGuestCart();
       return { error: null, role: me.data.role };
     } catch (e) {
       return { error: (e as Error).message };
@@ -120,9 +121,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const res = await authService.register(name, email, password);
       saveTokens(res.data.accessToken, res.data.refreshToken);
-      await mergeGuestCart();
       const me = await authService.me();
       setUser(me.data);
+      // New signups are always CUSTOMER role
+      if (me.data.role === 'CUSTOMER') await mergeGuestCart();
       return { error: null, role: me.data.role };
     } catch (e) {
       return { error: (e as Error).message };
