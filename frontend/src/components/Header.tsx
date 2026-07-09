@@ -7,6 +7,35 @@ import { useCollections } from '@/hooks/useProducts';
 import { notificationsService } from '@/services/api';
 import { adminSettingsApi } from '@/services/adminApi';
 
+// ── Logo component — handles custom image, loading, and default fallback ──────
+const NavLogo: React.FC<{ url: string; loaded: boolean }> = ({ url, loaded }) => {
+  const [imgError, setImgError] = useState(false);
+
+  // show default if: settings not yet loaded, no url set, or image failed
+  if (!loaded || !url || imgError) {
+    return (
+      <>
+        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-sm">
+          <ShoppingBag className="h-5 w-5" />
+        </span>
+        <div className="leading-tight">
+          <span className="block text-base font-bold text-slate-900">Ncole</span>
+          <span className="block text-[9px] font-semibold uppercase tracking-[0.25em] text-orange-500">Interpress</span>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <img
+      src={url}
+      alt="Ncole Interpress"
+      onError={() => setImgError(true)}
+      className="h-10 w-auto max-w-[140px] object-contain transition-opacity duration-300"
+    />
+  );
+};
+
 const Header: React.FC = () => {
   const { totalItems, setIsOpen } = useCart();
   const { user, signOut, isAuthenticated } = useAuth();
@@ -16,7 +45,7 @@ const Header: React.FC = () => {
   const [search, setSearch] = useState('');
   const [unreadCount, setUnreadCount] = useState(0);
   const [logoUrl, setLogoUrl] = useState('');
-  const [faviconUrl, setFaviconUrl] = useState('');
+  const [logoLoaded, setLogoLoaded] = useState(false);
 
   // Load header settings (logo + favicon) once on mount
   useEffect(() => {
@@ -24,14 +53,14 @@ const Header: React.FC = () => {
       .then(r => {
         if (r.data?.logoUrl) setLogoUrl(r.data.logoUrl);
         if (r.data?.faviconUrl) {
-          setFaviconUrl(r.data.faviconUrl);
           const link = document.querySelector<HTMLLinkElement>('link[rel~="icon"]') ??
             Object.assign(document.createElement('link'), { rel: 'icon' });
           link.href = r.data.faviconUrl;
           document.head.appendChild(link);
         }
       })
-      .catch(() => null);
+      .catch(() => null)
+      .finally(() => setLogoLoaded(true));
   }, []);
 
   // Load unread notification count when authenticated
@@ -65,20 +94,8 @@ const Header: React.FC = () => {
         </button>
 
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2.5 flex-shrink-0">
-          {logoUrl ? (
-            <img src={logoUrl} alt="Logo" className="h-9 w-auto max-w-[120px] object-contain" />
-          ) : (
-            <>
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-sm">
-                <ShoppingBag className="h-5 w-5" />
-              </span>
-              <div className="leading-tight">
-                <span className="block font-bold text-slate-900 text-base">Ncole</span>
-                <span className="block text-[9px] font-semibold uppercase tracking-[0.25em] text-orange-500">Interpress</span>
-              </div>
-            </>
-          )}
+        <Link to="/" className="flex flex-shrink-0 items-center gap-2.5" aria-label="Ncole Interpress home">
+          <NavLogo url={logoUrl} loaded={logoLoaded} />
         </Link>
 
         {/* Desktop nav */}
