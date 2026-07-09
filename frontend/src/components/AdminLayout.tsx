@@ -8,6 +8,7 @@ import {
   Sun, Moon,
 } from 'lucide-react';
 import FloatingActionButtons from '@/components/FloatingActionButtons';
+import { useSiteLogo } from '@/hooks/useSiteLogo';
 
 const THEME_KEY = 'ncole_theme';
 
@@ -37,9 +38,16 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
       : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
   }`;
 
+const LogoImg: React.FC<{ src: string; className: string; fallback: React.ReactNode }> = ({ src, className, fallback }) => {
+  const [err, setErr] = React.useState(false);
+  if (err) return <>{fallback}</>;
+  return <img src={src} alt="Ncole" className={className} onError={() => setErr(true)} />;
+};
+
 const AdminLayout: React.FC = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { logoUrl } = useSiteLogo();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [dark, setDark] = useState(() => {
     const stored = localStorage.getItem(THEME_KEY);
@@ -89,13 +97,21 @@ const AdminLayout: React.FC = () => {
         {/* Logo */}
         <div className="border-b border-slate-200 dark:border-slate-700 px-5 py-4">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 text-white">
-              <Shield className="h-4 w-4" />
-            </div>
-            <div>
-              <p className="font-bold text-slate-900 dark:text-white text-sm">Ncole Admin</p>
-              <p className="text-[11px] text-slate-500">Administrator Portal</p>
-            </div>
+            {logoUrl ? (
+              <LogoImg src={logoUrl} className="h-8 w-auto max-w-[110px] object-contain" fallback={
+                <><div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-orange-500 text-white"><Shield className="h-4 w-4" /></div><div><p className="font-bold text-slate-900 dark:text-white text-sm">Ncole Admin</p><p className="text-[11px] text-slate-500">Administrator Portal</p></div></>
+              } />
+            ) : (
+              <>
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-orange-500 text-white">
+                  <Shield className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900 dark:text-white text-sm">Ncole Admin</p>
+                  <p className="text-[11px] text-slate-500">Administrator Portal</p>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -141,7 +157,11 @@ const AdminLayout: React.FC = () => {
           <div className="absolute inset-0 bg-black/50" onClick={() => setDrawerOpen(false)} />
           <div className="absolute left-0 top-0 flex h-full w-64 flex-col bg-white dark:bg-slate-900 shadow-xl">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 px-4 py-3">
-              <span className="font-bold text-sm dark:text-white">Ncole Admin</span>
+              {logoUrl ? (
+                <LogoImg src={logoUrl} className="h-7 w-auto max-w-[100px] object-contain" fallback={<span className="font-bold text-sm dark:text-white">Ncole Admin</span>} />
+              ) : (
+                <span className="font-bold text-sm dark:text-white">Ncole Admin</span>
+              )}
               <button onClick={() => setDrawerOpen(false)} className="rounded-lg p-1 hover:bg-slate-100 dark:hover:bg-slate-800">
                 <X className="h-5 w-5" />
               </button>

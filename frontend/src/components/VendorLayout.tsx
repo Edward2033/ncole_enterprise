@@ -7,6 +7,13 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import FloatingActionButtons from '@/components/FloatingActionButtons';
+import { useSiteLogo } from '@/hooks/useSiteLogo';
+
+const LogoImg: React.FC<{ src: string; className: string; fallback: React.ReactNode }> = ({ src, className, fallback }) => {
+  const [err, setErr] = React.useState(false);
+  if (err) return <>{fallback}</>;
+  return <img src={src} alt="Ncole" className={className} onError={() => setErr(true)} />;
+};
 
 const NAV = [
   { to: '/vendor/dashboard',     icon: LayoutDashboard, label: 'Dashboard'     },
@@ -22,6 +29,7 @@ const THEME_KEY = 'ncole_theme';
 const VendorLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { logoUrl } = useSiteLogo();
   const [open, setOpen] = useState(false);
   const [dark, setDark] = useState(() => {
     const stored = localStorage.getItem(THEME_KEY);
@@ -62,13 +70,21 @@ const VendorLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) =>
     <>
       {/* Logo */}
       <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-700/60 px-5 py-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-md shadow-violet-500/30">
-          <Store className="h-5 w-5" />
-        </div>
-        <div className="leading-tight">
-          <p className="font-extrabold text-slate-900 dark:text-white tracking-tight">Ncole</p>
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-violet-500">Vendor Portal</p>
-        </div>
+        {logoUrl ? (
+          <LogoImg src={logoUrl} className="h-9 w-auto max-w-[120px] object-contain" fallback={
+            <><div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-md shadow-violet-500/30"><Store className="h-5 w-5" /></div><div className="leading-tight"><p className="font-extrabold text-slate-900 dark:text-white tracking-tight">Ncole</p><p className="text-[10px] font-semibold uppercase tracking-widest text-violet-500">Vendor Portal</p></div></>
+          } />
+        ) : (
+          <>
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-md shadow-violet-500/30">
+              <Store className="h-5 w-5" />
+            </div>
+            <div className="leading-tight">
+              <p className="font-extrabold text-slate-900 dark:text-white tracking-tight">Ncole</p>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-violet-500">Vendor Portal</p>
+            </div>
+          </>
+        )}
       </div>
 
       {/* User card */}
@@ -133,7 +149,11 @@ const VendorLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) =>
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setOpen(false)} />
           <div className="absolute left-0 top-0 flex h-full w-72 flex-col bg-white dark:bg-slate-900 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 px-4 py-3">
-              <span className="font-extrabold text-slate-900 dark:text-white">Vendor Portal</span>
+              {logoUrl ? (
+                <LogoImg src={logoUrl} className="h-8 w-auto max-w-[110px] object-contain" fallback={<span className="font-extrabold text-slate-900 dark:text-white">Vendor Portal</span>} />
+              ) : (
+                <span className="font-extrabold text-slate-900 dark:text-white">Vendor Portal</span>
+              )}
               <button onClick={() => setOpen(false)} className="rounded-lg p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
                 <X className="h-5 w-5" />
               </button>

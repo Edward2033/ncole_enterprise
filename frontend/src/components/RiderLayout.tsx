@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Truck, DollarSign, User, Bell, LogOut, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, Truck, DollarSign, User, Bell, LogOut, Sun, Moon, Bike } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import FloatingActionButtons from '@/components/FloatingActionButtons';
+import { useSiteLogo } from '@/hooks/useSiteLogo';
+
+const LogoImg: React.FC<{ src: string; className: string; fallback: React.ReactNode }> = ({ src, className, fallback }) => {
+  const [err, setErr] = React.useState(false);
+  if (err) return <>{fallback}</>;
+  return <img src={src} alt="Ncole" className={className} onError={() => setErr(true)} />;
+};
 
 const THEME_KEY = 'ncole_theme';
 
@@ -17,6 +24,7 @@ const NAV = [
 const RiderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { logoUrl } = useSiteLogo();
   const [dark, setDark] = useState(() => {
     const stored = localStorage.getItem(THEME_KEY);
     return stored ? stored === 'dark' : document.documentElement.classList.contains('dark');
@@ -35,15 +43,17 @@ const RiderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       {/* Top Header */}
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
         <div className="flex items-center gap-3">
-          {user?.avatarUrl ? (
-            <img src={user.avatarUrl} alt={user.name} className="h-8 w-8 rounded-full object-cover" />
+          {logoUrl ? (
+            <LogoImg src={logoUrl} className="h-8 w-auto max-w-[100px] object-contain" fallback={
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-orange-500 text-white"><Bike className="h-4 w-4" /></div>
+            } />
           ) : (
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100 text-orange-700 text-xs font-bold">
-              {initials}
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-orange-500 text-white">
+              <Bike className="h-4 w-4" />
             </div>
           )}
           <div>
-            <p className="font-bold text-slate-900 dark:text-white">N_COLE Rider</p>
+            <p className="font-bold text-slate-900 dark:text-white">Rider Portal</p>
             <p className="text-xs text-slate-500">{user?.name}</p>
           </div>
         </div>

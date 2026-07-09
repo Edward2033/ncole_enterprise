@@ -8,6 +8,13 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import FloatingActionButtons from '@/components/FloatingActionButtons';
+import { useSiteLogo } from '@/hooks/useSiteLogo';
+
+const LogoImg: React.FC<{ src: string; className: string; fallback: React.ReactNode }> = ({ src, className, fallback }) => {
+  const [err, setErr] = React.useState(false);
+  if (err) return <>{fallback}</>;
+  return <img src={src} alt="Ncole" className={className} onError={() => setErr(true)} />;
+};
 
 const NAV = [
   { to: '/customer/dashboard',    icon: LayoutDashboard, label: 'Dashboard'     },
@@ -29,6 +36,7 @@ const THEME_KEY = 'ncole_theme';
 const CustomerShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, signOut, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { logoUrl } = useSiteLogo();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [dark, setDark] = useState(() => {
     const stored = localStorage.getItem(THEME_KEY);
@@ -90,11 +98,19 @@ const CustomerShell: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       {/* Desktop Sidebar */}
       <aside className="hidden w-64 flex-shrink-0 flex-col border-r border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 lg:flex">
         <div className="flex items-center gap-3 border-b border-slate-200 px-6 py-5 dark:border-slate-700">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-amber-400 text-white font-bold text-sm shadow-md shadow-orange-200">N</div>
-          <div className="leading-tight">
-            <p className="font-bold text-slate-900 dark:text-white">N_COLE</p>
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-orange-500">Interpress</p>
-          </div>
+          {logoUrl ? (
+            <LogoImg src={logoUrl} className="h-9 w-auto max-w-[120px] object-contain" fallback={
+              <><div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-amber-400 text-white font-bold text-sm shadow-md shadow-orange-200">N</div><div className="leading-tight"><p className="font-bold text-slate-900 dark:text-white">N_COLE</p><p className="text-[10px] font-semibold uppercase tracking-widest text-orange-500">Interpress</p></div></>
+            } />
+          ) : (
+            <>
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-amber-400 text-white font-bold text-sm shadow-md shadow-orange-200">N</div>
+              <div className="leading-tight">
+                <p className="font-bold text-slate-900 dark:text-white">N_COLE</p>
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-orange-500">Interpress</p>
+              </div>
+            </>
+          )}
         </div>
         <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
           <div className="rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 p-4 dark:from-orange-900/20 dark:to-amber-900/10">
@@ -130,8 +146,16 @@ const CustomerShell: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           <div className="absolute left-0 top-0 flex h-full w-72 flex-col bg-white dark:bg-slate-900 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 p-4">
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-amber-400 text-white text-xs font-bold">N</div>
-                <span className="font-bold text-slate-900 dark:text-white">N_COLE Interpress</span>
+                {logoUrl ? (
+                  <LogoImg src={logoUrl} className="h-8 w-auto max-w-[110px] object-contain" fallback={
+                    <><div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-amber-400 text-white text-xs font-bold">N</div><span className="font-bold text-slate-900 dark:text-white">N_COLE Interpress</span></>
+                  } />
+                ) : (
+                  <>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-amber-400 text-white text-xs font-bold">N</div>
+                    <span className="font-bold text-slate-900 dark:text-white">N_COLE Interpress</span>
+                  </>
+                )}
               </div>
               <button onClick={() => setSidebarOpen(false)} className="rounded-lg p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                 <X className="h-5 w-5 text-slate-500" />
