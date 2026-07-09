@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiFetch } from '@/services/api';
@@ -62,12 +62,20 @@ const INTERVAL = 5500;
 const Hero: React.FC = () => {
   const [slides, setSlides] = useState<HeroSlide[]>(STATIC_SLIDES);
   const [current, setCurrent] = useState(0);
-  const [prev, setPrev] = useState<number | null>(null);
+  const [prevIdx, setPrevIdx] = useState<number | null>(null);
   const [direction, setDirection] = useState<'left' | 'right'>('left');
   const [sliding, setSliding] = useState(false);
   const [progress, setProgress] = useState(0);
+
+  const slidingRef = useRef(false);
+  const currentRef = useRef(0);
+  const slidesLenRef = useRef(STATIC_SLIDES.length);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // keep refs in sync
+  currentRef.current = current;
+  slidesLenRef.current = slides.length;
 
   useEffect(() => {
     apiFetch<{ success: boolean; data: HeroSlide[] }>('/settings/hero-slides/public')
@@ -78,7 +86,7 @@ const Hero: React.FC = () => {
       .catch(() => null);
   }, []);
 
-  const startProgress = useCallback(() => {
+  const startProgress = () => {
     setProgress(0);
     if (progressRef.current) clearInterval(progressRef.current);
     const step = 100 / (INTERVAL / 50);
@@ -88,57 +96,56 @@ const Hero: React.FC = () => {
         return p + step;
       });
     }, 50);
-  }, []);
+  };
 
-  const goTo = useCallback((idx: number, dir: 'left' | 'right' = 'left') => {
-    if (sliding || slides.length <= 1) return;
-    setDirection(dir);
+  const goTo = (idx: number, dir: 'left' | 'right') => {
+    if (slidingRef.current || slidesLenRef.current <= 1) return;
+    const next = ((idx % slidesLenRef.current) + slidesLenRef.current) % slidesLenRef.current;
+    slidingRef.current = true;
     setSliding(true);
-    setPrev(current);
+    setDirection(dir);
+    setPrevIdx(currentRef.current);
     setTimeout(() => {
-      setCurrent((idx + slides.length) % slides.length);
+      setCurrent(next);
+      slidingRef.current = false;
       setSliding(false);
-      setPrev(null);
+      setPrevIdx(null);
       startProgress();
     }, 500);
-  }, [sliding, slides.length, current, startProgress]);
+  };
 
-  const next = useCallback(() => goTo(current + 1, 'left'), [current, goTo]);
-  const back = useCallback(() => goTo(current - 1, 'right'), [current, goTo]);
+  const advance = () => goTo(currentRef.current + 1, 'left');
 
-  // Auto-advance
+  const navigate = (idx: number, dir: 'left' | 'right') => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    goTo(idx, dir);
+    timerRef.current = setInterval(advance, INTERVAL);
+  };
+
+  // auto-advance
   useEffect(() => {
     if (slides.length <= 1) return;
     startProgress();
-    timerRef.current = setInterval(next, INTERVAL);
+    timerRef.current = setInterval(advance, INTERVAL);
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
       if (progressRef.current) clearInterval(progressRef.current);
     };
   }, [slides.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Restart timer when manually navigating
-  const navigate = (idx: number, dir: 'left' | 'right') => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    goTo(idx, dir);
-    timerRef.current = setInterval(next, INTERVAL);
-  };
-
   const slide = slides[current];
-  const prevSlide = prev !== null ? slides[prev] : null;
+  const prevSlide = prevIdx !== null ? slides[prevIdx] : null;
   if (!slide) return null;
 
-  // Slide-in/out classes based on direction
-  const enterClass = direction === 'left'
-    ? sliding ? 'translate-x-full' : 'translate-x-0'
-    : sliding ? '-translate-x-full' : 'translate-x-0';
-
+  const enterClass = sliding
+    ? direction === 'left' ? 'translate-x-full' : '-translate-x-full'
+    : 'translate-x-0';
   const exitClass = direction === 'left' ? '-translate-x-full' : 'translate-x-full';
 
   return (
     <section className="relative h-[72vh] min-h-[500px] max-h-[800px] overflow-hidden bg-slate-900 select-none sm:h-[82vh] lg:h-[92vh]">
 
-      {/* ── Exiting slide ── */}
+      {/* Exiting slide */}
       {prevSlide && (
         <div className={`absolute inset-0 transition-transform duration-500 ease-in-out ${exitClass}`}>
           <img src={prevSlide.imageUrl} alt="" className="h-full w-full object-cover" />
@@ -146,49 +153,37 @@ const Hero: React.FC = () => {
         </div>
       )}
 
-      {/* ── Entering / active slide ── */}
+      {/* Active / entering slide */}
       <div className={`absolute inset-0 transition-transform duration-500 ease-in-out ${enterClass}`}>
-        <img
-          src={slide.imageUrl}
-          alt=""
-          className="h-full w-full object-cover"
-          loading="eager"
-        />
-        {/* Gradient overlay — left-heavy for text legibility */}
+        <img src={slide.imageUrl} alt="" className="h-full w-full object-cover" loading="eager" />
         <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-900/60 to-slate-900/10" />
-        {/* Bottom vignette */}
         <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-slate-900/70 to-transparent" />
       </div>
 
-      {/* ── Slide content ── */}
+      {/* Content */}
       <div
         key={slide.id}
         className={`relative flex h-full flex-col justify-center transition-all duration-500 ${sliding ? 'opacity-0 translate-y-3' : 'opacity-100 translate-y-0'}`}
       >
         <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
           <div className="max-w-2xl">
-
-            {/* Slide label pill */}
             <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-orange-300 backdrop-blur-sm">
               <span className="h-1.5 w-1.5 rounded-full bg-orange-400 animate-pulse" />
               N_COLE Interpress
             </span>
-
             <h1 className="mt-4 text-3xl font-extrabold leading-tight tracking-tight text-white drop-shadow-sm sm:text-5xl lg:text-6xl">
               {slide.title}
             </h1>
-
             {slide.subtitle && (
               <p className="mt-4 max-w-xl text-sm leading-relaxed text-slate-300 sm:text-lg">
                 {slide.subtitle}
               </p>
             )}
-
             <div className="mt-6 flex flex-wrap gap-3 sm:mt-8">
               {slide.buttonText && slide.buttonLink && (
                 <Link
                   to={slide.buttonLink}
-                  className="inline-flex items-center gap-2 rounded-full bg-orange-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-orange-500/40 transition hover:bg-orange-600 hover:shadow-orange-500/60 active:scale-95 sm:px-8 sm:py-3.5"
+                  className="inline-flex items-center gap-2 rounded-full bg-orange-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-orange-500/40 transition hover:bg-orange-600 active:scale-95 sm:px-8 sm:py-3.5"
                 >
                   {slide.buttonText} <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -200,8 +195,6 @@ const Hero: React.FC = () => {
                 Browse All
               </Link>
             </div>
-
-            {/* Trust badges */}
             <div className="mt-8 hidden flex-wrap gap-x-6 gap-y-2 text-sm text-slate-300 sm:flex">
               {['Free delivery on all orders', 'MTN MoMo & Airtel Money', 'Verified vendors only'].map(t => (
                 <span key={t} className="flex items-center gap-2">
@@ -213,17 +206,14 @@ const Hero: React.FC = () => {
         </div>
       </div>
 
-      {/* ── Progress bar ── */}
+      {/* Progress bar */}
       {slides.length > 1 && (
-        <div className="absolute top-0 inset-x-0 h-0.5 bg-white/10">
-          <div
-            className="h-full bg-orange-500 transition-none"
-            style={{ width: `${progress}%` }}
-          />
+        <div className="absolute inset-x-0 top-0 h-0.5 bg-white/10">
+          <div className="h-full bg-orange-500" style={{ width: `${progress}%`, transition: 'none' }} />
         </div>
       )}
 
-      {/* ── Dot indicators ── */}
+      {/* Dot indicators */}
       {slides.length > 1 && (
         <div className="absolute bottom-8 left-1/2 flex -translate-x-1/2 items-center gap-2">
           {slides.map((_, i) => (
@@ -233,15 +223,15 @@ const Hero: React.FC = () => {
               aria-label={`Go to slide ${i + 1}`}
               className={`rounded-full transition-all duration-300 ${
                 i === current
-                  ? 'w-8 h-2.5 bg-orange-500 shadow-lg shadow-orange-500/50'
-                  : 'w-2.5 h-2.5 bg-white/30 hover:bg-white/60'
+                  ? 'h-2.5 w-8 bg-orange-500 shadow-lg shadow-orange-500/50'
+                  : 'h-2.5 w-2.5 bg-white/30 hover:bg-white/60'
               }`}
             />
           ))}
         </div>
       )}
 
-      {/* ── Slide counter ── */}
+      {/* Slide counter */}
       {slides.length > 1 && (
         <div className="absolute bottom-7 right-6 text-xs font-bold tabular-nums text-white/40 lg:right-10">
           <span className="text-white/80">{String(current + 1).padStart(2, '0')}</span>
@@ -250,7 +240,7 @@ const Hero: React.FC = () => {
         </div>
       )}
 
-      {/* ── Arrow controls ── */}
+      {/* Arrow controls */}
       {slides.length > 1 && (
         <>
           <button
@@ -270,7 +260,7 @@ const Hero: React.FC = () => {
         </>
       )}
 
-      {/* ── Vertical slide thumbnails (desktop only) ── */}
+      {/* Thumbnail strip — desktop only */}
       {slides.length > 1 && (
         <div className="absolute right-6 top-1/2 hidden -translate-y-1/2 flex-col gap-2 lg:flex lg:right-24">
           {slides.map((s, i) => (
