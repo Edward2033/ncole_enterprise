@@ -1,43 +1,56 @@
-# N_COLE INTERPRESS
-## Enterprise Multi-Vendor E-Commerce Marketplace Platform
+# ACADEMIC PROJECT REPORT
 
 ---
 
-**ACADEMIC PROJECT REPORT**
+**University of Lay Adventists of Kigali (UNILAK)**
+Kigali, Gasabo | Street KK 508 ST | P.O Box 6392 Kigali, Rwanda | +250 791 591 773
 
-**Institution**: University of Lay Adventists of Kigali (UNILAK)
-**Faculty**: Faculty of Computing and Information Sciences
-**Course Code & Name**: EWA408510 – E-Commerce and Web Application
-**Submitted By**: Edward Y. Cole
-**Instructor**: Eric Maniraguha
-**Submission Date**: July 3, 2026
-**Academic Year**: 2025 / 2026
+**Faculty of Computing and Information Sciences**
+
+---
+
+| Item | Details |
+|------|---------|
+| **Course Code & Name** | EWA408510 – E-Commerce and Web Application |
+| **Assessment Type** | Final Examination (Project-Based) |
+| **Instructor** | Eric Maniraguha |
+| **Submission Period** | 21 June – 3 July 2026 |
+| **Duration** | 13 Days |
+| **Maximum Marks** | 40 Marks (+5 Bonus Marks) |
+| **Academic Year** | 2025 – 2026 |
+| **Submitted By** | Edward Y. Cole |
+| **Submission Date** | 3 July 2026 |
+
+---
+
+# N_COLE INTERPRESS
+## Enterprise Multi-Vendor E-Commerce Marketplace
 
 ---
 
 ## TABLE OF CONTENTS
 
-1. Introduction
-2. Problem Statement
-3. Project Objectives
-4. System Features
-5. Technologies Used
-6. System Architecture
-7. Database Design
-8. Screenshots of the Application
-9. GitHub Repository Link
-10. Deployment Link
-11. CI/CD Implementation
-12. Docker Implementation
-13. Challenges Encountered
-14. Future Enhancements
-15. Conclusion
+1. [Introduction](#1-introduction)
+2. [Problem Statement](#2-problem-statement)
+3. [Project Objectives](#3-project-objectives)
+4. [System Features](#4-system-features)
+5. [Technologies Used](#5-technologies-used)
+6. [System Architecture](#6-system-architecture)
+7. [Database Design](#7-database-design)
+8. [Screenshots of the Application](#8-screenshots-of-the-application)
+9. [GitHub Repository Link](#9-github-repository-link)
+10. [Deployment Link](#10-deployment-link)
+11. [CI/CD Implementation](#11-cicd-implementation)
+12. [Docker Implementation](#12-docker-implementation)
+13. [Challenges Encountered](#13-challenges-encountered)
+14. [Future Enhancements](#14-future-enhancements)
+15. [Conclusion](#15-conclusion)
 
 ---
 
 ## 1. Introduction
 
-N_COLE Interpress is a production-grade, full-stack, multi-vendor e-commerce marketplace platform designed and developed to address the growing demand for digital commerce infrastructure in Rwanda and the wider East African market. The platform provides a comprehensive digital marketplace ecosystem connecting product vendors, customers, delivery riders, and platform administrators through a unified web application backed by a single enterprise-grade RESTful API.
+N_COLE Interpress is a production-grade, full-stack, multi-vendor e-commerce marketplace platform designed and developed to address the growing demand for digital commerce infrastructure in Rwanda and the wider East African market. The platform provides a comprehensive digital marketplace ecosystem connecting product vendors, customers, delivery riders, and platform administrators through a single unified web application backed by an enterprise-grade RESTful API.
 
 The system integrates Google's Gemini 2.0 Flash large language model to provide context-aware AI assistance across every user portal, tailored to each user role. The platform is fully containerised with Docker, has automated CI/CD via GitHub Actions, and is deployed live on Render (backend) and Vercel (frontend).
 
@@ -51,11 +64,11 @@ Small and medium enterprises (SMEs) in Rwanda face significant barriers to digit
 
 - **No localised payment integration**: Most platforms do not natively support MTN Mobile Money or Airtel Money, which are the dominant payment channels in Rwanda.
 - **Fragmented vendor management**: Vendors lack tools to manage products, track orders, and analyse performance in one place.
-- **Poor delivery coordination**: No unified system connects vendors, customers, and delivery riders.
+- **Poor delivery coordination**: No unified system connects vendors, customers, and delivery riders in a single workflow.
 - **Lack of AI-powered assistance**: Customers, vendors, and operations staff receive no intelligent contextual support.
 - **High technical debt**: Available open-source solutions require extensive customisation and lack production-grade DevOps support.
 
-N_COLE Interpress directly addresses each of these challenges.
+N_COLE Interpress directly addresses each of these challenges through a purpose-built, locally-aware platform.
 
 ---
 
@@ -65,72 +78,87 @@ N_COLE Interpress directly addresses each of these challenges.
 1. Design and implement a scalable multi-vendor e-commerce platform supporting unlimited vendors and products.
 2. Build a complete order lifecycle management system from cart to delivery confirmation.
 3. Implement a localised billing and payment system supporting MTN MoMo and Airtel Money.
-4. Integrate Google Gemini 2.0 Flash AI as a context-aware assistant across all user roles.
+4. Integrate Google Gemini 2.0 Flash AI as a context-aware assistant across all five user portals.
 5. Deploy a production-ready, containerised platform with automated CI/CD.
 
 **Secondary Objectives:**
-6. Implement enterprise security: JWT, RBAC, rate limiting, audit logging.
+6. Implement enterprise security: JWT with refresh token rotation, RBAC, rate limiting, and audit logging.
 7. Create comprehensive DevOps infrastructure using Docker and GitHub Actions.
 8. Produce complete documentation for all system components.
-9. Design the architecture for future scalability.
+9. Design the architecture for future scalability and mobile application support.
 
 ---
 
 ## 4. System Features
 
-### 4.1 User Interface (UI)
-- Responsive and professional design using Tailwind CSS and shadcn/ui
-- Homepage with navigation menu, hero slideshow, and category browsing
-- Mobile-friendly experience across all screen sizes
-- Consistent branding (N_COLE orange/slate colour palette) across all portals
+### 4.1 User Interface (UI) — 5 Marks
 
-### 4.2 Product Management
-- Product listing page with grid and list view
-- Product detail page with image gallery, variants, and stock status
-- Product categories with nested navigation
-- Product search and filtering by keyword, category, and price range
-- Sort by price (low/high) and name
+- Responsive and professional design using Tailwind CSS and shadcn/ui component library
+- Homepage with sticky navigation menu, hero slideshow, trust bar, category grid, featured products, and live stats counter
+- Mobile-friendly experience across all screen sizes (320px to 4K)
+- Consistent N_COLE orange/slate branding across all five portals
+- Dark mode support across all portals
 
-### 4.3 Shopping Cart
-- Add products to cart (with variant support)
-- Remove products from cart
-- Update product quantities (increment/decrement)
-- Automatic subtotal calculation
-- Cart persisted to localStorage
+### 4.2 Product Management — 4 Marks
 
-### 4.4 Checkout Process
-- Customer delivery address collection with form validation
-- Address management (add, select default)
-- Payment method selection (MTN MoMo, Airtel Money, Cash on Delivery)
-- Full order summary review before placing
-- Order confirmation page with order number and payment instructions
+- Product listing page with responsive grid and list view toggle
+- Product detail page with image gallery, variant selector, stock status, and related products
+- Hierarchical product categories with nested navigation and slug-based routing
+- Product search by keyword, filter by category and price range, sort by price and name
+- Vendor-side product creation, editing, deletion, and image upload via Cloudinary
 
-### 4.5 Database Integration
+### 4.3 Shopping Cart — 4 Marks
+
+- Add products to cart with full variant support (size, colour, etc.)
+- Remove individual products from cart
+- Update product quantities with increment/decrement controls
+- Automatic subtotal and total calculation on every change
+- Cart persisted to localStorage for guest users; merged to backend cart on login
+
+### 4.4 Checkout Process — 4 Marks
+
+- Delivery address collection with full form validation (name, phone, street, district, city, province)
+- Saved address management with default address selection
+- Payment method selection: MTN Mobile Money, Airtel Money, Cash on Delivery
+- Full order summary review with item images, quantities, and prices before placing
+- Order confirmation page with order number, payment instructions, and direct billing link
+
+### 4.5 Database Integration — 5 Marks
+
 - PostgreSQL 16 via Supabase with Prisma ORM
-- 15 models: users, vendors, customers, riders, products, variants, categories, carts, orders, addresses, invoices, payments, notifications, preferences, activity logs
-- All entities fully relational with proper foreign keys and indices
+- 20 models covering all platform entities with proper foreign keys, indices, and constraints
+- All monetary values stored as integers in RWF to eliminate floating-point errors
+- Soft deletion on orders and products preserves audit trail
+- Idempotent invoice generation via unique `orderId` constraint
 
 ### 4.6 Vendor Portal
-- Product listing, creation, editing, and deletion
-- Order management and fulfilment workflow
-- Sales analytics and revenue reporting
-- AI assistant for inventory and performance insights
+
+- Product management: create, edit, delete, image upload
+- Order management with fulfilment workflow (Pending → Confirmed → Processing → Ready for Pickup)
+- Sales analytics with revenue-over-time charts and top-products ranking
+- AI assistant with live inventory and performance context
 
 ### 4.7 Admin Portal
-- Full platform management: users, vendors, products, orders
-- Payment verification and revenue reporting
-- Category management, broadcast notifications, maintenance mode
-- Audit activity log, AI-powered analytics assistant
+
+- Full platform management: users, vendors, products, orders, categories
+- Payment verification and rejection workflow
+- Broadcast notifications and maintenance mode toggle
+- Audit activity log with full action history
+- AI-powered analytics assistant with platform-wide snapshot
 
 ### 4.8 Rider Portal
-- Assigned delivery management and status updates
-- Earnings overview and AI delivery guidance
 
-### 4.9 AI Assistant (Innovation Bonus Feature)
-- Powered by Google Gemini 2.0 Flash
+- Assigned delivery management and status update workflow
+- Earnings overview
+- AI delivery guidance assistant
+
+### 4.9 AI Assistant — Innovation Bonus
+
+- Powered by Google Gemini 2.0 Flash via `@google/generative-ai`
 - Role-scoped across 5 portals: Public, Customer, Vendor, Rider, Admin
 - Live database context injected per portal (orders, invoices, products, revenue)
-- Smart 429 handling: distinguishes daily quota exhaustion from per-minute limits
+- Smart 429 handling: distinguishes daily quota exhaustion from per-minute rate limits
+- Multi-turn conversation history maintained per session
 
 ---
 
@@ -155,7 +183,7 @@ N_COLE Interpress directly addresses each of these challenges.
 | Reverse Proxy | Nginx | High-performance, production-proven |
 | Logging | Winston | Structured logging, multiple transports |
 | Image Storage | Cloudinary | Managed CDN, transformation APIs |
-| Email | Resend SDK | Transactional emails (approval, OTP, password reset) |
+| Email | Resend SDK | Transactional emails (OTP, password reset, approval) |
 | Payments | MTN MoMo, Airtel Money, Cash on Delivery | Localised for Rwanda |
 
 ---
@@ -169,114 +197,192 @@ Internet
    │
    ▼
 Nginx Reverse Proxy
-   ├── /             ──── Frontend SPA (React/Vite — all portals)
+   ├── /             ──── Frontend SPA (React/Vite — all 5 portals)
    ├── /api/v1       ──── Backend API (Express/TypeScript)
    └── static assets ──── Served by Nginx
 
 Backend API
    ├── PostgreSQL via Supabase (Prisma ORM)
-   └── Google Gemini 2.0 Flash (AI — context pre-aggregated)
+   └── Google Gemini 2.0 Flash (AI — context pre-aggregated, DB never exposed)
 ```
 
 ### 6.2 Backend Module Architecture
 
-The backend follows a feature-module pattern:
+The backend follows a feature-module pattern where each domain owns its routes, controller, and service:
+
 ```
 src/modules/
-├── auth/          → Register, login, token refresh, logout, password reset
-├── users/         → Profile management, admin user CRUD, activity log
+├── auth/          → Register, login, OTP verify, token refresh, logout, password reset
+├── users/         → Profile management, admin user CRUD
 ├── vendors/       → Vendor CRUD, verification, backfill
-├── products/      → Product + variant management, image upload
-├── categories/    → Category tree management
-├── cart/          → Cart management
-├── orders/        → Order placement, status lifecycle
-├── addresses/     → Address CRUD
-├── notifications/ → Event-driven notification system
-├── billing/       → Invoice + payment workflow
-├── riders/        → Rider management
+├── products/      → Product + variant management, Cloudinary image upload
+├── categories/    → Hierarchical category management
+├── cart/          → Cart and cart item management
+├── orders/        → Order placement, status lifecycle, vendor/rider views
+├── addresses/     → Delivery address CRUD
+├── notifications/ → Event-driven notification system + preferences
+├── billing/       → Invoice generation + payment submission/verification
+├── riders/        → Rider profile and delivery management
 ├── settings/      → Platform settings, maintenance mode
-└── ai/            → Gemini integration, context service, prompts
+├── applications/  → Vendor/rider application workflow
+└── ai/            → Gemini integration, context aggregation, role-scoped prompts
 ```
 
 ### 6.3 Security Middleware Pipeline
 
-Every request passes through:
-`Helmet → CORS → Rate Limiter → Morgan Logger → Authenticate (optional) → Authorize (role check) → Validate (Zod) → Controller → Error Handler`
+Every request passes through this ordered pipeline:
+
+```
+Helmet → CORS → Rate Limiter → Morgan Logger → Maintenance Check
+  → Authenticate (JWT verify) → Authorize (RBAC role check)
+  → Validate (Zod schema) → Controller → Error Handler
+```
+
+### 6.4 Frontend Portal Routing
+
+All five portals are served from a single React SPA with role-based route guards:
+
+| Portal | Route Prefix | Guard |
+|--------|-------------|-------|
+| Public Storefront | `/` | None |
+| Customer | `/customer/*`, `/account/*` | `ProtectedRoute` |
+| Vendor | `/vendor/*` | `VendorRoute` |
+| Rider | `/rider/*` | `RiderRoute` |
+| Admin | `/admin/*` | `AdminRoute` |
 
 ---
 
 ## 7. Database Design
 
-### 7.1 Core Entity Relationships
+### 7.1 Entity Overview
 
-The database has 15 tables organised into 6 domains:
+The database contains **20 models** organised into 6 domains:
 
-- **Identity**: `users`, `refresh_tokens`, `password_reset_tokens`
-- **Profiles**: `vendors`, `customers`, `riders`
-- **Catalogue**: `categories`, `products`, `product_variants`
-- **Commerce**: `carts`, `cart_items`, `orders`, `order_items`, `addresses`
-- **Billing**: `invoices`, `payments`, `payment_transactions`
-- **Platform**: `notifications`, `notification_preferences`, `activity_logs`
+| Domain | Models |
+|--------|--------|
+| Identity | `users`, `refresh_tokens`, `password_reset_tokens`, `otp_codes` |
+| Profiles | `vendors`, `customers`, `riders`, `applications` |
+| Catalogue | `categories`, `products`, `product_variants` |
+| Commerce | `carts`, `cart_items`, `orders`, `order_items`, `addresses` |
+| Billing | `invoices`, `payments`, `payment_transactions` |
+| Platform | `notifications`, `notification_preferences`, `activity_logs` |
 
-### 7.2 Key Design Decisions
+### 7.2 Core Entity Relationships
 
-1. **All monetary values stored as integers (RWF)**: Eliminates floating-point precision errors in financial calculations.
-2. **Soft deletion on orders and products**: `deletedAt` field preserves audit trail.
-3. **Idempotent invoice generation**: Invoice creation checks for existing records via unique `orderId` constraint.
-4. **Refresh token rotation**: Each token use issues a new token and invalidates the old one.
-5. **ActivityLog as append-only**: No updates or deletes allowed on audit records.
+```
+User (1) ──── (1) Vendor
+User (1) ──── (1) Customer
+User (1) ──── (1) Rider
+User (1) ──── (N) Address
+User (1) ──── (N) Notification
+User (1) ──── (1) NotificationPreference
 
-### 7.3 Invoice and Payment Number Format
+Customer (1) ──── (1) Cart ──── (N) CartItem
+Customer (1) ──── (N) Order ──── (N) OrderItem
+Order    (1) ──── (1) Invoice ──── (N) Payment ──── (N) PaymentTransaction
+
+Vendor   (1) ──── (N) Product ──── (N) ProductVariant
+Category (1) ──── (N) Product
+Category (1) ──── (N) Category  [self-referential tree]
+```
+
+### 7.3 Key Design Decisions
+
+1. **Integer monetary values (RWF)**: All prices, totals, and amounts stored as integers — eliminates floating-point precision errors in financial calculations.
+2. **Soft deletion**: `deletedAt` field on `orders` and `products` preserves audit trail without losing data.
+3. **Idempotent invoice generation**: Unique `orderId` constraint on `invoices` prevents duplicate invoices on network retries.
+4. **Refresh token rotation**: Each use of a refresh token issues a new one and invalidates the old — prevents token replay attacks.
+5. **ActivityLog append-only**: No updates or deletes permitted on audit records — full tamper-evident history.
+6. **OTP for VENDOR/RIDER login**: Two-factor authentication enforced for privileged roles via time-limited OTP codes.
+
+### 7.4 Invoice and Order Number Format
 
 ```
 INV-{YEAR}-{SEQUENCE}  →  INV-2026-000001
 PAY-{YEAR}-{SEQUENCE}  →  PAY-2026-000001
+ORD-{YEAR}-{SEQUENCE}  →  ORD-2026-000001
 ```
+
+### 7.5 Key Database Enums
+
+| Enum | Values |
+|------|--------|
+| `Role` | ADMIN, VENDOR, CUSTOMER, RIDER |
+| `OrderStatus` | PENDING, CONFIRMED, PROCESSING, READY_FOR_PICKUP, OUT_FOR_DELIVERY, DELIVERED, CANCELLED, REFUNDED |
+| `PaymentStatus` | PENDING, PAID, FAILED, REFUNDED |
+| `PaymentMethod` | MTN_MOMO, AIRTEL_MONEY, CASH_ON_DELIVERY |
+| `InvoiceStatus` | DRAFT, ISSUED, PAID, OVERDUE, CANCELLED |
+| `ProductStatus` | ACTIVE, DRAFT, ARCHIVED |
 
 ---
 
 ## 8. Screenshots of the Application
 
-The following screenshots demonstrate the key functional areas of the N_COLE Interpress platform.
+> All screenshots are stored in `docs/images/`.
 
-### 8.1 Public Storefront — Homepage
-The homepage features a hero slideshow, trust bar (free delivery, verified vendors, same-day dispatch, AI-powered), a category grid, featured products section, AI assistant banner, trending products, and a live stats counter showing active vendors, products, customers, and completed orders. The header includes a sticky navigation bar with search, cart icon with item count badge, and user account dropdown.
+---
 
-### 8.2 Shop Page — Search, Filter & Sort
-The shop page (`/shop`) displays all active products in a responsive grid (2 columns mobile, 3 columns desktop). The left sidebar provides: a keyword search input, a category list with product counts, and price range presets (Under RWF 5,000 through Over RWF 100,000). A toolbar above the grid allows switching between grid and list view, and sorting by default, price ascending, price descending, or name A–Z. Active filters are indicated with an orange badge. Pagination controls appear at the bottom when results exceed 16 products.
+### 8.1 Homepage — Public Storefront
+
+![Homepage](images/homepage.png)
+
+The homepage features a hero slideshow with call-to-action buttons, a trust bar (free delivery, verified vendors, same-day dispatch, AI-powered), a category grid, featured products section, AI assistant banner, trending products, and a live stats counter showing active vendors, products, customers, and completed orders. The sticky header includes search, cart icon with item count badge, and user account dropdown.
+
+---
+
+### 8.2 Shop Page — Product Listing, Search & Filter
+
+![Shop Page](images/shop.png)
+
+The shop page (`/shop`) displays all active products in a responsive grid. The sidebar provides keyword search, category filter with product counts, and price range presets. A toolbar allows switching between grid and list view and sorting by price or name. Active filters are shown with a badge. Pagination appears when results exceed 16 products.
+
+---
 
 ### 8.3 Product Detail Page
-The product detail page shows a full image gallery with thumbnail strip, vendor name and category breadcrumb, product title, interactive star rating widget, price with in-stock/out-of-stock badge, variant selector buttons (disabled and struck-through when out of stock), quantity increment/decrement controls, and an Add to Cart button that transitions to a green "Added to Cart!" confirmation state. Below the main section, tabbed panels show Description, Specifications, and Reviews. Related products and recently viewed products grids appear at the bottom.
+
+![Product Detail](images/product-detail.png)
+
+The product detail page shows a full image gallery with thumbnail strip, vendor name, category breadcrumb, product title, star rating, price with stock badge, variant selector buttons, quantity controls, and an Add to Cart button. Tabbed panels below show Description, Specifications, and Reviews. Related products appear at the bottom.
+
+---
 
 ### 8.4 Shopping Cart
-The cart drawer slides in from the right when the cart icon is clicked. It lists each item with its image, name, variant, unit price, and a quantity stepper. The subtotal updates automatically. A "Checkout" button navigates to the checkout page. The cart page (`/cart`) provides the same controls in a full-page layout with an order summary panel.
 
-### 8.5 Checkout Page
-The checkout page is divided into two columns: the left column contains a delivery address selector (cards for saved addresses with a default badge) and an "Add New" form with full validation (name, phone, street, district, city, province), plus a payment method selector (MTN Mobile Money, Airtel Money, Cash on Delivery) and an optional order notes textarea. The right column shows the order summary with item images, names, quantities, and prices, plus subtotal, free delivery, and total. The "Place Order" button is disabled until an address is selected.
+![Shopping Cart](images/cart.png)
 
-### 8.6 Order Confirmation Page
-After a successful order, the confirmation page displays a green checkmark, the order number (e.g. `ORD-2026-000001`), a full order summary with item breakdown, and — when payment is pending — an amber notice with the payment method and a "Pay Now" button linking directly to the billing page.
+The cart page lists each item with image, name, selected variant, unit price, and a quantity stepper (increment/decrement). The subtotal and order total update automatically on every change. Items can be removed individually. A Proceed to Checkout button navigates to the checkout flow. Guest cart is persisted in localStorage and merged into the backend cart on login.
 
-### 8.7 AI Chat Assistant
-The floating AI chat widget appears on every page as a circular button in the bottom-right corner. Clicking it opens a chat panel with the Ncole Assistant. On the public storefront it answers product discovery and general shopping questions. In the customer portal it has access to the user's last 5 orders and last 3 invoices. In the vendor portal it provides sales insights and inventory analysis. In the admin portal it delivers a full platform analytics snapshot. The assistant handles Gemini API rate limits gracefully, displaying a user-friendly retry message instead of an error.
+---
 
-### 8.8 Vendor Dashboard
-The vendor dashboard shows a summary of total revenue, total orders, active products, and low-stock alerts. The analytics page renders revenue-over-time and top-products bar charts using Recharts. The products page provides a table with inline edit and delete actions, and a modal form for creating new products with image upload via Cloudinary.
+### 8.5 Vendor Dashboard
 
-### 8.9 Admin Panel — Payment Verification
-The admin billing page lists all submitted payments with their reference numbers, amounts, gateways (MTN MoMo / Airtel Money), and statuses. Admins can verify or reject payments using action buttons. Verified payments automatically update the linked invoice and order payment status. The admin dashboard also shows platform-wide stats: total revenue, orders, users, and vendors.
+![Vendor Dashboard](images/Vendor_dashboard.png)
 
-### 8.10 Docker Containers Running
-Running `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build` starts four containers:
-- `ncole-postgres` — PostgreSQL 16 database
-- `ncole-backend` — Node.js Express API on port 4000
-- `ncole-frontend` — Nginx serving the React SPA on port 5173
-- `ncole-nginx` — Reverse proxy on port 8080
+The vendor dashboard shows KPI cards for total revenue, total orders, active products, and delivered orders. A low-stock alert panel highlights products with 5 or fewer units. Quick action links navigate to Products, Orders, Analytics, and Notifications. The bottom panels show the vendor's product list and recent orders side by side.
 
-All containers include health checks. The backend health check polls `http://localhost:4000/health` and returns `{ "status": "ok" }`.
+---
 
-### 8.11 GitHub Actions CI Pipeline
+### 8.6 Admin Dashboard
+
+![Admin Dashboard](images/admin_dashboard.png)
+
+The admin dashboard provides platform-wide KPIs: total revenue, orders, users, and vendors. It includes a recent orders table, pending payment verifications, and quick navigation to all admin modules. The admin can toggle maintenance mode, broadcast notifications, and access the full audit activity log.
+
+---
+
+### 8.7 GitHub Actions — CI/CD Pipeline
+
+![GitHub Actions](images/github_workflow_actions.png)
+
 The CI pipeline at `https://github.com/Edward2033/ncole_enterprise/actions` shows green checkmarks for all jobs: Backend (type-check, Prisma validate, build, smoke test), Frontend (type-check, build), Docker Build Validation, and Security Audit. The CD pipeline triggers on push to `main` and deploys to Render and Vercel automatically.
+
+---
+
+### 8.8 Docker Containers Running
+
+![Docker Screenshot](images/Docker_screenshot.png)
+
+Running `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build` starts four containers: `ncole-postgres` (PostgreSQL 16), `ncole-backend` (Express API on port 4000), `ncole-frontend` (Nginx serving the React SPA on port 5173), and `ncole-nginx` (reverse proxy on port 8080). All containers include health checks. The backend health check polls `http://localhost:4000/health` and returns `{ "status": "ok" }`.
 
 ---
 
@@ -284,10 +390,24 @@ The CI pipeline at `https://github.com/Edward2033/ncole_enterprise/actions` show
 
 **Repository URL**: https://github.com/Edward2033/ncole_enterprise
 
-**Branch Strategy**:
-- `main` → Production-ready code
+**Branch Strategy**: `main` is the production-ready branch, protected by a CI gate before any merge.
 
-**Commit History**: Maintained with meaningful, descriptive commit messages throughout development.
+**Commit History**: Maintained with meaningful, descriptive commit messages throughout development covering features, fixes, and DevOps improvements.
+
+**Repository Structure**:
+```
+N_cole/
+├── backend/           # Express API — TypeScript, Prisma, all business logic
+├── frontend/          # React 18 SPA — all 5 portals in one unified app
+├── nginx/             # Reverse proxy configuration
+├── scripts/           # DB init, backup, restore scripts
+├── docs/              # Report, API docs, database docs, DevOps guide
+├── .github/workflows/ # ci.yml + deploy.yml
+├── docker-compose.yml
+└── README.md
+```
+
+The README includes: project overview, technology stack, architecture diagram, full installation guide, environment variable reference, Docker usage, deployment guide, API reference, and troubleshooting section.
 
 ---
 
@@ -295,11 +415,12 @@ The CI pipeline at `https://github.com/Edward2033/ncole_enterprise/actions` show
 
 | Application | URL |
 |------------|-----|
-| Public Storefront / All Portals | https://ncoleinterpress.com |
-| Backend API | https://api.ncoleinterpress.com |
-| API Health Check | https://api.ncoleinterpress.com/health |
+| Live Application (Storefront) | https://ncole-enterprise.vercel.app |
+| Backend API | https://ncole-enterprise.onrender.com/api/v1 |
+| API Health Check | https://ncole-enterprise.onrender.com/health |
+| GitHub Repository | https://github.com/Edward2033/ncole_enterprise |
 
-*Note: If custom domain is not yet live, use the Vercel and Render deployment URLs provided at submission.*
+The frontend is deployed on **Vercel** at https://ncole-enterprise.vercel.app and the backend API is deployed on **Render** at https://ncole-enterprise.onrender.com. Both remain accessible during the evaluation period.
 
 ---
 
@@ -307,46 +428,54 @@ The CI pipeline at `https://github.com/Edward2033/ncole_enterprise/actions` show
 
 ### 11.1 Continuous Integration (`ci.yml`)
 
-Triggers: Push to any branch, Pull Requests to `main` and `develop`
+**Triggers**: Push to `main`, `develop`, `feature/**`, `fix/**` branches; Pull Requests to `main` and `develop`.
 
-**Backend CI jobs:**
-1. Provision PostgreSQL 16 service container
-2. Install dependencies (`npm ci`)
-3. Validate Prisma schema
-4. Generate Prisma client
-5. Run database migrations (`prisma migrate deploy`)
-6. TypeScript type check (`tsc --noEmit`)
+**Concurrency control**: Duplicate runs on the same branch are cancelled automatically to save runner minutes.
+
+**Backend CI Job — Steps:**
+1. Provision PostgreSQL 16 service container with health check
+2. Install dependencies (`npm ci --include=dev`)
+3. Validate Prisma schema (`prisma validate`)
+4. Generate Prisma client (`prisma generate`)
+5. Push schema to test database (`prisma db push`)
+6. TypeScript type check (`tsc --noEmit`) — zero errors required
 7. Production build (`npm run build`)
-8. Upload build artifact
+8. Smoke test — start compiled server, curl `/health`, assert HTTP 200, kill server
+9. Upload build artifact (retained 7 days)
 
-**Frontend CI jobs:**
-1. Install dependencies
-2. TypeScript type check
-3. Vite production build (single unified frontend)
-4. Upload build artifact
+**Frontend CI Job — Steps:**
+1. Install dependencies (`npm ci`)
+2. TypeScript type check (`tsc --noEmit`)
+3. Vite production build with `VITE_API_URL` injected as environment variable
+4. Upload build artifact (retained 7 days)
 
-**Docker Validation** (on main/develop only):
-1. Build backend Docker image — validates Dockerfile is correct
-2. Build frontend Docker image — validates multi-stage Nginx build
+**Docker Validation Job** (main/develop only):
+1. Build backend Docker image — validates multi-stage Dockerfile
+2. Build frontend Docker image — validates Nginx multi-stage build with build args
+3. Uses GitHub Actions layer cache (`type=gha`) for fast rebuilds
 
-**Security Audit**:
+**Security Audit Job:**
 - `npm audit --audit-level=high` on both backend and frontend
+- Backend: hard fail on high/critical vulnerabilities
+- Frontend: soft fail (continue-on-error) due to transitive dependency noise
 
 ### 11.2 Continuous Deployment (`deploy.yml`)
 
-Triggers: Push to `main`, manual workflow dispatch
+**Triggers**: Push to `main`, manual workflow dispatch.
 
-1. **CI Gate**: Full CI pipeline must pass first
-2. **Build & Push Docker Images**: Multi-platform images pushed to GitHub Container Registry (ghcr.io)
-3. **Deploy Backend**: Render webhook trigger + health check polling (12 retries × 15s)
-4. **Run Migrations**: `prisma migrate deploy` against production database
-5. **Deploy Frontend**: Vercel CLI `vercel deploy --prod`
-6. **Failure Notification**: Auto-creates GitHub Issue on deployment failure
+1. CI Gate — full CI pipeline must pass before deployment begins
+2. Build & Push Docker images to GitHub Container Registry (multi-platform)
+3. Deploy backend — Render webhook trigger + health check polling (12 retries × 15s)
+4. Run migrations — `prisma migrate deploy` against production database
+5. Deploy frontend — Vercel CLI `vercel deploy --prod`
+6. Failure notification — auto-creates GitHub Issue on deployment failure
 
 ### 11.3 Evidence
 
-CI/CD workflows are visible at:
+CI/CD workflow runs are visible at:
 `https://github.com/Edward2033/ncole_enterprise/actions`
+
+Screenshot of successful workflow execution: see **Section 8.7** above (`docs/images/github_workflow_actions.png`).
 
 ---
 
@@ -354,34 +483,34 @@ CI/CD workflows are visible at:
 
 ### 12.1 Container Architecture
 
-| Container | Base Image | Purpose |
-|-----------|-----------|---------| 
-| `ncole-postgres` | postgres:16-alpine | Database |
-| `ncole-backend` | node:20-alpine (multi-stage) | API server |
-| `ncole-frontend` | nginx:1.27-alpine | Unified frontend SPA |
-| `ncole-nginx` | nginx:1.27-alpine | Reverse proxy |
+| Container | Base Image | Port | Purpose |
+|-----------|-----------|------|---------|
+| `ncole-postgres` | `postgres:16-alpine` | 5432 | PostgreSQL database |
+| `ncole-backend` | `node:20-alpine` (multi-stage) | 4000 | Express API server |
+| `ncole-frontend` | `nginx:1.27-alpine` (multi-stage) | 5173 | React SPA static files |
+| `ncole-nginx` | `nginx:1.27-alpine` | 8080 | Reverse proxy entry point |
 
-### 12.2 Multi-Stage Build (Backend)
-
-```
-Stage 1: deps     → Install production node_modules only
-Stage 2: builder  → Compile TypeScript, generate Prisma client
-Stage 3: runner   → Copy compiled output + prod deps, run as non-root UID 1001
-```
-
-Final image size: ~120MB (vs ~800MB without multi-stage)
-
-### 12.3 Multi-Stage Build (Frontend)
+### 12.2 Multi-Stage Build — Backend
 
 ```
-Stage 1: builder  → npm ci + Vite production build (VITE_API_URL injected as build arg)
+Stage 1: deps     → npm ci --only=production (production deps only)
+Stage 2: builder  → npm ci + tsc compile + prisma generate
+Stage 3: runner   → Copy compiled dist/ + prod node_modules, run as UID 1001
+```
+
+Final image size: ~120 MB (vs ~800 MB without multi-stage).
+
+### 12.3 Multi-Stage Build — Frontend
+
+```
+Stage 1: builder  → npm ci + vite build (VITE_API_URL injected as build arg)
 Stage 2: runner   → Nginx serving /dist as static SPA with HTML5 history fallback
 ```
 
 ### 12.4 Running with Docker
 
 ```bash
-# Development
+# Development (with hot reload)
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 
 # Production
@@ -398,11 +527,14 @@ docker-compose exec backend npx prisma migrate deploy
 ```
 
 ### 12.5 Security Hardening
-- All containers run as UID 1001 (non-root)
-- `dumb-init` as PID 1 for proper signal handling in backend
-- No secrets baked into images — runtime environment variables only
-- Health checks on all services (postgres, backend, frontend)
-- Read-only Nginx config mounts
+
+- All containers run as **UID 1001** (non-root) — prevents privilege escalation
+- `dumb-init` as PID 1 in backend — proper signal handling and zombie reaping
+- No secrets baked into images — all credentials via runtime environment variables only
+- Health checks on all services — Docker restarts unhealthy containers automatically
+- Read-only Nginx config mounts in production compose
+
+Screenshot of running containers: see **Section 8.8** above (`docs/images/Docker_screenshot.png`).
 
 ---
 
@@ -410,21 +542,23 @@ docker-compose exec backend npx prisma migrate deploy
 
 ### 13.1 Technical Challenges
 
-**Gemini API quota management**: The free tier Gemini API has per-minute and daily quotas. Solution: implemented smart 429 detection that distinguishes daily exhaustion (`PerDay` quota) from per-minute rate limits, returning user-friendly messages with retry times rather than generic errors.
+**Gemini API quota management**: The free tier has per-minute and daily quotas. Implemented smart 429 detection that distinguishes daily exhaustion (`PerDay` quota string) from per-minute rate limits, returning user-friendly messages with retry times rather than generic 500 errors.
 
-**JWT refresh token race conditions**: Concurrent requests with an expired access token could trigger multiple refresh attempts. Solution: single in-flight refresh flag with a promise queue — all concurrent requests wait for one refresh to complete.
+**JWT refresh token race conditions**: Concurrent requests with an expired access token could trigger multiple simultaneous refresh attempts, causing token rotation conflicts. Fixed with a single in-flight refresh flag (`isRefreshing`) and a promise queue — all concurrent requests wait for one refresh to complete, then retry with the new token.
 
-**TypeScript strict mode across monorepo**: Maintaining strict TypeScript in both backend and frontend required careful type alignment. Solution: shared API response interface types, consistent `ApiResp<T>` / `ListResp<T>` generics.
+**Render free-tier sleep cycles**: Render's free tier spins down after 15 minutes of inactivity. With a 15-minute access token lifetime, returning users always hit a 401. Fixed by extending the access token lifetime to 7 days for the free-tier deployment and ensuring `apiFetch` handles 401 → refresh → retry transparently.
 
-**Prisma with Supabase PgBouncer**: Supabase uses connection pooling (PgBouncer) which requires `?pgbouncer=true` in the `DATABASE_URL` but a separate `DIRECT_URL` for migrations. Solution: dual URL configuration in `schema.prisma`.
+**Prisma with Supabase PgBouncer**: Supabase uses connection pooling (PgBouncer) which requires `?pgbouncer=true` in `DATABASE_URL` but a separate `DIRECT_URL` for migrations. Fixed with dual URL configuration in `schema.prisma` using Prisma's `directUrl` field.
 
-**Docker non-root Nginx permissions**: Nginx default configuration writes to root-owned directories. Solution: pre-create all required directories with correct ownership during the image build stage.
+**Docker non-root Nginx permissions**: Nginx default configuration writes to root-owned directories (`/var/cache/nginx`, `/var/run`). Fixed by pre-creating all required directories with correct ownership during the image build stage.
 
 ### 13.2 Design Challenges
 
-**Multi-portal authentication in one SPA**: Five distinct user roles all authenticating against one API with different role-based views. Solution: role-aware route guards (`AdminRoute`, `VendorRoute`, `RiderRoute`, `ProtectedRoute`) with automatic redirects.
+**Multi-portal authentication in one SPA**: Five distinct user roles all authenticating against one API with different role-based views. Solved with role-aware route guards (`AdminRoute`, `VendorRoute`, `RiderRoute`, `ProtectedRoute`) with automatic redirects based on the authenticated user's role.
 
-**Billing number idempotency**: Network retries could create duplicate invoices. Solution: `orderId` unique constraint on the `invoices` table prevents duplicates at the database level.
+**CORS on Vercel preview deployments**: Each Vercel deployment generates a unique preview URL. Fixed by adding a regex pattern match in the CORS handler to allow any `ncole-enterprise*.vercel.app` origin in addition to the exact production domain.
+
+**Billing number idempotency**: Network retries could create duplicate invoices. Fixed with a unique constraint on `invoices.orderId` at the database level, making invoice creation idempotent regardless of retry count.
 
 ---
 
@@ -432,55 +566,61 @@ docker-compose exec backend npx prisma migrate deploy
 
 | Priority | Enhancement | Description |
 |----------|-------------|-------------|
-| High | Live MTN MoMo integration | Connect to MTN sandbox → production API with real payment verification |
-| High | Real-time order tracking | WebSocket integration for live delivery location updates |
-| High | Email notifications | SMTP/SendGrid for transactional emails |
+| High | Live MTN MoMo integration | Connect to MTN production API with real-time payment verification callbacks |
+| High | Real-time order tracking | WebSocket integration for live delivery location updates on a map |
+| High | Push notifications | Firebase Cloud Messaging for mobile push notifications |
 | Medium | Mobile apps | React Native apps for customers and riders |
-| Medium | Advanced search | Elasticsearch or pg_trgm for full-text product search |
-| Medium | Redis caching | Cache product listings and category trees |
-| Medium | Product reviews | Customer review and rating system |
+| Medium | Advanced search | PostgreSQL `pg_trgm` full-text search for product discovery |
+| Medium | Redis caching | Cache product listings and category trees to reduce DB load |
+| Medium | Product reviews | Customer review and star rating system with vendor responses |
 | Low | Loyalty points redemption | Allow loyalty points to discount orders at checkout |
-| Low | Vendor payout system | Automated vendor payment disbursement |
-| Low | Recommendation engine | ML-based product recommendations from purchase history |
+| Low | Vendor payout system | Automated vendor payment disbursement via MoMo API |
+| Low | ML recommendations | Collaborative filtering product recommendations from purchase history |
 
 ---
 
 ## 15. Conclusion
 
-N_COLE Interpress is a complete, production-grade, multi-vendor e-commerce marketplace that fully satisfies all requirements of the EWA408510 Final Examination Project. The platform delivers:
+N_COLE Interpress is a complete, production-grade, multi-vendor e-commerce marketplace that fully satisfies all requirements of the EWA408510 Final Examination Project.
 
-**Functional Requirements Met:**
-- ✅ Responsive professional UI with homepage, navigation, and mobile-friendly design
-- ✅ Product listing, detail pages, categories, search, and filtering
-- ✅ Shopping cart with add/remove/update quantities and automatic totals
-- ✅ Checkout with address collection, form validation, order summary, and confirmation page
-- ✅ Full database integration: PostgreSQL with 15 models covering products, customers, orders, and transactions
+### Functional Requirements — All Met
 
-**DevOps Requirements Met:**
-- ✅ GitHub repository with meaningful commit history: https://github.com/Edward2033/ncole_enterprise
-- ✅ Live deployment on Render + Vercel
-- ✅ CI/CD pipeline via GitHub Actions (ci.yml + deploy.yml)
-- ✅ Docker containerisation with multi-stage Dockerfiles and docker-compose
+| Component | Implementation | Marks |
+|-----------|---------------|-------|
+| UI/UX — Responsive, professional, mobile-friendly | Tailwind CSS + shadcn/ui, hero, nav, category grid, product cards, dark mode | 5 |
+| Product Management — Listing, detail, categories, search/filter | ShopPage, ProductDetail, CategoryShopPage, /products API with full filtering | 4 |
+| Shopping Cart — Add, remove, update qty, auto totals | CartContext, CartPage, CartDrawer, backend cart sync | 4 |
+| Checkout — Address, order summary, validation, confirmation | Checkout, OrderConfirmation, /orders API, Zod validation | 4 |
+| Database — Products, customers, orders, relationships | PostgreSQL + Prisma, 20 models in schema.prisma | 5 |
 
-**Security Requirements Met (Recommended):**
-- ✅ JWT authentication with refresh token rotation
-- ✅ RBAC role-based authorization
-- ✅ bcrypt password hashing
-- ✅ Zod input validation on all endpoints
-- ✅ Helmet security headers, CORS, rate limiting
+### DevOps Requirements — All Met
 
-**Innovation Bonus Features Implemented:**
-- ✅ AI-Powered Assistant (Google Gemini 2.0 Flash — 5 portals)
-- ✅ Mobile Money Payment Integration (MTN MoMo, Airtel Money)
-- ✅ Analytics Dashboard (vendor sales analytics, admin platform analytics)
-- ✅ Advanced Security Features (audit logging, non-root containers, token rotation)
-- ✅ Multi-Vendor Marketplace Functionality
-- ✅ Real-Time Notifications (in-app notification centre)
+| Component | Implementation | Marks |
+|-----------|---------------|-------|
+| GitHub — Repo, commit history, README | https://github.com/Edward2033/ncole_enterprise | 3 |
+| Deployment — Live and accessible | https://ncole-enterprise.vercel.app | 3 |
+| CI/CD — Automated build, test, deploy | .github/workflows/ci.yml + deploy.yml | 4 |
+| Docker — Dockerfile, docker-compose, running containers | backend/Dockerfile, frontend/Dockerfile, docker-compose.yml | 4 |
+| Presentation & Oral Defense | Live demo, architecture explanation, Q&A readiness | 4 |
+| **Total** | | **40** |
 
-The platform is immediately deployable using the provided Docker Compose configuration. Its modular architecture enables continued feature development — live payment gateways, mobile applications, and advanced analytics — without restructuring the core system.
+### Innovation Bonus Features — All Implemented
+
+| Feature | Implementation |
+|---------|---------------|
+| AI-Powered Assistant | Google Gemini 2.0 Flash across 5 portals with live DB context |
+| Payment Gateway Integration | MTN MoMo, Airtel Money, Cash on Delivery (localised for Rwanda) |
+| Analytics Dashboard | Vendor sales analytics, Admin platform analytics with Recharts |
+| Advanced Security Features | JWT rotation, RBAC, audit logging, bcrypt, non-root Docker, OTP 2FA |
+| Multi-Vendor Marketplace | Full vendor onboarding, product management, order routing per vendor |
+| Real-Time Notifications | In-app notification centre with per-user preferences |
+
+The platform is immediately deployable using the provided Docker Compose configuration and is live at https://ncole-enterprise.vercel.app (frontend) and https://ncole-enterprise.onrender.com (backend API). Its modular architecture enables continued feature development — live payment gateways, mobile applications, and advanced analytics — without restructuring the core system.
 
 ---
 
-*Report submitted in fulfillment of EWA408510 – E-Commerce and Web Application*
-*Faculty of Computing and Information Sciences, UNILAK*
-*Academic Year 2025-2026*
+*Report submitted in fulfilment of EWA408510 – E-Commerce and Web Application*
+*Faculty of Computing and Information Sciences, UNILAK | Academic Year 2025-2026*
+*Student: Edward Y. Cole | Instructor: Eric Maniraguha*
+
+*"Whatever you do, work at it with all your heart, as working for the Lord, not for human masters." — Colossians 3:23*
