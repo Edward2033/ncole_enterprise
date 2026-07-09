@@ -5,6 +5,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCollections } from '@/hooks/useProducts';
 import { notificationsService } from '@/services/api';
+import { adminSettingsApi } from '@/services/adminApi';
 
 const Header: React.FC = () => {
   const { totalItems, setIsOpen } = useCart();
@@ -14,6 +15,24 @@ const Header: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [unreadCount, setUnreadCount] = useState(0);
+  const [logoUrl, setLogoUrl] = useState('');
+  const [faviconUrl, setFaviconUrl] = useState('');
+
+  // Load header settings (logo + favicon) once on mount
+  useEffect(() => {
+    adminSettingsApi.getHeaderSettingsPublic()
+      .then(r => {
+        if (r.data?.logoUrl) setLogoUrl(r.data.logoUrl);
+        if (r.data?.faviconUrl) {
+          setFaviconUrl(r.data.faviconUrl);
+          const link = document.querySelector<HTMLLinkElement>('link[rel~="icon"]') ??
+            Object.assign(document.createElement('link'), { rel: 'icon' });
+          link.href = r.data.faviconUrl;
+          document.head.appendChild(link);
+        }
+      })
+      .catch(() => null);
+  }, []);
 
   // Load unread notification count when authenticated
   useEffect(() => {
@@ -47,13 +66,19 @@ const Header: React.FC = () => {
 
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 flex-shrink-0">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-sm">
-            <ShoppingBag className="h-5 w-5" />
-          </span>
-          <div className="leading-tight">
-            <span className="block font-bold text-slate-900 text-base">Ncole</span>
-            <span className="block text-[9px] font-semibold uppercase tracking-[0.25em] text-orange-500">Interpress</span>
-          </div>
+          {logoUrl ? (
+            <img src={logoUrl} alt="Logo" className="h-9 w-auto max-w-[120px] object-contain" />
+          ) : (
+            <>
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-sm">
+                <ShoppingBag className="h-5 w-5" />
+              </span>
+              <div className="leading-tight">
+                <span className="block font-bold text-slate-900 text-base">Ncole</span>
+                <span className="block text-[9px] font-semibold uppercase tracking-[0.25em] text-orange-500">Interpress</span>
+              </div>
+            </>
+          )}
         </Link>
 
         {/* Desktop nav */}
