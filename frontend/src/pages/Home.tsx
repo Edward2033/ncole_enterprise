@@ -69,27 +69,47 @@ const Home: React.FC = () => {
       {/* ── Hero Slideshow ── */}
       <Hero />
 
-      {/* ── Active Banners ── */}
+      {/* ── Rolling Banner Ticker ── */}
       {banners.length > 0 && (
-        <section className="mx-auto max-w-7xl px-4 pt-6 lg:px-8">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {banners.map(b => (
-              <div key={b.id} className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 shadow-md">
-                {b.imageUrl && (
-                  <img src={b.imageUrl} alt={b.title} className="absolute inset-0 h-full w-full object-cover opacity-30" />
+        <section className="relative overflow-hidden border-y border-orange-100 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 py-0">
+          {/* fade edges */}
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-orange-500 to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-orange-500 to-transparent" />
+
+          <div
+            className="flex w-max animate-marquee items-stretch gap-0 hover:[animation-play-state:paused]"
+            style={{ animationDuration: `${Math.max(18, banners.length * 8)}s` }}
+          >
+            {/* duplicate for seamless loop */}
+            {[...banners, ...banners].map((b, i) => (
+              <div key={`${b.id}-${i}`} className="flex items-center">
+                {b.linkUrl ? (
+                  <Link
+                    to={b.linkUrl}
+                    className="group flex items-center gap-3 px-6 py-3.5 transition-all hover:bg-white/10"
+                  >
+                    <span className="flex h-2 w-2 flex-shrink-0 rounded-full bg-white/70 group-hover:bg-white" />
+                    <span className="text-sm font-bold text-white">{b.title}</span>
+                    {b.description && (
+                      <span className="text-sm text-orange-100">&mdash; {b.description}</span>
+                    )}
+                    {b.buttonText && (
+                      <span className="ml-1 inline-flex items-center gap-1 rounded-full bg-white/20 px-3 py-0.5 text-xs font-semibold text-white group-hover:bg-white/30">
+                        {b.buttonText} <ArrowRight className="h-3 w-3" />
+                      </span>
+                    )}
+                  </Link>
+                ) : (
+                  <div className="flex items-center gap-3 px-6 py-3.5">
+                    <span className="flex h-2 w-2 flex-shrink-0 rounded-full bg-white/70" />
+                    <span className="text-sm font-bold text-white">{b.title}</span>
+                    {b.description && (
+                      <span className="text-sm text-orange-100">&mdash; {b.description}</span>
+                    )}
+                  </div>
                 )}
-                <div className="relative p-5">
-                  <h3 className="text-lg font-bold text-white">{b.title}</h3>
-                  {b.description && <p className="mt-1 text-sm text-orange-100 line-clamp-2">{b.description}</p>}
-                  {b.buttonText && b.linkUrl && (
-                    <Link
-                      to={b.linkUrl}
-                      className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-xs font-semibold text-orange-600 hover:bg-orange-50 transition"
-                    >
-                      {b.buttonText} <ArrowRight className="h-3 w-3" />
-                    </Link>
-                  )}
-                </div>
+                {/* separator */}
+                <span className="h-4 w-px bg-white/20" />
               </div>
             ))}
           </div>
