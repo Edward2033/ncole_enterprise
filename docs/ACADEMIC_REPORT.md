@@ -380,7 +380,7 @@ The CI pipeline at `https://github.com/Edward2033/ncole_enterprise/actions` show
 
 ### 8.8 Docker Containers Running
 
-![Docker Screenshot](images/Docker_screenshot.png)
+![Docker Screenshot](images/docker_screenshot.png)
 
 Running `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build` starts four containers: `ncole-postgres` (PostgreSQL 16), `ncole-backend` (Express API on port 4000), `ncole-frontend` (Nginx serving the React SPA on port 5173), and `ncole-nginx` (reverse proxy on port 8080). All containers include health checks. The backend health check polls `http://localhost:4000/health` and returns `{ "status": "ok" }`.
 
