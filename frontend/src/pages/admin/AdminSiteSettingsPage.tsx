@@ -76,6 +76,7 @@ const ImageField: React.FC<{
   </Field>
 );
 
+const EMPTY_SITE: SiteSettings = {
   siteName: '', supportEmail: '', contactEmail: '',
   whatsappNumber: '', phoneNumber: '',
   githubUrl: '', linkedinUrl: '', facebookUrl: '', twitterUrl: '',
