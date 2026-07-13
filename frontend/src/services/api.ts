@@ -373,15 +373,17 @@ export interface NcoleVendorProduct {
 export interface NcoleVendorOrderItem {
   id: string; orderId: string; productId: string; vendorId: string;
   productName: string; variantTitle?: string; quantity: number;
-  unitPrice: number; total: number; imageUrl?: string;
-  product?: { images: string[] };
+  unitPrice: number; total: number; sku?: string;
+  product?: { images: string[]; name: string; sku?: string; basePrice: number; stockQty: number; category?: { name: string } };
 }
 
 export interface NcoleVendorOrder {
   id: string; orderNumber: string; status: string; paymentStatus: string;
-  paymentMethod: string; subtotal: number; deliveryFee: number; total: number;
-  createdAt: string; updatedAt: string; items: NcoleVendorOrderItem[];
+  paymentMethod: string; subtotal: number; deliveryFee: number; tax: number; total: number;
+  notes?: string; createdAt: string; updatedAt: string;
+  items: NcoleVendorOrderItem[];
   address?: { fullName: string; phone: string; street: string; district: string; city: string; province: string; country: string } | null;
+  customer?: { user: { name: string; email: string; phone?: string } } | null;
 }
 
 export interface NcoleRiderProfile {

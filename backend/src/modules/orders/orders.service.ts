@@ -136,7 +136,18 @@ export async function listVendorOrders(vendorId: string, page: number, limit: nu
   const [orders, total] = await Promise.all([
     prisma.order.findMany({
       where: { deletedAt: null, items: { some: { vendorId } } },
-      include: { address: true, items: { where: { vendorId }, include: { product: { select: { images: true } } } } },
+      include: {
+        address: true,
+        customer: { include: { user: { select: { name: true, email: true, phone: true } } } },
+        items: {
+          where: { vendorId },
+          include: {
+            product: {
+              select: { images: true, name: true, sku: true, basePrice: true, stockQty: true, category: { select: { name: true } } },
+            },
+          },
+        },
+      },
       skip: (page - 1) * limit,
       take: limit,
       orderBy: { createdAt: 'desc' },
