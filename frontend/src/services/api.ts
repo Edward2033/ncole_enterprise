@@ -265,6 +265,8 @@ export const vendorProductsService = {
 export const vendorOrdersService = {
   list: (page = 1, limit = 20) =>
     apiFetch<ListResp<NcoleVendorOrder>>(`/orders/vendor?page=${page}&limit=${limit}`),
+  getById: (id: string) =>
+    apiFetch<ApiResp<NcoleVendorOrder>>(`/orders/vendor/${id}`),
   updateStatus: (id: string, status: string) =>
     apiFetch(`/orders/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
 };

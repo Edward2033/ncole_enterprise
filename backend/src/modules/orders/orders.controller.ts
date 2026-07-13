@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { placeOrder, getMyOrders, getMyOrderById, listVendorOrders, listRiderOrders, assignRider, listAllOrders, updateOrderStatus, PlaceOrderDto, UpdateOrderStatusDto } from './orders.service';
+import { placeOrder, getMyOrders, getMyOrderById, getVendorOrderById, listVendorOrders, listRiderOrders, assignRider, listAllOrders, updateOrderStatus, PlaceOrderDto, UpdateOrderStatusDto } from './orders.service';
 import { sendSuccess } from '@/shared/utils/response';
 import { prisma } from '@/config/database';
 import { Role } from '@prisma/client';
@@ -21,6 +21,14 @@ export async function myOrders(req: Request, res: Response, next: NextFunction):
     const limit = Math.min(50, Number(req.query['limit']) || 10);
     const { orders, total } = await getMyOrders(req.user!.sub, page, limit);
     sendSuccess(res, orders, 200, { page, limit, total, totalPages: Math.ceil(total / limit) });
+  } catch (e) { next(e); }
+}
+
+export async function vendorOrderById(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const vendor = await prisma.vendor.findUnique({ where: { userId: req.user!.sub } });
+    if (!vendor) { res.status(403).json({ success: false, error: 'No vendor profile' }); return; }
+    sendSuccess(res, await getVendorOrderById(vendor.id, req.params['id']!));
   } catch (e) { next(e); }
 }
 

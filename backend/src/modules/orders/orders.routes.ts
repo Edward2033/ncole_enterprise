@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { place, myOrders, myOrderById, vendorOrders, riderOrders, assignRiderToOrder, all, updateStatus } from './orders.controller';
+import { place, myOrders, myOrderById, vendorOrders, vendorOrderById, riderOrders, assignRiderToOrder, all, updateStatus } from './orders.controller';
 import { authenticate } from '@/middleware/authenticate';
 import { authorize } from '@/middleware/authorize';
 import { validate } from '@/middleware/validate';
@@ -17,6 +17,7 @@ router.post('/',           validate(placeOrderSchema),       place);
 router.get('/my',          authorize('CUSTOMER', 'ADMIN', 'VENDOR', 'RIDER'), myOrders);
 router.get('/my/:id',      authorize('CUSTOMER', 'ADMIN', 'VENDOR', 'RIDER'), myOrderById);
 router.get('/vendor',      authorize('VENDOR'),                      vendorOrders);
+router.get('/vendor/:id',  authorize('VENDOR'),                      vendorOrderById);
 router.get('/rider',       authorize('RIDER'),                       riderOrders);
 router.get('/',            authorize('ADMIN'),                       all);
 router.patch('/:id/assign-rider', authorize('ADMIN'),                assignRiderToOrder);

@@ -131,6 +131,26 @@ export async function getMyOrders(userId: string, page: number, limit: number) {
   return { orders, total };
 }
 
+export async function getVendorOrderById(vendorId: string, orderId: string) {
+  const order = await prisma.order.findFirst({
+    where: { id: orderId, deletedAt: null, items: { some: { vendorId } } },
+    include: {
+      address: true,
+      customer: { include: { user: { select: { name: true, email: true, phone: true } } } },
+      items: {
+        where: { vendorId },
+        include: {
+          product: {
+            select: { images: true, name: true, sku: true, basePrice: true, stockQty: true, category: { select: { name: true } } },
+          },
+        },
+      },
+    },
+  });
+  if (!order) throw AppError.notFound('Order');
+  return order;
+}
+
 export async function listVendorOrders(vendorId: string, page: number, limit: number) {
   // Vendor-scoped query — only orders containing items from this vendor
   const [orders, total] = await Promise.all([
