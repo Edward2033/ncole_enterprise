@@ -381,6 +381,7 @@ export interface NcoleVendorOrder {
   id: string; orderNumber: string; status: string; paymentStatus: string;
   paymentMethod: string; subtotal: number; deliveryFee: number; total: number;
   createdAt: string; updatedAt: string; items: NcoleVendorOrderItem[];
+  address?: { fullName: string; phone: string; street: string; district: string; city: string; province: string; country: string } | null;
 }
 
 export interface NcoleRiderProfile {
