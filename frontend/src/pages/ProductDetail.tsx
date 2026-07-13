@@ -666,7 +666,7 @@ const ProductDetail: React.FC = () => {
               ) : (
                 <div className="rounded-2xl border border-dashed border-slate-200 p-5 text-center">
                   <p className="text-sm text-slate-500">Sign in to leave a review</p>
-                  <Link to="/auth" className="mt-2 inline-block text-sm font-semibold text-orange-600 hover:underline">Sign In</Link>
+                  <Link to="/login" className="mt-2 inline-block text-sm font-semibold text-orange-600 hover:underline">Sign In</Link>
                 </div>
               )}
             </div>

@@ -104,7 +104,7 @@ const Checkout: React.FC = () => {
 
   useEffect(() => {
     if (!isAuthenticated && user === null) {
-      navigate('/auth', { state: { from: '/checkout' }, replace: true });
+      navigate('/login', { state: { from: '/checkout' }, replace: true });
     }
   }, [isAuthenticated, user, navigate]);
 
