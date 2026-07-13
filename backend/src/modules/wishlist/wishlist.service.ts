@@ -9,17 +9,22 @@ const PRODUCT_SELECT = {
 } as const;
 
 async function getOrCreate(userId: string) {
-  return prisma.wishlist.upsert({
-    where: { userId },
-    create: { userId },
-    update: {},
-    include: {
-      items: {
-        orderBy: { createdAt: 'desc' },
-        include: { product: { select: PRODUCT_SELECT } },
+  try {
+    return await prisma.wishlist.upsert({
+      where: { userId },
+      create: { userId },
+      update: {},
+      include: {
+        items: {
+          orderBy: { createdAt: 'desc' },
+          include: { product: { select: PRODUCT_SELECT } },
+        },
       },
-    },
-  });
+    });
+  } catch {
+    // wishlists table may not exist yet — return empty shell
+    return { id: '', userId, createdAt: new Date(), updatedAt: new Date(), items: [] };
+  }
 }
 
 export async function getWishlist(userId: string) {

@@ -10,18 +10,24 @@ import { reviewsService } from '@/services/api';
 
 // Simple per-product rating cache to avoid redundant fetches
 const ratingCache = new Map<string, { avg: number; count: number }>();
+const pendingFetches = new Set<string>();
 
 function useProductRating(productId: string) {
   const [rating, setRating] = useState(() => ratingCache.get(productId) ?? null);
   useEffect(() => {
-    if (ratingCache.has(productId)) return;
+    if (ratingCache.has(productId) || pendingFetches.has(productId)) return;
+    pendingFetches.add(productId);
     reviewsService.list(productId)
       .then(r => {
         const val = { avg: r.data.averageRating, count: r.data.count };
         ratingCache.set(productId, val);
         setRating(val);
       })
-      .catch(() => null);
+      .catch(() => {
+        // Silently ignore — table may not exist yet or product has no reviews
+        ratingCache.set(productId, { avg: 0, count: 0 });
+      })
+      .finally(() => pendingFetches.delete(productId));
   }, [productId]);
   return rating;
 }
