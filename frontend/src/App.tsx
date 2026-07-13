@@ -8,6 +8,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { CartProvider } from '@/contexts/CartContext';
 import { SiteSettingsProvider } from '@/contexts/SiteSettingsContext';
+import { WishlistProvider } from '@/contexts/WishlistContext';
 
 // ── Layouts (eager — needed immediately on every route) ───────────────────────
 import Layout from '@/components/Layout';
@@ -53,6 +54,7 @@ const NotificationsPage     = lazy(() => import('@/pages/NotificationsPage'));
 const BillingPage           = lazy(() => import('@/pages/BillingPage'));
 const CustomerDashboardPage = lazy(() => import('@/pages/customer/CustomerDashboardPage'));
 const AddressesPage         = lazy(() => import('@/pages/customer/AddressesPage'));
+const WishlistPage          = lazy(() => import('@/pages/WishlistPage'));
 
 // Vendor
 const VendorDashboardPage     = lazy(() => import('@/pages/vendor/VendorDashboardPage'));
@@ -103,6 +105,7 @@ const App = () => (
     <SiteSettingsProvider>
     <AuthProvider>
       <CartProvider>
+        <WishlistProvider>
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
             <Toaster />
@@ -179,6 +182,7 @@ const App = () => (
                     <Route path="/unauthorized"        element={<UnauthorizedPage />} />
 
                     <Route path="/cart"     element={<CartPage />} />
+                    <Route path="/wishlist" element={<WishlistPage />} />
                     <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
 
                     <Route path="/orders"                   element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
@@ -208,6 +212,7 @@ const App = () => (
             </BrowserRouter>
           </TooltipProvider>
         </QueryClientProvider>
+        </WishlistProvider>
       </CartProvider>
     </AuthProvider>
     </SiteSettingsProvider>

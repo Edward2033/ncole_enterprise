@@ -212,6 +212,27 @@ export const statsService = {
   get: () => apiFetch<ApiResp<{ vendors: number; products: number; customers: number; orders: number }>>('/stats'),
 };
 
+export const wishlistService = {
+  get: () => apiFetch<ApiResp<WishlistData>>('/wishlist'),
+  add: (productId: string) =>
+    apiFetch<ApiResp<WishlistData>>('/wishlist', { method: 'POST', body: JSON.stringify({ productId }) }),
+  remove: (productId: string) =>
+    apiFetch<ApiResp<null>>(`/wishlist/${productId}`, { method: 'DELETE' }),
+  clear: () =>
+    apiFetch<ApiResp<null>>('/wishlist/clear', { method: 'DELETE' }),
+  check: (productId: string) =>
+    apiFetch<ApiResp<{ inWishlist: boolean }>>(`/wishlist/${productId}/check`),
+};
+
+export const reviewsService = {
+  list: (productId: string) =>
+    apiFetch<ApiResp<ReviewsData>>(`/products/${productId}/reviews`),
+  create: (productId: string, body: { rating: number; title?: string; body?: string }) =>
+    apiFetch<ApiResp<NcoleReview>>(`/products/${productId}/reviews`, { method: 'POST', body: JSON.stringify(body) }),
+  delete: (productId: string) =>
+    apiFetch<ApiResp<null>>(`/products/${productId}/reviews`, { method: 'DELETE' }),
+};
+
 export const applicationsService = {
   submit: (body: ApplicationSubmitBody) =>
     apiFetch<ApiResp<NcoleApplication>>('/applications', { method: 'POST', body: JSON.stringify(body) }),
@@ -407,3 +428,37 @@ export interface NcoleApplication {
 }
 
 export type ApplicationSubmitBody = Omit<NcoleApplication, 'id' | 'status' | 'reviewNote' | 'reviewedAt' | 'createdAt'>;
+
+// ─── Wishlist types ───────────────────────────────────────────────────────────
+
+export interface WishlistProduct {
+  id: string; name: string; slug: string; basePrice: number;
+  images: string[]; status: string; stockQty: number;
+  vendor?: { businessName: string };
+  category?: { name: string; slug: string };
+}
+
+export interface WishlistItem {
+  id: string; productId: string; createdAt: string;
+  product: WishlistProduct;
+}
+
+export interface WishlistData {
+  id: string; userId: string; createdAt: string; updatedAt: string;
+  items: WishlistItem[];
+}
+
+// ─── Review types ─────────────────────────────────────────────────────────────
+
+export interface NcoleReview {
+  id: string; productId: string; userId: string;
+  rating: number; title?: string; body?: string;
+  createdAt: string; updatedAt: string;
+  user: { id: string; name: string; avatarUrl?: string };
+}
+
+export interface ReviewsData {
+  reviews: NcoleReview[];
+  count: number;
+  averageRating: number;
+}

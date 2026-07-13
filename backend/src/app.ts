@@ -26,6 +26,8 @@ import ridersRoutes from '@/modules/riders/riders.routes';
 import settingsRoutes from '@/modules/settings/settings.routes';
 import applicationsRoutes from '@/modules/applications/applications.routes';
 import uploadRoutes from '@/modules/products/upload.routes';
+import wishlistRoutes from '@/modules/wishlist/wishlist.routes';
+import reviewsRoutes from '@/modules/reviews/reviews.routes';
 
 import { prisma } from '@/config/database';
 import { getMaintenanceConfig } from '@/modules/settings/settings.service';
@@ -149,6 +151,8 @@ app.use(`${prefix}/billing`, billingRoutes);
 app.use(`${prefix}/ai`, aiRoutes);
 app.use(`${prefix}/riders`, ridersRoutes);
 app.use(`${prefix}/applications`, applicationsRoutes);
+app.use(`${prefix}/wishlist`, wishlistRoutes);
+app.use(`${prefix}/products/:productId/reviews`, reviewsRoutes);
 app.use(`${prefix}/settings`, settingsRoutes);
 
 // ─── 404 ──────────────────────────────────────────────────────────────────────

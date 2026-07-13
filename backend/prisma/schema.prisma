@@ -43,6 +43,8 @@ model User {
   notificationPreference  NotificationPreference?
   applications            Application[]
   otpCodes                OtpCode[]
+  wishlist                Wishlist?
+  reviews                 Review[]
 
   @@index([email])
   @@index([role])
@@ -219,6 +221,8 @@ model Product {
   variants    ProductVariant[]
   orderItems  OrderItem[]
   cartItems   CartItem[]
+  wishlistItems WishlistItem[]
+  reviews     Review[]
 
   @@index([slug])
   @@index([vendorId])
@@ -625,6 +629,54 @@ model OtpCode {
 
   @@index([userId])
   @@map("otp_codes")
+}
+
+// ─── Wishlist ────────────────────────────────────────────────────────────────
+
+model Wishlist {
+  id         String         @id @default(cuid())
+  userId     String         @unique
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items WishlistItem[]
+
+  @@map("wishlists")
+}
+
+model WishlistItem {
+  id         String   @id @default(cuid())
+  wishlistId String
+  productId  String
+  createdAt  DateTime @default(now())
+
+  wishlist Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([wishlistId, productId])
+  @@index([wishlistId])
+  @@map("wishlist_items")
+}
+
+// ─── Product Reviews ──────────────────────────────────────────────────────────
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  userId    String
+  rating    Int
+  title     String?
+  body      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, userId])
+  @@index([productId])
+  @@map("reviews")
 }
 
 model ActivityLog {

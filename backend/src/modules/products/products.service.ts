@@ -70,8 +70,12 @@ export async function listProducts(query: ProductQueryDto) {
 }
 
 export async function getProductById(id: string) {
+  // Support lookup by slug OR cuid id
   const product = await prisma.product.findFirst({
-    where: { id, deletedAt: null },
+    where: {
+      deletedAt: null,
+      OR: [{ id }, { slug: id }],
+    },
     include: { variants: true, vendor: { select: { businessName: true } }, category: true },
   });
   if (!product) throw AppError.notFound('Product');

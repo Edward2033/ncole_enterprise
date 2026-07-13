@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Search, Menu, X, User, ShoppingBag, LogOut, Package, Bell, UserCircle, FileText } from 'lucide-react';
+import { ShoppingCart, Search, Menu, X, User, ShoppingBag, LogOut, Package, Bell, UserCircle, FileText, Heart } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useWishlist } from '@/contexts/WishlistContext';
 import { useCollections } from '@/hooks/useProducts';
 import { notificationsService } from '@/services/api';
 import { adminSettingsApi } from '@/services/adminApi';
@@ -38,7 +39,8 @@ const NavLogo: React.FC<{ url: string; loaded: boolean }> = ({ url, loaded }) =>
 
 const Header: React.FC = () => {
   const { totalItems, setIsOpen } = useCart();
-  const { user, signOut, isAuthenticated } = useAuth();
+  const { isAuthenticated, user, signOut } = useAuth();
+  const { totalItems: wishlistCount } = useWishlist();
   const collections = useCollections();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -137,6 +139,20 @@ const Header: React.FC = () => {
               <Link to="/orders"
                 className="hidden items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 sm:flex transition-colors">
                 <Package className="h-4 w-4" /> Orders
+              </Link>
+
+              {/* Wishlist */}
+              <Link
+                to="/wishlist"
+                className="relative hidden h-10 w-10 items-center justify-center rounded-full text-slate-700 hover:bg-slate-100 transition-colors sm:flex"
+                aria-label="Wishlist"
+              >
+                <Heart className="h-5 w-5" />
+                {wishlistCount > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                    {wishlistCount > 9 ? '9+' : wishlistCount}
+                  </span>
+                )}
               </Link>
 
               {/* Notification bell */}
