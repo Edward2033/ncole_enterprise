@@ -131,10 +131,12 @@ export async function notifyOrderStatusChanged(
   userId: string, orderNumber: string, orderId: string, status: string,
 ) {
   const messages: Record<string, { title: string; message: string; type: NotificationType }> = {
-    CONFIRMED:        { type: 'ORDER_CONFIRMED', title: 'Order Confirmed', message: `${orderNumber} has been confirmed by the vendor.` },
-    OUT_FOR_DELIVERY: { type: 'ORDER_SHIPPED',   title: 'Out for Delivery', message: `${orderNumber} is on its way to you.` },
-    DELIVERED:        { type: 'ORDER_DELIVERED', title: 'Order Delivered', message: `${orderNumber} has been delivered. Enjoy!` },
-    CANCELLED:        { type: 'ORDER_CANCELLED', title: 'Order Cancelled', message: `${orderNumber} has been cancelled.` },
+    CONFIRMED:        { type: 'ORDER_CONFIRMED', title: 'Order Confirmed',       message: `${orderNumber} has been confirmed by the vendor.` },
+    PROCESSING:       { type: 'ORDER_CONFIRMED', title: 'Order Being Prepared',  message: `${orderNumber} is now being prepared by the vendor.` },
+    READY_FOR_PICKUP: { type: 'ORDER_SHIPPED',   title: 'Ready for Pickup',      message: `${orderNumber} is packed and ready for rider pickup.` },
+    OUT_FOR_DELIVERY: { type: 'ORDER_SHIPPED',   title: 'Out for Delivery',      message: `${orderNumber} is on its way to you.` },
+    DELIVERED:        { type: 'ORDER_DELIVERED', title: 'Order Delivered',       message: `${orderNumber} has been delivered. Enjoy!` },
+    CANCELLED:        { type: 'ORDER_CANCELLED', title: 'Order Cancelled',       message: `${orderNumber} has been cancelled.` },
   };
   const template = messages[status];
   if (!template) return;

@@ -42,6 +42,10 @@ export const verifyPaymentSchema = z.object({
   rejectionReason: z.string().optional(),
 });
 
+export const vendorConfirmPaymentSchema = z.object({
+  gatewayRef: z.string().min(1),
+});
+
 export const revenueReportSchema = z.object({
   from: z.string().datetime().optional(),
   to: z.string().datetime().optional(),
@@ -49,6 +53,7 @@ export const revenueReportSchema = z.object({
 
 export type SubmitPaymentDto = z.infer<typeof submitPaymentSchema>;
 export type VerifyPaymentDto = z.infer<typeof verifyPaymentSchema>;
+export type VendorConfirmPaymentDto = z.infer<typeof vendorConfirmPaymentSchema>;
 
 // ─── Invoice ──────────────────────────────────────────────────────────────────
 
@@ -184,6 +189,73 @@ export async function getMyPayments(userId: string, page: number, limit: number)
     prisma.payment.count({ where: { customerId: customer.id } }),
   ]);
   return { payments, total };
+}
+
+// ─── Vendor ───────────────────────────────────────────────────────────────────
+
+/** Vendor confirms cash-on-delivery or manual payment received for their order */
+export async function vendorConfirmPayment(
+  paymentId: string,
+  vendorUserId: string,
+  dto: VendorConfirmPaymentDto,
+) {
+  const payment = await prisma.payment.findUnique({
+    where: { id: paymentId },
+    include: {
+      invoice: {
+        include: {
+          order: { include: { items: { include: { product: { select: { vendorId: true } } } } } },
+          customer: { include: { user: true } },
+        },
+      },
+    },
+  });
+  if (!payment) throw AppError.notFound('Payment');
+
+  // Ensure the payment belongs to an order that has items from this vendor
+  const vendor = await prisma.vendor.findUnique({ where: { userId: vendorUserId } });
+  if (!vendor) throw AppError.forbidden('No vendor profile');
+  const hasItem = payment.invoice.order.items.some(i => i.product?.vendorId === vendor.id);
+  if (!hasItem) throw AppError.forbidden('Payment does not belong to your orders');
+
+  if (!['SUBMITTED', 'PENDING'].includes(payment.status)) {
+    throw AppError.badRequest('Payment is not in a confirmable state');
+  }
+
+  const now = new Date();
+  const updated = await prisma.$transaction(async (tx) => {
+    const p = await tx.payment.update({
+      where: { id: paymentId },
+      data: { status: 'COMPLETED', verifiedAt: now, completedAt: now, gatewayRef: dto.gatewayRef },
+    });
+    await tx.invoice.update({
+      where: { id: payment.invoiceId },
+      data: { status: 'PAID', paidAt: now },
+    });
+    await tx.order.update({
+      where: { id: payment.invoice.orderId },
+      data: { paymentStatus: 'PAID' },
+    });
+    await tx.paymentTransaction.create({
+      data: {
+        paymentId,
+        type: 'CREDIT',
+        amount: payment.amount,
+        description: `Payment confirmed by vendor (ref: ${dto.gatewayRef})`,
+      },
+    });
+    return p;
+  });
+
+  createNotification({
+    userId: payment.invoice.customer.user.id,
+    type: 'PAYMENT_STATUS',
+    title: 'Payment Confirmed',
+    message: `Your payment ${payment.billingNumber} has been confirmed.`,
+    metadata: { paymentId, invoiceId: payment.invoiceId },
+  }).catch(() => null);
+
+  return updated;
 }
 
 // ─── Admin ────────────────────────────────────────────────────────────────────

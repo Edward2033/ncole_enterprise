@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { authenticate } from '@/middleware/authenticate';
 import { authorize } from '@/middleware/authorize';
 import { validate } from '@/middleware/validate';
-import { submitPaymentSchema, verifyPaymentSchema, revenueReportSchema } from './billing.service';
+import { submitPaymentSchema, verifyPaymentSchema, vendorConfirmPaymentSchema, revenueReportSchema } from './billing.service';
 import {
   myInvoices,
   invoiceDetail,
@@ -12,6 +12,7 @@ import {
   adminInvoiceDetail,
   verifyPayment,
   revenueReport,
+  vendorConfirm,
 } from './billing.controller';
 
 const router = Router();
@@ -22,6 +23,9 @@ router.get('/invoices',           authorize('CUSTOMER','ADMIN','VENDOR','RIDER')
 router.get('/invoices/:id',       authorize('CUSTOMER','ADMIN','VENDOR','RIDER'), invoiceDetail);
 router.post('/invoices/:id/pay',  authorize('CUSTOMER','ADMIN','VENDOR','RIDER'), validate(submitPaymentSchema), payInvoice);
 router.get('/payments',           authorize('CUSTOMER','ADMIN','VENDOR','RIDER'), myPayments);
+
+// ─── Vendor routes ────────────────────────────────────────────────────────────
+router.patch('/vendor/payments/:id/confirm', authorize('VENDOR'), validate(vendorConfirmPaymentSchema), vendorConfirm);
 
 // ─── Admin routes ─────────────────────────────────────────────────────────────
 router.get('/admin/invoices/:id', authorize('ADMIN'), adminInvoiceDetail);

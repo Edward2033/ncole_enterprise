@@ -8,8 +8,10 @@ import {
   adminVerifyPayment,
   adminListPayments,
   adminRevenueReport,
+  vendorConfirmPayment,
   SubmitPaymentDto,
   VerifyPaymentDto,
+  VendorConfirmPaymentDto,
 } from './billing.service';
 import { BillingPaymentStatus } from '@prisma/client';
 
@@ -40,6 +42,12 @@ export async function myPayments(req: Request, res: Response, next: NextFunction
     const limit = Math.min(50, Number(req.query['limit']) || 10);
     const { payments, total } = await getMyPayments(req.user!.sub, page, limit);
     sendSuccess(res, payments, 200, { page, limit, total, totalPages: Math.ceil(total / limit) });
+  } catch (e) { next(e); }
+}
+
+export async function vendorConfirm(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    sendSuccess(res, await vendorConfirmPayment(req.params['id']!, req.user!.sub, req.body as VendorConfirmPaymentDto));
   } catch (e) { next(e); }
 }
 
