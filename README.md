@@ -460,59 +460,183 @@ The repository maintains a comprehensive commit history with meaningful, descrip
 
 ## 10. Deployment Link
 
-This project fully satisfies all assessment criteria for the UNILAK EWA408510 Final Examination (Project-Based) as specified in the course instructions.
+The application is deployed and accessible at the following URLs:
 
-### A. Functional Requirements — All Met (22 Marks)
+### Live Application
+**Primary URL**: https://ncole-enterprise.vercel.app
 
-| Component | Requirement | Implementation | Marks |
-|-----------|-------------|----------------|-------|
-| **1. User Interface (UI)** | Responsive and professional design, Homepage with navigation, Mobile-friendly, Consistent branding | Tailwind CSS + shadcn/ui, sticky navigation, hero slideshow, trust bar, category grid, featured products, live stats counter. Mobile-optimized (320px to 4K). Consistent N_COLE orange/slate branding across all portals. Dark mode support. | **5** |
-| **2. Product Management** | Product listing page, Product details page, Product categories, Product search and filtering | `ShopPage.tsx` with responsive grid/list toggle. `ProductDetail.tsx` with image gallery, variant selector, stock status, related products. Hierarchical categories with nested navigation and slug-based routing. Keyword search, category filter, price range filter, sort by price/name. | **4** |
-| **3. Shopping Cart** | Add products to cart, Remove products, Update quantities, Calculate totals automatically | `CartContext.tsx`, `CartPage.tsx`, `CartDrawer.tsx`. Full variant support. Increment/decrement controls. Real-time subtotal and total calculation. Guest cart persisted in localStorage, merged to backend cart on login. | **4** |
-| **4. Checkout Process** | Customer information collection, Order summary review, Form validation, Order confirmation page | `Checkout.tsx` with full address validation (name, phone, street, district, city, province). Saved address management with default selection. Payment method selection (MTN MoMo, Airtel Money, Cash on Delivery). Full order summary with item images, quantities, prices. `OrderConfirmation.tsx` with order number, payment instructions, billing link. Zod validation on all forms. | **4** |
-| **5. Database Integration** | Store product information, customer information, orders and transactions, relationships between entities | PostgreSQL 16 via Supabase with Prisma ORM. **20 models** covering all platform entities with proper foreign keys, indices, and constraints. All monetary values stored as integers in RWF. Soft deletion on orders and products. Idempotent invoice generation via unique `orderId` constraint. Complete relational schema documented in Section 8. | **5** |
+The frontend is deployed on **Vercel**, providing:
+- Global CDN distribution
+- Automatic SSL certificates
+- Zero-downtime deployments
+- Preview deployments for all branches
 
-**Subtotal: 22 Marks**
+### Backend API
+**API Base URL**: https://ncole-enterprise.onrender.com/api/v1  
+**Health Check**: https://ncole-enterprise.onrender.com/health
 
-### B. DevOps and Deployment Requirements — All Met (14 Marks)
+The backend is deployed on **Render**, providing:
+- Managed PostgreSQL database (via Supabase)
+- Automatic HTTPS
+- Health monitoring
+- Auto-scaling capabilities
 
-| Component | Requirement | Implementation | Marks |
-|-----------|-------------|----------------|-------|
-| **6. GitHub Repository** | Host project on GitHub, Maintain meaningful commit history, Proper project structure, Complete README.md | Repository: https://github.com/Edward2033/ncole_enterprise. Complete commit history with descriptive messages. Well-structured monorepo with backend/, frontend/, docs/, .github/workflows/. Comprehensive README.md with 24 sections covering all aspects. | **3** |
-| **7. Deployment** | Deploy application online, Ensure accessibility during evaluation, Provide deployment URL | **Live Application:** https://ncole-enterprise.vercel.app (Vercel). **Backend API:** https://ncole-enterprise.onrender.com/api/v1 (Render). Application remains accessible 24/7 with health checks. | **3** |
-| **8. CI/CD Pipeline** | Automated build process, Automated testing, Automated deployment, Evidence of workflow execution | GitHub Actions workflows: `ci.yml` (lint, type-check, build, smoke test on every push) and `deploy.yml` (automated deployment to Vercel + Render on main branch). PostgreSQL service container for backend tests. Docker image validation. Screenshots in Section 19.7 show successful execution. Workflow runs visible at: https://github.com/Edward2033/ncole_enterprise/actions | **4** |
-| **9. Docker Containerization** | Create Dockerfile, Use docker-compose.yml for multiple services, Successfully build and run using Docker, Include screenshots | Multi-stage `Dockerfile` for backend (Node.js 20) and frontend (Nginx). `docker-compose.yml` orchestrates 4 services: PostgreSQL, backend API, frontend, reverse proxy. Multi-stage builds reduce image size (~120MB backend vs ~800MB without). Non-root containers (UID 1001) with health checks. Screenshots in Section 19.8 show running containers. Complete implementation documented in Section 11. | **4** |
+### Deployment Status
+✅ **Frontend**: Live and accessible  
+✅ **Backend API**: Live and responding  
+✅ **Database**: Connected and operational  
+✅ **CI/CD**: Automated deployment pipeline active  
 
-**Subtotal: 14 Marks**
+### Testing the Deployment
 
-### C. Presentation & Oral Defense (4 Marks)
+1. **Visit the Application**: Navigate to https://ncole-enterprise.vercel.app
+2. **Browse Products**: Explore the shop page and product categories
+3. **Test Shopping Cart**: Add products to cart and update quantities
+4. **API Health Check**: Visit https://ncole-enterprise.onrender.com/health (should return `{"status":"ok"}`)
 
-| Component | Requirement | Preparedness |
-|-----------|-------------|--------------|
-| **10. Presentation** | Demonstrate functionality, Explain architecture, Present database design, Demonstrate GitHub usage, Explain CI/CD workflow, Demonstrate Docker deployment, Explain coding decisions, Answer questions | Fully prepared with: Live demo ready at https://ncole-enterprise.vercel.app. Architecture diagrams in Section 6. Database ER diagram and schema in Section 8. CI/CD pipeline explanation in Section 13. Docker implementation in Section 11. All code decisions documented. Technical depth demonstrated throughout report. | **4** |
-
-**Total Base Marks: 40**
-
-### Innovation Bonus Features — All Implemented (+5 Marks)
-
-The project implements multiple innovative features beyond the base requirements:
-
-| Feature | Implementation | Evidence |
-|---------|----------------|----------|
-| **AI-Powered Product Recommendations** | Google Gemini 2.0 Flash integrated across 5 user portals (Public, Customer, Vendor, Rider, Admin) with role-scoped system prompts and live database context injection. Multi-turn conversation history. Smart quota management. | Section 16 |
-| **Payment Gateway Integration** | MTN Mobile Money, Airtel Money integration (Rwanda-localized). Cash on Delivery support. Complete invoice generation and payment verification workflow. | Section 17 |
-| **Analytics Dashboard** | Vendor sales analytics with revenue-over-time charts and top-products ranking. Admin platform analytics with full platform snapshot. Real-time KPIs. | Sections 4.7, 4.8 |
-| **Advanced Security Features** | JWT with refresh token rotation (prevents token replay attacks). RBAC (role-based access control) on all protected routes. OTP 2FA for vendor/rider roles. Rate limiting (global + per-endpoint). Audit logging (append-only activity_logs). bcrypt password hashing. Non-root Docker containers. Helmet security headers. CORS whitelist. Zod validation on all endpoints. | Section 15 |
-| **Multi-Vendor Marketplace Functionality** | Complete vendor onboarding workflow with application approval system. Vendor product management with variants and SKU tracking. Order routing per vendor. Vendor-specific order fulfillment workflow. Vendor analytics dashboard. | Sections 4.6, 4.7 |
-| **Real-Time Notifications** | Event-driven in-app notification center on all portals. Auto-triggered on: order created, order status changes, payment status changes, vendor approval, rider assignment. Per-user notification preferences (toggle inApp, email, orderUpdates, promotions). | Section 18 |
-| **Unique and Creative Business Idea** | Rwanda-focused multi-vendor marketplace for printing, branding, office supplies, and business solutions. Addresses local SME digital commerce barriers. Native mobile money integration. Delivery rider management system. | Sections 2, 3 |
-
-**Bonus Total: +5 Marks**
+The application remains accessible 24/7 during the evaluation period and beyond.
 
 ---
 
-**Maximum Possible: 45 Marks**  
-**Project Achieves: 40 Base + 5 Bonus = 45 Marks**
+## 11. CI/CD Implementation
+
+### 11.1 Continuous Integration (`ci.yml`)
+
+**Triggers**: Push to `main`, `develop`, `feature/**`, `fix/**` branches; Pull Requests to `main` and `develop`.
+
+**Concurrency control**: Duplicate runs on the same branch are cancelled automatically to save runner minutes.
+
+**Backend CI Job — Steps:**
+1. Provision PostgreSQL 16 service container with health check
+2. Install dependencies (`npm ci --include=dev`)
+3. Validate Prisma schema (`prisma validate`)
+4. Generate Prisma client (`prisma generate`)
+5. Push schema to test database (`prisma db push`)
+6. TypeScript type check (`tsc --noEmit`) — zero errors required
+7. Production build (`npm run build`)
+8. Smoke test — start compiled server, curl `/health`, assert HTTP 200, kill server
+9. Upload build artifact (retained 7 days)
+
+**Frontend CI Job — Steps:**
+1. Install dependencies (`npm ci`)
+2. TypeScript type check (`tsc --noEmit`)
+3. Vite production build with `VITE_API_URL` injected as environment variable
+4. Upload build artifact (retained 7 days)
+
+**Docker Validation Job** (main/develop only):
+1. Build backend Docker image — validates multi-stage Dockerfile
+2. Build frontend Docker image — validates Nginx multi-stage build with build args
+3. Uses GitHub Actions layer cache (`type=gha`) for fast rebuilds
+
+**Security Audit Job:**
+- `npm audit --audit-level=high` on both backend and frontend
+- Backend: hard fail on high/critical vulnerabilities
+- Frontend: soft fail (continue-on-error) due to transitive dependency noise
+
+### 11.2 Continuous Deployment (`deploy.yml`)
+
+**Triggers**: Push to `main`, manual workflow dispatch.
+
+**Deployment Steps:**
+1. CI Gate — full CI pipeline must pass before deployment begins
+2. Build & Push Docker images to GitHub Container Registry (multi-platform)
+3. Deploy backend — Render webhook trigger + health check polling (12 retries × 15s)
+4. Run migrations — `prisma migrate deploy` against production database
+5. Deploy frontend — Vercel CLI `vercel deploy --prod`
+6. Failure notification — auto-creates GitHub Issue on deployment failure
+
+### 11.3 CI/CD Evidence
+
+CI/CD workflow runs are visible at:  
+**https://github.com/Edward2033/ncole_enterprise/actions**
+
+All workflows show green checkmarks for: Backend (type-check, Prisma validate, build, smoke test), Frontend (type-check, build), Docker Build Validation, and Security Audit.
+
+**Screenshot Evidence**: See Section 8.7 showing successful GitHub Actions workflow execution.
+
+---
+
+## 12. Docker Implementation
+
+### 12.1 Container Architecture
+
+| Container | Base Image | Port | Purpose |
+|-----------|-----------|------|---------|
+| `ncole-postgres` | `postgres:16-alpine` | 5432 | PostgreSQL database |
+| `ncole-backend` | `node:20-alpine` (multi-stage) | 4000 | Express API server |
+| `ncole-frontend` | `nginx:1.27-alpine` (multi-stage) | 5173 | React SPA static files |
+| `ncole-nginx` | `nginx:1.27-alpine` | 8080 | Reverse proxy entry point |
+
+### 12.2 Multi-Stage Build — Backend
+
+```dockerfile
+Stage 1: deps     → npm ci --only=production (production deps only)
+Stage 2: builder  → npm ci + tsc compile + prisma generate
+Stage 3: runner   → Copy compiled dist/ + prod node_modules, run as UID 1001
+```
+
+**Benefits**:
+- Final image size: ~120 MB (vs ~800 MB without multi-stage)
+- Separates build dependencies from runtime dependencies
+- Improves security by reducing attack surface
+
+### 12.3 Multi-Stage Build — Frontend
+
+```dockerfile
+Stage 1: builder  → npm ci + vite build (VITE_API_URL injected as build arg)
+Stage 2: runner   → Nginx serving /dist as static SPA with HTML5 history fallback
+```
+
+### 12.4 Docker Usage
+
+#### Development (with hot reload)
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+docker-compose down
+```
+
+#### Production
+```bash
+cp backend/.env.example .env.production
+# Edit .env.production
+
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+docker-compose logs -f backend
+docker-compose exec backend npx prisma migrate deploy
+```
+
+#### Docker Management Commands
+```bash
+# Check running containers
+docker-compose ps
+
+# View backend logs
+docker-compose logs -f backend
+
+# Run migrations inside container
+docker-compose exec backend npx prisma migrate deploy
+
+# Stop all containers
+docker-compose down
+```
+
+### 12.5 Security Hardening
+
+- All containers run as **UID 1001** (non-root) — prevents privilege escalation
+- `dumb-init` as PID 1 in backend — proper signal handling and zombie reaping
+- No secrets baked into images — all credentials via runtime environment variables only
+- Health checks on all services — Docker restarts unhealthy containers automatically
+- Read-only Nginx config mounts in production compose
+
+### 12.6 Docker Evidence
+
+**Screenshot**: See Section 8.8 showing four running containers:
+- `ncole-postgres` (PostgreSQL 16)
+- `ncole-backend` (Express API on port 4000)
+- `ncole-frontend` (Nginx serving React SPA on port 5173)
+- `ncole-nginx` (Reverse proxy on port 8080)
+
+All containers include health checks and proper logging configuration.
 
 ---
 
