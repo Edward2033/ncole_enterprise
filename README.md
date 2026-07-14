@@ -20,7 +20,6 @@ Kigali, Gasabo | Street KK 508 ST | P.O Box 6392 Kigali, Rwanda | +250 791 591 7
 | **Assessment Type** | Final Examination (Project-Based) |
 | **Duration** | 13 Days |
 | **Submission Period** | 21 June – 3 July 2026 |
-| **Maximum Marks** | 40 Marks (+5 Bonus Marks) |
 | **Academic Year** | 2025 – 2026 |
 | **Student Name** | Edward Y. Cole |
 | **Registration Number** | 25260/2024 |
@@ -51,21 +50,6 @@ Kigali, Gasabo | Street KK 508 ST | P.O Box 6392 Kigali, Rwanda | +250 791 591 7
 13. [Challenges Encountered](#13-challenges-encountered)
 14. [Future Enhancements](#14-future-enhancements)
 15. [Conclusion](#15-conclusion)
-
----
-
-## Additional Sections (For Implementation Reference)
-
-- [Project Structure](#project-structure)
-- [Installation & Local Development](#installation--local-development)
-- [Environment Configuration](#environment-configuration)
-- [API Reference](#api-reference)
-- [Security Features](#security-features)
-- [AI Assistant](#ai-assistant)
-- [Billing & Payments](#billing--payments)
-- [Notifications](#notifications)
-- [Exam Compliance — EWA408510](#exam-compliance--ewa408510)
-- [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -321,166 +305,9 @@ All five portals are served from a single React SPA with role-based route guards
 
 ---
 
-## 7. Project Structure
-
-```
-N_cole/
-├── .github/
-│   └── workflows/
-│       ├── ci.yml                  # Lint + type-check on every push
-│       └── deploy.yml              # Deploy to Render + Vercel on main
-│
-├── backend/                        # Express API — all business logic
-│   ├── prisma/
-│   │   ├── schema.prisma           # Full DB schema (15 models)
-│   │   └── seed.ts                 # Dev seed data
-│   └── src/
-│       ├── config/
-│       │   ├── database.ts         # Prisma client singleton
-│       │   ├── env.ts              # Zod-validated environment config
-│       │   └── logger.ts           # Winston logger
-│       ├── middleware/
-│       │   ├── authenticate.ts     # JWT Bearer token verification
-│       │   ├── authorize.ts        # RBAC role enforcement
-│       │   ├── errorHandler.ts     # Global error handler
-│       │   ├── rateLimiter.ts      # express-rate-limit config
-│       │   └── validate.ts         # Zod request body validation
-│       ├── modules/
-│       │   ├── addresses/          # Address CRUD
-│       │   ├── ai/
-│       │   │   ├── ai.context.ts   # DB context builder (per portal)
-│       │   │   ├── ai.controller.ts
-│       │   │   ├── ai.prompts.ts   # Role-scoped system prompts
-│       │   │   ├── ai.routes.ts    # POST /api/v1/ai/chat
-│       │   │   └── ai.service.ts   # Gemini 2.0 Flash integration
-│       │   ├── auth/               # Register, login, refresh, logout, password reset
-│       │   ├── billing/            # Invoices & payments
-│       │   ├── cart/               # Cart + cart items
-│       │   ├── categories/         # Product categories (nested)
-│       │   ├── notifications/      # In-app notifications + preferences
-│       │   ├── orders/             # Order placement & status management
-│       │   ├── products/
-│       │   │   ├── products.controller.ts
-│       │   │   ├── products.routes.ts
-│       │   │   ├── products.service.ts
-│       │   │   └── upload.routes.ts  # POST /products/upload-image (Cloudinary)
-│       │   ├── riders/             # Rider delivery routes
-│       │   ├── settings/           # Platform settings + maintenance mode
-│       │   ├── users/              # User profile, admin user management
-│       │   └── vendors/            # Vendor profiles + backfill
-│       └── shared/
-│           ├── errors/
-│           │   └── AppError.ts     # Typed HTTP error class
-│           ├── types/
-│           │   └── express.d.ts    # req.user type augmentation
-│           └── utils/
-│               ├── audit.ts        # Fire-and-forget activity logging
-│               ├── email.ts        # Resend SDK email helper
-│               ├── hash.ts         # bcrypt helpers
-│               ├── jwt.ts          # sign / verify JWT
-│               └── response.ts     # sendSuccess / sendError helpers
-│   ├── app.ts                      # Express app setup (routes, middleware)
-│   ├── server.ts                   # Entry point (dotenv, DB connect, listen)
-│   ├── Dockerfile
-│   ├── .env.example
-│   ├── package.json
-│   └── tsconfig.json
-│
-├── frontend/                       # Unified React frontend (all portals)
-│   ├── public/
-│   │   └── robots.txt
-│   └── src/
-│       ├── components/
-│       │   ├── admin/              # AdminBadge, AdminModal, AdminSearch, AdminTable
-│       │   ├── ui/                 # shadcn/ui component library
-│       │   ├── AdminLayout.tsx
-│       │   ├── AppLayout.tsx
-│       │   ├── AuthPromptModal.tsx
-│       │   ├── CartDrawer.tsx
-│       │   ├── CustomerShell.tsx
-│       │   ├── Footer.tsx
-│       │   ├── Header.tsx
-│       │   ├── Hero.tsx
-│       │   ├── Layout.tsx
-│       │   ├── ProductCard.tsx
-│       │   ├── ProductGrid.tsx
-│       │   ├── RiderLayout.tsx
-│       │   ├── theme-provider.tsx
-│       │   └── VendorLayout.tsx
-│       ├── contexts/
-│       │   ├── AppContext.tsx
-│       │   ├── AuthContext.tsx
-│       │   └── CartContext.tsx
-│       ├── features/
-│       │   └── ai/
-│       │       ├── aiApi.ts        # apiFetch wrapper for POST /ai/chat
-│       │       ├── AiChat.tsx      # Portal-aware floating chat widget
-│       │       └── PublicAiChat.tsx # Public storefront chat widget
-│       ├── hooks/
-│       │   ├── use-mobile.tsx
-│       │   ├── use-toast.ts
-│       │   ├── useAuthGuard.ts
-│       │   └── useProducts.ts
-│       ├── lib/
-│       │   ├── adminFormat.ts
-│       │   ├── format.ts
-│       │   ├── types.ts
-│       │   └── utils.ts
-│       ├── pages/
-│       │   ├── admin/              # AdminActivityLogPage, AdminAnalyticsPage, AdminBillingPage ...
-│       │   ├── customer/           # CustomerDashboardPage, AddressesPage
-│       │   ├── rider/              # RiderDashboardPage, RiderDeliveriesPage, RiderEarningsPage ...
-│       │   ├── vendor/             # VendorDashboardPage, VendorProductsPage, VendorOrdersPage ...
-│       │   ├── Home.tsx            # Storefront landing page
-│       │   ├── ShopPage.tsx
-│       │   ├── ProductDetail.tsx
-│       │   ├── CartPage.tsx
-│       │   ├── Checkout.tsx
-│       │   ├── OrdersPage.tsx
-│       │   ├── BillingPage.tsx
-│       │   ├── AuthPage.tsx
-│       │   └── ...
-│       ├── routes/
-│       │   ├── AdminRoute.tsx
-│       │   ├── ProtectedRoute.tsx
-│       │   ├── RiderRoute.tsx
-│       │   └── VendorRoute.tsx
-│       ├── services/
-│       │   ├── api.ts              # apiFetch + all typed service helpers
-│       │   └── adminApi.ts         # Admin-specific API calls
-│       ├── App.tsx
-│       └── main.tsx
-│   ├── Dockerfile
-│   ├── nginx.conf                  # Frontend Nginx config (SPA fallback)
-│   ├── .env                        # VITE_API_URL=http://localhost:4000/api/v1
-│   ├── tailwind.config.ts
-│   └── vite.config.ts
-│
-├── nginx/
-│   └── default.conf                # Reverse proxy config
-│
-├── scripts/
-│   ├── init.sql                    # DB initialisation script
-│   ├── backup.sh
-│   └── restore.sh
-│
-├── docs/
-│   ├── API.md                      # Full API request/response examples
-│   ├── DATABASE.md                 # Schema documentation
-│   ├── DEVOPS.md                   # Docker & deployment guide
-│   └── ORAL_DEFENSE.md             # Oral defense preparation guide
-│
-├── docker-compose.yml
-├── docker-compose.dev.yml
-├── docker-compose.prod.yml
-└── README.md
-```
-
----
-
 ## 7. Database Design
 
-### 8.1 Entity Overview
+### 7.1 Entity Overview
 
 The database contains **20 models** organised into 6 domains:
 
@@ -493,7 +320,7 @@ The database contains **20 models** organised into 6 domains:
 | **Billing** | `invoices`, `payments`, `payment_transactions` |
 | **Platform** | `notifications`, `notification_preferences`, `activity_logs` |
 
-### 8.2 Core Entity Relationships
+### 7.2 Core Entity Relationships
 
 ```
 User (1) ──── (1) Vendor
@@ -512,7 +339,7 @@ Category (1) ──── (N) Product
 Category (1) ──── (N) Category  [self-referential tree]
 ```
 
-### 8.3 Key Design Decisions
+### 7.3 Key Design Decisions
 
 1. **Integer monetary values (RWF)**: All prices, totals, and amounts stored as integers — eliminates floating-point precision errors in financial calculations.
 2. **Soft deletion**: `deletedAt` field on `orders` and `products` preserves audit trail without losing data.
@@ -521,7 +348,7 @@ Category (1) ──── (N) Category  [self-referential tree]
 5. **ActivityLog append-only**: No updates or deletes permitted on audit records — full tamper-evident history.
 6. **OTP for VENDOR/RIDER login**: Two-factor authentication enforced for privileged roles via time-limited OTP codes.
 
-### 8.4 Invoice and Order Number Format
+### 7.4 Invoice and Order Number Format
 
 ```
 INV-{YEAR}-{SEQUENCE}  →  INV-2026-000001
@@ -529,7 +356,7 @@ PAY-{YEAR}-{SEQUENCE}  →  PAY-2026-000001
 ORD-{YEAR}-{SEQUENCE}  →  ORD-2026-000001
 ```
 
-### 8.5 Key Database Enums
+### 7.5 Key Database Enums
 
 | Enum | Values |
 |------|--------|
