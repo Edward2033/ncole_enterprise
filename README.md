@@ -24,7 +24,7 @@ Kigali, Gasabo | Street KK 508 ST | P.O Box 6392 Kigali, Rwanda | +250 791 591 7
 | **Academic Year** | 2025 – 2026 |
 | **Student Name** | Edward Y. Cole |
 | **Registration Number** | 25260/2024 |
-| **Submission Date** | 19 June 2026 |
+| **Submission Date** | 19 July 2026 |
 
 ---
 
@@ -36,34 +36,40 @@ Kigali, Gasabo | Street KK 508 ST | P.O Box 6392 Kigali, Rwanda | +250 791 591 7
 
 ## Table of Contents
 
-1. [Project Overview](#1-project-overview)
+1. [Introduction](#1-introduction)
 2. [Problem Statement](#2-problem-statement)
 3. [Project Objectives](#3-project-objectives)
 4. [System Features](#4-system-features)
-5. [Technology Stack](#5-technology-stack)
+5. [Technologies Used](#5-technologies-used)
 6. [System Architecture](#6-system-architecture)
-7. [Project Structure](#7-project-structure)
-8. [Database Design](#8-database-design)
-9. [Installation & Local Development](#9-installation--local-development)
-10. [Environment Configuration](#10-environment-configuration)
-11. [Docker Implementation](#11-docker-implementation)
-12. [Deployment](#12-deployment)
-13. [CI/CD Implementation](#13-cicd-implementation)
-14. [API Reference](#14-api-reference)
-15. [Security Features](#15-security-features)
-16. [AI Assistant](#16-ai-assistant)
-17. [Billing & Payments](#17-billing--payments)
-18. [Notifications](#18-notifications)
-19. [Screenshots](#19-screenshots)
-20. [Exam Compliance — EWA408510](#20-exam-compliance--ewa408510)
-21. [Challenges Encountered](#21-challenges-encountered)
-22. [Future Enhancements](#22-future-enhancements)
-23. [Troubleshooting](#23-troubleshooting)
-24. [Conclusion](#24-conclusion)
+7. [Database Design](#7-database-design)
+8. [Screenshots of the Application](#8-screenshots-of-the-application)
+9. [GitHub Repository Link](#9-github-repository-link)
+10. [Deployment Link](#10-deployment-link)
+11. [CI/CD Implementation](#11-cicd-implementation)
+12. [Docker Implementation](#12-docker-implementation)
+13. [Challenges Encountered](#13-challenges-encountered)
+14. [Future Enhancements](#14-future-enhancements)
+15. [Conclusion](#15-conclusion)
 
 ---
 
-## 1. Project Overview
+## Additional Sections (For Implementation Reference)
+
+- [Project Structure](#project-structure)
+- [Installation & Local Development](#installation--local-development)
+- [Environment Configuration](#environment-configuration)
+- [API Reference](#api-reference)
+- [Security Features](#security-features)
+- [AI Assistant](#ai-assistant)
+- [Billing & Payments](#billing--payments)
+- [Notifications](#notifications)
+- [Exam Compliance — EWA408510](#exam-compliance--ewa408510)
+- [Troubleshooting](#troubleshooting)
+
+---
+
+## 1. Introduction
 
 ### Project Scenario
 
@@ -225,7 +231,7 @@ N_COLE Interpress directly addresses each of these challenges through a purpose-
 
 ---
 
-## 5. Technology Stack
+## 5. Technologies Used
 
 | Category | Technology | Justification |
 |----------|-----------|---------------|
@@ -472,7 +478,7 @@ N_cole/
 
 ---
 
-## 8. Database Design
+## 7. Database Design
 
 ### 8.1 Entity Overview
 
@@ -714,7 +720,47 @@ VITE_API_URL, PRODUCTION_DATABASE_URL
 
 ---
 
-## 13. CI/CD Implementation
+## 10. Deployment Link
+
+The application is deployed and accessible at the following URLs:
+
+### Live Application
+**Primary URL**: https://ncole-enterprise.vercel.app
+
+The frontend is deployed on **Vercel**, providing:
+- Global CDN distribution
+- Automatic SSL certificates
+- Zero-downtime deployments
+- Preview deployments for all branches
+
+### Backend API
+**API Base URL**: https://ncole-enterprise.onrender.com/api/v1  
+**Health Check**: https://ncole-enterprise.onrender.com/health
+
+The backend is deployed on **Render**, providing:
+- Managed PostgreSQL database (via Supabase)
+- Automatic HTTPS
+- Health monitoring
+- Auto-scaling capabilities
+
+### Deployment Status
+✅ **Frontend**: Live and accessible  
+✅ **Backend API**: Live and responding  
+✅ **Database**: Connected and operational  
+✅ **CI/CD**: Automated deployment pipeline active  
+
+### Testing the Deployment
+
+1. **Visit the Application**: Navigate to https://ncole-enterprise.vercel.app
+2. **Browse Products**: Explore the shop page and product categories
+3. **Test Shopping Cart**: Add products to cart and update quantities
+4. **API Health Check**: Visit https://ncole-enterprise.onrender.com/health (should return `{"status":"ok"}`)
+
+The application remains accessible 24/7 during the evaluation period and beyond.
+
+---
+
+## 11. CI/CD Implementation
 
 ### 13.1 Continuous Integration (`ci.yml`)
 
@@ -761,16 +807,18 @@ VITE_API_URL, PRODUCTION_DATABASE_URL
 5. Deploy frontend — Vercel CLI `vercel deploy --prod`
 6. Failure notification — auto-creates GitHub Issue on deployment failure
 
-### 13.3 CI/CD Evidence
+### 11.3 CI/CD Evidence
 
 CI/CD workflow runs are visible at:  
 **https://github.com/Edward2033/ncole_enterprise/actions**
 
 All workflows show green checkmarks for: Backend (type-check, Prisma validate, build, smoke test), Frontend (type-check, build), Docker Build Validation, and Security Audit.
 
+**Screenshot Evidence**: See Section 8.7 showing successful GitHub Actions workflow execution.
+
 ---
 
-## 14. API Reference
+## 12. Docker Implementation
 
 Base URL: `http://localhost:4000/api/v1` (dev) · `https://api.ncoleinterpress.com/api/v1` (prod)
 
@@ -853,53 +901,53 @@ Supported gateways: MTN MoMo, Airtel Money, Stripe, Manual (Cash on Delivery).
 
 ---
 
-## 19. Screenshots
+## 8. Screenshots of the Application
 
 > All screenshots are stored in `docs/images/`.
 
-### 19.1 Homepage — Public Storefront
+### 8.1 Homepage — Public Storefront
 
 ![Homepage](docs/images/homepage.png)
 
 The homepage features a hero slideshow with call-to-action buttons, a trust bar (free delivery, verified vendors, same-day dispatch, AI-powered), a category grid, featured products section, AI assistant banner, trending products, and a live stats counter showing active vendors, products, customers, and completed orders. The sticky header includes search, cart icon with item count badge, and user account dropdown.
 
-### 19.2 Shop Page — Product Listing, Search & Filter
+### 8.2 Shop Page — Product Listing, Search & Filter
 
 ![Shop Page](docs/images/shop.png)
 
 The shop page (`/shop`) displays all active products in a responsive grid. The sidebar provides keyword search, category filter with product counts, and price range presets. A toolbar allows switching between grid and list view and sorting by price or name. Active filters are shown with a badge. Pagination appears when results exceed 16 products.
 
-### 19.3 Product Detail Page
+### 8.3 Product Detail Page
 
 ![Product Detail](docs/images/product-detail.png)
 
 The product detail page shows a full image gallery with thumbnail strip, vendor name, category breadcrumb, product title, star rating, price with stock badge, variant selector buttons, quantity controls, and an Add to Cart button. Tabbed panels below show Description, Specifications, and Reviews. Related products appear at the bottom.
 
-### 19.4 Shopping Cart
+### 8.4 Shopping Cart
 
 ![Shopping Cart](docs/images/cart.png)
 
 The cart page lists each item with image, name, selected variant, unit price, and a quantity stepper (increment/decrement). The subtotal and order total update automatically on every change. Items can be removed individually. A Proceed to Checkout button navigates to the checkout flow. Guest cart is persisted in localStorage and merged into the backend cart on login.
 
-### 19.5 Vendor Dashboard
+### 8.5 Vendor Dashboard
 
 ![Vendor Dashboard](docs/images/Vendor_dashboard.png)
 
 The vendor dashboard shows KPI cards for total revenue, total orders, active products, and delivered orders. A low-stock alert panel highlights products with 5 or fewer units. Quick action links navigate to Products, Orders, Analytics, and Notifications. The bottom panels show the vendor's product list and recent orders side by side.
 
-### 19.6 Admin Dashboard
+### 8.6 Admin Dashboard
 
 ![Admin Dashboard](docs/images/admin_dashboard.png)
 
 The admin dashboard provides platform-wide KPIs: total revenue, orders, users, and vendors. It includes a recent orders table, pending payment verifications, and quick navigation to all admin modules. The admin can toggle maintenance mode, broadcast notifications, and access the full audit activity log.
 
-### 19.7 GitHub Actions — CI/CD Pipeline
+### 8.7 GitHub Actions — CI/CD Pipeline
 
 ![GitHub Actions](docs/images/github_workflow_actions.png)
 
 The CI pipeline at `https://github.com/Edward2033/ncole_enterprise/actions` shows green checkmarks for all jobs: Backend (type-check, Prisma validate, build, smoke test), Frontend (type-check, build), Docker Build Validation, and Security Audit. The CD pipeline triggers on push to `main` and deploys to Render and Vercel automatically.
 
-### 19.8 Docker Containers Running
+### 8.8 Docker Containers Running
 
 ![Docker Screenshot](docs/images/docker_screenshot.png)
 
@@ -907,7 +955,42 @@ Running `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --bui
 
 ---
 
-## 20. Exam Compliance — EWA408510
+## 9. GitHub Repository Link
+
+**Repository URL**: https://github.com/Edward2033/ncole_enterprise
+
+### Repository Structure
+
+The repository is organized as a monorepo with clear separation of concerns:
+
+```
+N_cole/
+├── .github/workflows/     # CI/CD pipelines (ci.yml, deploy.yml)
+├── backend/              # Express API — TypeScript, Prisma, all business logic
+├── frontend/             # React 18 SPA — all 5 portals in one unified app
+├── nginx/                # Reverse proxy configuration
+├── scripts/              # DB init, backup, restore scripts
+├── docs/                 # API docs, database docs, DevOps guide
+├── docker-compose.yml    # Production Docker orchestration
+└── README.md            # Complete project documentation
+```
+
+### Commit History
+
+The repository maintains a comprehensive commit history with meaningful, descriptive commit messages throughout development covering:
+- Feature implementations
+- Bug fixes
+- DevOps improvements
+- Documentation updates
+- Security enhancements
+
+**View Repository**: https://github.com/Edward2033/ncole_enterprise  
+**View Commits**: https://github.com/Edward2033/ncole_enterprise/commits/main  
+**View Actions**: https://github.com/Edward2033/ncole_enterprise/actions
+
+---
+
+## 10. Deployment Link
 
 This project fully satisfies all assessment criteria for the UNILAK EWA408510 Final Examination (Project-Based) as specified in the course instructions.
 
@@ -965,9 +1048,9 @@ The project implements multiple innovative features beyond the base requirements
 
 ---
 
-## 21. Challenges Encountered
+## 13. Challenges Encountered
 
-### 21.1 Technical Challenges
+### 13.1 Technical Challenges
 
 **Gemini API quota management**: The free tier has per-minute and daily quotas. Implemented smart 429 detection that distinguishes daily exhaustion (`PerDay` quota string) from per-minute rate limits, returning user-friendly messages with retry times rather than generic 500 errors.
 
@@ -979,7 +1062,7 @@ The project implements multiple innovative features beyond the base requirements
 
 **Docker non-root Nginx permissions**: Nginx default configuration writes to root-owned directories (`/var/cache/nginx`, `/var/run`). Fixed by pre-creating all required directories with correct ownership during the image build stage.
 
-### 21.2 Design Challenges
+### 13.2 Design Challenges
 
 **Multi-portal authentication in one SPA**: Five distinct user roles all authenticating against one API with different role-based views. Solved with role-aware route guards (`AdminRoute`, `VendorRoute`, `RiderRoute`, `ProtectedRoute`) with automatic redirects based on the authenticated user's role.
 
@@ -989,7 +1072,7 @@ The project implements multiple innovative features beyond the base requirements
 
 ---
 
-## 22. Future Enhancements
+## 14. Future Enhancements
 
 | Priority | Enhancement | Description |
 |----------|-------------|-------------|
@@ -1033,7 +1116,7 @@ This only needs to be done once per Supabase project. It is safe to re-run — a
 
 ---
 
-## 24. Conclusion
+## 15. Conclusion
 
 N_COLE Interpress is a complete, production-grade, multi-vendor e-commerce marketplace that fully satisfies all requirements of the EWA408510 Final Examination (Project-Based) as specified by UNILAK.
 
@@ -1124,4 +1207,4 @@ This project represents not only fulfillment of academic requirements but also t
 
 *Report submitted in fulfilment of EWA408510 – E-Commerce and Web Application  
 University of Lay Adventists of Kigali (UNILAK) | 2025-2026 Academic Year  
-Submitted by: Edward Y. Cole | Registration Number: 25260/2024 | Date: 19 June 2026*
+Submitted by: Edward Y. Cole | Registration Number: 25260/2024 | Date: 19 July 2026*
