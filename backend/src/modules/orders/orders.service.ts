@@ -41,59 +41,97 @@ async function ensureCustomer(userId: string) {
 }
 
 export async function placeOrder(userId: string, dto: PlaceOrderDto) {
-  // Ensure customer profile exists (auto-create if needed)
   const customer = await ensureCustomer(userId);
 
   const address = await prisma.address.findFirst({ where: { id: dto.addressId, userId } });
   if (!address) throw AppError.notFound('Address');
-
-  // Validate all products exist and vendorIds are correct
-  for (const item of dto.items) {
-    const product = await prisma.product.findFirst({
-      where: { id: item.productId, deletedAt: null },
-    });
-    if (!product) throw AppError.badRequest(`Product ${item.productId} not found or unavailable`);
-  }
 
   const subtotal    = dto.items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
   const deliveryFee = 0;
   const tax         = 0;
   const total       = subtotal + deliveryFee + tax;
 
-  // Use a direct nested write instead of an interactive transaction.
-  // prisma.$transaction(async tx=>{}) requires a persistent connection which
-  // is incompatible with Supabase PgBouncer transaction-mode pooling (port 6543).
-  // Nested writes (items: { create: [...] }) are already executed atomically
-  // by Prisma in a single implicit transaction — no wrapper needed.
-  const order = await prisma.order.create({
-    data: {
-      orderNumber:   generateOrderNumber(),
-      customerId:    customer.id,
-      addressId:     dto.addressId,
-      paymentMethod: dto.paymentMethod,
-      notes:         dto.notes,
-      subtotal,
-      deliveryFee,
-      tax,
-      total,
-      items: {
-        create: dto.items.map((item) => ({
-          productId:    item.productId,
-          variantId:    item.variantId ?? null,
-          vendorId:     item.vendorId,
-          productName:  item.productName,
-          variantTitle: item.variantTitle ?? null,
-          sku:          item.sku ?? null,
-          quantity:     item.quantity,
-          unitPrice:    item.unitPrice,
-          total:        item.unitPrice * item.quantity,
-        })),
-      },
-    },
-    include: { items: true },
-  });
+  // Run stock check, order creation, and stock decrement inside a single
+  // serializable transaction so concurrent orders cannot both pass the stock
+  // check and drive quantity negative.
+  const order = await prisma.$transaction(async (tx) => {
+    // 1. Validate and lock stock rows
+    for (const item of dto.items) {
+      if (item.variantId) {
+        const variant = await tx.productVariant.findFirst({
+          where: { id: item.variantId, product: { deletedAt: null } },
+        });
+        if (!variant) throw AppError.badRequest(`Variant ${item.variantId} not found`);
+        if (variant.stockQty < item.quantity)
+          throw AppError.badRequest(
+            variant.stockQty === 0
+              ? `"${item.productName}" is out of stock`
+              : `Only ${variant.stockQty} unit(s) of "${item.productName}" available`,
+          );
+      } else {
+        const product = await tx.product.findFirst({
+          where: { id: item.productId, deletedAt: null },
+        });
+        if (!product) throw AppError.badRequest(`Product ${item.productId} not found or unavailable`);
+        if (product.stockQty < item.quantity)
+          throw AppError.badRequest(
+            product.stockQty === 0
+              ? `"${item.productName}" is out of stock`
+              : `Only ${product.stockQty} unit(s) of "${item.productName}" available`,
+          );
+      }
+    }
 
-  // Fire notification + auto-generate invoice (non-blocking)
+    // 2. Create the order
+    const newOrder = await tx.order.create({
+      data: {
+        orderNumber:   generateOrderNumber(),
+        customerId:    customer.id,
+        addressId:     dto.addressId,
+        paymentMethod: dto.paymentMethod,
+        notes:         dto.notes,
+        subtotal,
+        deliveryFee,
+        tax,
+        total,
+        items: {
+          create: dto.items.map((item) => ({
+            productId:    item.productId,
+            variantId:    item.variantId ?? null,
+            vendorId:     item.vendorId,
+            productName:  item.productName,
+            variantTitle: item.variantTitle ?? null,
+            sku:          item.sku ?? null,
+            quantity:     item.quantity,
+            unitPrice:    item.unitPrice,
+            total:        item.unitPrice * item.quantity,
+          })),
+        },
+      },
+      include: { items: true },
+    });
+
+    // 3. Decrement stock atomically — WHERE stockQty >= quantity prevents
+    //    negative stock even if two transactions pass the check simultaneously.
+    await Promise.all(
+      dto.items.map((item) => {
+        if (item.variantId) {
+          return tx.productVariant.updateMany({
+            where: { id: item.variantId, stockQty: { gte: item.quantity } },
+            data:  { stockQty: { decrement: item.quantity } },
+          });
+        }
+        return tx.product.updateMany({
+          where: { id: item.productId, stockQty: { gte: item.quantity }, deletedAt: null },
+          data:  { stockQty: { decrement: item.quantity } },
+        });
+      }),
+    );
+
+    return newOrder;
+  }, { timeout: 10000 });
+
+  // Fire notification + auto-generate invoice (non-blocking, outside transaction)
   notifyOrderCreated(userId, order.orderNumber, order.id).catch(() => null);
   generateInvoiceForOrder(order.id).catch(() => null);
 
@@ -248,6 +286,24 @@ export async function updateOrderStatus(
   }
 
   const updated = await prisma.order.update({ where: { id }, data: { status: dto.status } });
+
+  // Restore stock when an order is cancelled (only if it wasn't already cancelled)
+  if (dto.status === 'CANCELLED' && order.status !== 'CANCELLED') {
+    await Promise.all(
+      order.items.map((item) => {
+        if (item.variantId) {
+          return prisma.productVariant.updateMany({
+            where: { id: item.variantId },
+            data:  { stockQty: { increment: item.quantity } },
+          });
+        }
+        return prisma.product.updateMany({
+          where: { id: item.productId, deletedAt: null },
+          data:  { stockQty: { increment: item.quantity } },
+        });
+      }),
+    );
+  }
 
   // Notify customer (non-blocking)
   if (order.customer?.userId) {
